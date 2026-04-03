@@ -1,6 +1,6 @@
 module github.com/zokastech/aegis/aegis-gateway
 
-go 1.22
+go 1.23
 
 require (
 	github.com/coreos/go-oidc/v3 v3.11.0
@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.12.0
 	github.com/prometheus/client_golang v1.19.1
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.35.0
 	github.com/sony/gobreaker v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
@@ -27,7 +27,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
@@ -48,7 +48,7 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
