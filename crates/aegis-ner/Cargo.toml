@@ -26,4 +26,4 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokenizers = { version = "0.21", default-features = true }
 tracing = { workspace = true }
-ureq = { version = "2.9", optional = true }
+ureq = { version = "3.3", optional = true }
