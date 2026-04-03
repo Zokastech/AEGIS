@@ -1,0 +1,13 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+groups:
+  - name: aegis-gateway
+    rules:
+      - alert: AegisGatewayDown
+        expr: up{job="aegis-gateway"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Le job Prometheus aegis-gateway est down."
+          description: "Vérifier le conteneur aegis-gateway et le réseau aegis-backend."

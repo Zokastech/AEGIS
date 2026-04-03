@@ -1,0 +1,3 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Rapport de performance (graphiques + HTML)
+matplotlib>=3.8.0

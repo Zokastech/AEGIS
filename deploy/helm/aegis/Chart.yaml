@@ -1,0 +1,47 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+apiVersion: v2
+name: aegis
+description: >-
+  AEGIS (Advanced European Guardian for Information Security) — déploiement Kubernetes
+  du moteur Rust (core), de la passerelle API Go (gateway), du dashboard React, Redis optionnel,
+  ingress TLS (cert-manager), autoscaling (CPU + métriques Prometheus via adapter), NetworkPolicy
+  et contextes de sécurité restrictifs. Projet européen par zokastech.fr.
+type: application
+version: 0.3.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.25.0-0"
+home: https://zokastech.fr
+icon: https://zokastech.fr/favicon.ico
+sources:
+  - https://github.com/zokastech/aegis
+keywords:
+  - pii
+  - gdpr
+  - lgpd
+  - security
+  - anonymization
+  - ner
+  - compliance
+  - zokastech
+  - aegis
+  - api-gateway
+maintainers:
+  - name: zokastech
+    email: contact@zokastech.fr
+    url: https://zokastech.fr
+annotations:
+  zokastech.fr/project: aegis
+  zokastech.fr/brand-primary: "#1a56db"
+  zokastech.fr/brand-accent: "#d4a843"
+  zokastech.fr/brand-ink: "#0a0f1a"
+  artifacthub.io/license: Apache-2.0 OR MIT
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/recommendations: |
+    - url: https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack
+  artifacthub.io/links: |
+    - name: Site
+      url: https://zokastech.fr
+    - name: Source
+      url: https://github.com/zokastech/aegis
+    - name: Charts (exemple)
+      url: https://charts.zokastech.fr

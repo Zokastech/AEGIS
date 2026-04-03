@@ -1,0 +1,52 @@
+# AEGIS — zokastech.fr — https://zokastech.fr
+/target/
+**/*.rs.bk
+
+# Go / air
+aegis-gateway/aegis-gateway
+aegis-gateway/tmp/
+*.exe
+*.test
+vendor/
+
+# Node / frontend
+node_modules/
+dist/
+.next/
+*.tsbuildinfo
+aegis-dashboard/dist/
+aegis-dashboard/storybook-static/
+sdk-nodejs/dist/
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+.env
+.env.local
+
+# Logs / coverage
+*.log
+coverage/
+
+# MkDocs
+site/
+zokastech
+.cursor
+.vscode
+.agents

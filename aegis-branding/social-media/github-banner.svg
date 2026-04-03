@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AEGIS | GitHub profile header 1280x640 | zokastech.fr -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
+  <title>AEGIS GitHub banner</title>
+  <defs>
+    <linearGradient id="gh-bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a1f3a"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="gh-sh" x1="32" y1="4" x2="32" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066ff"/>
+      <stop offset="1" stop-color="#00d9ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#gh-bg)"/>
+  <path d="M0 520 L1280 520" stroke="#00d9ff" stroke-opacity="0.25" stroke-width="2"/>
+  <g transform="translate(72 140) scale(5.5)">
+    <path
+      d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
+      stroke="url(#gh-sh)"
+      stroke-width="4"
+      stroke-linejoin="miter"
+      fill="none"
+    />
+    <path
+      d="M32 18 20 24.5V40c0 6.2 4.4 12 12 15 7.6-3 12-8.8 12-15V24.5L32 18Z"
+      fill="#0066ff"
+      fill-opacity="0.2"
+      stroke="#00d9ff"
+      stroke-width="2"
+      stroke-linejoin="miter"
+    />
+  </g>
+  <text x="460" y="280" font-family="Inter Tight, Inter, system-ui, sans-serif" font-size="112" font-weight="900" fill="#f8f9fa" letter-spacing="0.06em">AEGIS</text>
+  <text x="460" y="360" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="500" fill="#00d9ff">Framework cybers&#233;curit&#233; &amp; cloud</text>
+  <text x="460" y="430" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="400" fill="#e5e7eb" opacity="0.9">Innovate &#183; Connect &#183; Grow - Zokastech</text>
+</svg>

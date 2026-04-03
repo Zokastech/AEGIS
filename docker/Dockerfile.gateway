@@ -1,0 +1,63 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+#
+# Gateway Go + moteur Rust (aegis-ffi, CGO, tag aegisffi). Image runtime Debian slim avec .so embarquée.
+
+# --- Moteur Rust (cdylib) ----------------------------------------------------
+FROM rust:1-bookworm AS rustlib
+
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+COPY benchmarks ./benchmarks
+RUN cargo build --release -p aegis-ffi
+
+# --- Binaire Go --------------------------------------------------------------
+FROM golang:1.25-bookworm AS gobuild
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc libc6-dev ca-certificates openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /tls \
+    && openssl req -x509 -nodes -newkey rsa:2048 \
+        -keyout /tls/key.pem -out /tls/cert.pem -days 825 \
+        -subj "/CN=aegis-gateway.docker/O=AEGIS/C=FR"
+
+WORKDIR /src
+COPY go.work ./
+COPY aegis-gateway ./aegis-gateway/
+COPY aegis-policy ./aegis-policy/
+COPY crates/aegis-ffi/include ./crates/aegis-ffi/include
+COPY --from=rustlib /src/target/release/libaegis_ffi.so /src/target/release/libaegis_ffi.so
+
+ENV GOWORK=/src/go.work
+WORKDIR /src/aegis-gateway
+
+RUN go mod download \
+    && CGO_ENABLED=1 GOOS=linux \
+        go build -tags aegisffi -trimpath -ldflags="-s -w" -o /out/aegis-gateway ./cmd/aegis-gateway
+
+# --- Runtime -----------------------------------------------------------------
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --uid 65532 --system --no-create-home --shell /usr/sbin/nologin nonroot
+
+COPY --from=gobuild /out/aegis-gateway /aegis-gateway
+COPY --from=rustlib /src/target/release/libaegis_ffi.so /opt/aegis/libaegis_ffi.so
+COPY --from=gobuild /tls/cert.pem /etc/aegis/tls/cert.pem
+COPY --from=gobuild /tls/key.pem /etc/aegis/tls/key.pem
+COPY aegis-gateway/policies /policies
+COPY docker/gateway/aegis-gateway.docker.yaml /etc/aegis/aegis-gateway.yaml
+COPY docker/gateway/security.docker.yaml /etc/aegis/security.docker.yaml
+COPY aegis-gateway/config/rbac.yaml /etc/aegis/rbac/rbac.yaml
+COPY aegis-gateway/config/api_keys.yaml /etc/aegis/api_keys.yaml
+
+ENV LD_LIBRARY_PATH=/opt/aegis
+
+USER nonroot:nonroot
+EXPOSE 8080 9090
+
+ENTRYPOINT ["/aegis-gateway"]
+CMD ["-config", "/etc/aegis/aegis-gateway.yaml", "-security-config", "/etc/aegis/security.docker.yaml"]

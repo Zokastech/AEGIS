@@ -1,0 +1,13 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# pip install -r examples/python/requirements.txt
+requests>=2.28.0
+pandas>=2.0.0
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pyspark>=3.5.0
+kafka-python>=2.0.2
+
+# Optionnel — langchain_rag.py (install si vous voulez la branche LangChain complète)
+# langchain>=0.2.0
+# langchain-community>=0.2.0
+# langchain-core>=0.2.0

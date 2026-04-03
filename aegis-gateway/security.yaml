@@ -1,0 +1,89 @@
+# =============================================================================
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Configuration sécurité « secure by default » du gateway HTTP.
+#
+# Ce fichier est fusionné automatiquement au démarrage (répertoire courant ou
+# /etc/aegis/security.yaml). Surchargez avec --security-config /chemin/fichier.
+#
+# Préfixes d’environnement Viper : AEGIS_<SECTION>_<CLÉ> (ex. AEGIS_SECURITY_TLS_ENABLED).
+# =============================================================================
+
+# Mode production : CORS vide = aucun en-tête CORS (navigateur : same-origin uniquement).
+# En dev local, mettre production: false si besoin d’outils sans mTLS.
+production: true
+
+development:
+  # Désactive auth + exigence mTLS côté listener (TESTS UNIQUEMENT — jamais en prod).
+  disable_auth: false
+
+tls:
+  # HTTPS activé par défaut. Désactiver explicitement ou export AEGIS_INSECURE_HTTP=1 pour HTTP clair (déconseillé).
+  enabled: true
+  cert_file: data/tls/server.crt
+  key_file: data/tls/server.key
+  # CA pour valider les certificats clients (mTLS). Générer une PKI interne ou utiliser celle du mesh.
+  client_ca_file: ""
+  # Si cert/key absents : génération ECDSA P-256 self-signed dans auto_gen_cert_dir (premier boot).
+  auto_generate_self_signed: true
+  auto_gen_cert_dir: data/tls
+
+mtls:
+  # true en production avec tls.client_ca_file (PKI / mesh). false par défaut pour démarrage sans cert clients.
+  require: false
+
+cors:
+  # Liste blanche d’origines. Vide + production: true = pas de middleware CORS.
+  allow_origins: []
+
+api_keys:
+  # Fichier YAML des clés (hashées). Le pepper peut venir de AEGIS_API_KEY_PEPPER.
+  file_path: config/api_keys.yaml
+  pepper: ""
+
+rbac:
+  # backend: yaml | postgres (postgres : voir rbac/schema_postgres.sql, DSN requis).
+  backend: yaml
+  file_path: config/rbac.yaml
+  postgres_dsn: ""
+
+jwt:
+  enabled: false
+  issuer: ""
+  audience: ""
+  jwks_url: ""
+  # Secret HMAC pour tokens HS256 (IdP maison). Préférer OIDC + JWKS pour la prod.
+  hmac_secret: ""
+
+oidc:
+  # Keycloak, Auth0, Azure AD, etc. : issuer_url + client_id (audience du token).
+  enabled: false
+  issuer_url: ""
+  client_id: ""
+
+audit:
+  # backend: file | postgres (postgres : audit/schema_postgres.sql + DSN).
+  backend: file
+  file_path: data/audit/audit.jsonl
+  postgres_dsn: ""
+  rotate_max_mb: 100
+  # Fenêtre documentaire pour archivage externe (cron) — rotation taille gérée par le gateway.
+  rotate_max_age: 24h
+  archive_dir: data/audit/archive
+
+deanonymize:
+  # Limite stricte par paire d’approbateurs (deux clés admin distinctes).
+  max_per_hour: 10
+  approval_header_1: X-Aegis-Approval-1
+  approval_header_2: X-Aegis-Approval-2
+  # Circuit breaker : après N succès en M minutes, 503 jusqu’à fin de fenêtre.
+  circuit_max_success: 5
+  circuit_window_minutes: 15
+
+alerts:
+  # Webhook JSON (Slack incoming, PagerDuty, etc.) sur chaque dé-anonymisation réussie.
+  webhook_url: ""
+
+# Chemins sans auth (exact). Étendre avec précaution.
+public_paths:
+  - /livez
+  - /readyz

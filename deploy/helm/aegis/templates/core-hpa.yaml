@@ -1,0 +1,38 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.core.enabled .Values.core.autoscaling.enabled }}
+{{- if not (or .Values.core.autoscaling.cpuMetric .Values.core.autoscaling.prometheus.enabled) }}
+{{- fail "core.autoscaling : activer au moins core.autoscaling.cpuMetric ou core.autoscaling.prometheus.enabled" }}
+{{- end }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "aegis.fullname" . }}-core
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "aegis.fullname" . }}-core
+  minReplicas: {{ .Values.core.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.core.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.core.autoscaling.cpuMetric }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.core.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.core.autoscaling.prometheus.enabled }}
+    - type: Pods
+      pods:
+        metric:
+          name: {{ .Values.core.autoscaling.prometheus.metricName | quote }}
+        target:
+          type: AverageValue
+          averageValue: {{ .Values.core.autoscaling.prometheus.averageValue | quote }}
+    {{- end }}
+{{- end }}

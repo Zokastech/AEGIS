@@ -1,0 +1,51 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# LGPD (Brésil) — bases légales, minimisation, droits des titulaires (art. 18).
+
+regulation: LGPD
+name: lgpd
+version: "1"
+description: >
+  Traitement loyal, transparent et minimisé ; anonymisation/pseudonymisation lorsque applicable ;
+  effacement via endpoint sujets aligné sur direitos do titular.
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 365
+  minimized_data_days: 0
+
+entities:
+  - type: EMAIL
+    action: anonymize
+    operator: mask
+  - type: PHONE
+    action: anonymize
+    operator: mask
+  - type: PERSON
+    action: anonymize
+    operator: replace
+  - type: NATIONAL_ID
+    action: anonymize
+    operator: redact
+  - type: TAX_ID
+    action: anonymize
+    operator: redact
+
+automatic_actions:
+  on_detect:
+    - log
+  on_violation:
+    - alert
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: true
+  strip_response_entity_text: true
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+  strip_control_chars: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

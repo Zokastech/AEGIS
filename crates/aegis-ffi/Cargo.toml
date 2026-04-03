@@ -1,0 +1,30 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+[package]
+name = "aegis-ffi"
+description = "Bibliothèque C partagée (cdylib/staticlib) — interop AEGIS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+default = []
+# Dépendances optionnelles pour extensions Python / Node (crates SDK dédiés recommandés).
+python = ["dep:pyo3"]
+nodejs = ["dep:napi", "dep:napi-derive"]
+
+[dependencies]
+aegis-anonymize = { path = "../aegis-anonymize" }
+aegis-core = { path = "../aegis-core" }
+aegis-regex = { path = "../aegis-regex" }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+pyo3 = { version = "0.23", optional = true, features = ["auto-initialize"] }
+napi = { version = "2", optional = true, default-features = false, features = ["napi4"] }
+napi-derive = { version = "2", optional = true }

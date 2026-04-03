@@ -1,0 +1,50 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+groups:
+  - name: aegis_gateway
+    interval: 30s
+    rules:
+      - alert: AegisAnalyzeLatencyP99High
+        expr: |
+          histogram_quantile(0.99,
+            sum(rate(aegis_analyze_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEGIS — latence P99 analyze > 500ms"
+          description: "histogram_quantile(0.99) sur aegis_analyze_duration_seconds dépasse 0,5s pendant 5 minutes."
+
+      - alert: AegisAnalyzeErrorRateHigh
+        expr: |
+          (
+            sum(rate(aegis_analyze_requests_total{status!~"200"}[5m]))
+            /
+            sum(rate(aegis_analyze_requests_total[5m]))
+          ) > 0.05
+          and sum(rate(aegis_analyze_requests_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AEGIS — taux d'erreur HTTP analyze > 5%"
+          description: "Part des requêtes aegis_analyze_requests_total sans status 200 dépasse 5%."
+
+      - alert: AegisNERComponentNotReady
+        expr: aegis_component_ready{component="ner"} == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AEGIS — moteur NER / FFI non prêt"
+          description: "La sonde readiness a échoué : aegis_component_ready{component=\"ner\"} == 0."
+
+      - alert: AegisDeanonymizePerformed
+        expr: increase(aegis_deanonymize_operations_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AEGIS — opération de dé-anonymisation détectée"
+          description: "Au moins une dé-anonymisation réussie a été comptabilisée sur la fenêtre de 5 minutes (audit requis)."

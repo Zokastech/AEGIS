@@ -1,0 +1,37 @@
+AEGIS — zokastech.fr — Apache 2.0 / MIT
+=======================================
+
+Marque : {{ .Values.global.brand.name }} ({{ .Values.global.brand.organization }})
+Référence couleurs : primaire {{ .Values.global.brand.primaryHex }}, accent {{ .Values.global.brand.accentGoldHex }}
+
+{{- if .Values.core.enabled }}
+
+1. Core (worker) : pas de Service HTTP par défaut. Vérifiez les logs :
+   kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=core --tail=50
+{{- end }}
+
+{{- if .Values.gateway.enabled }}
+
+2. Passerelle API (port-forward) :
+   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "aegis.fullname" . }}-gateway 8080:{{ .Values.gateway.service.port }}
+   curl -s http://127.0.0.1:8080/v1/health
+{{- end }}
+
+{{- if .Values.dashboard.enabled }}
+
+3. Dashboard (port-forward) :
+   kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "aegis.fullname" . }}-dashboard 9080:{{ .Values.dashboard.service.port }}
+   Ouvrir http://127.0.0.1:9080/
+{{- end }}
+
+{{- if .Values.ingress.enabled }}
+
+4. Ingress : consulter les hosts dans values (ingress.hosts). TLS : secret ou cert-manager selon annotations.
+{{- end }}
+
+{{- if or (and .Values.core.enabled .Values.core.autoscaling.enabled) (and .Values.gateway.enabled .Values.gateway.autoscaling.enabled) }}
+
+5. HPA : si une métrique Prometheus est activée, le cluster doit exposer custom.metrics.k8s.io (ex. prometheus-adapter) avec les noms configurés dans values.
+{{- end }}
+
+Documentation : {{ .Values.global.brand.homeUrl }}

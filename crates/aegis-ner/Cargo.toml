@@ -1,0 +1,29 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+[package]
+name = "aegis-ner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "NER / ONNX inference for AEGIS — zokastech.fr"
+
+[features]
+default = []
+model-download = ["dep:ureq"]
+ort-cuda = ["ort/cuda"]
+ort-tensorrt = ["ort/tensorrt"]
+ort-coreml = ["ort/coreml"]
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+ndarray = "0.16"
+# Série 2.0.0-rc.5 : MSRV 1.70 (compatible stable CI). Pour ORT 1.24+, passer à rc.12+.
+ort = { version = "=2.0.0-rc.5", default-features = true, features = ["download-binaries", "ndarray"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokenizers = { version = "0.21", default-features = true }
+tracing = { workspace = true }
+ureq = { version = "2.9", optional = true }

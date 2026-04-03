@@ -1,0 +1,33 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Pseudonymisation pour analyses — base légale et DPIA requises en amont.
+
+regulation: GDPR
+name: gdpr-analytics
+description: Pseudonymisation déterministe avec TTL contrôlé des mappings.
+
+retention:
+  pseudonymization_mapping_days: 30
+  audit_log_days: 180
+
+entities:
+  - type: EMAIL
+    action: anonymize
+    operator: hash
+  - type: PHONE
+    action: anonymize
+    operator: mask
+  - type: PERSON
+    action: anonymize
+    operator: pseudonymize
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: false
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

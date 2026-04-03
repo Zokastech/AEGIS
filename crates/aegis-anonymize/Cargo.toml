@@ -1,0 +1,30 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+
+[package]
+name = "aegis-anonymize"
+description = "Opérateurs d'anonymisation pour AEGIS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+aes = "0.8"
+aes-gcm.workspace = true
+blake3 = "1.5"
+hex.workspace = true
+num-bigint = "0.4"
+num-integer = "0.1"
+num-traits = "0.2"
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml = "0.9"
+sha2.workspace = true
+thiserror = "2.0"
+
+[dev-dependencies]
+proptest.workspace = true
+aegis-regex = { path = "../aegis-regex" }

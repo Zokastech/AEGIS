@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AEGIS | zokastech.fr | Apache 2.0 / MIT | Monochrome (dark on light) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 72" fill="none" aria-label="AEGIS">
+  <title>AEGIS mono</title>
+  <rect width="240" height="72" fill="#f8f9fa"/>
+  <g>
+    <path
+      d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
+      stroke="#0f172a"
+      stroke-width="4"
+      stroke-linejoin="miter"
+      fill="none"
+    />
+    <path
+      d="M32 18 20 24.5V40c0 6.2 4.4 12 12 15 7.6-3 12-8.8 12-15V24.5L32 18Z"
+      fill="#0f172a"
+      fill-opacity="0.08"
+      stroke="#0f172a"
+      stroke-width="2"
+      stroke-linejoin="miter"
+    />
+  </g>
+  <text
+    x="78"
+    y="48"
+    font-family="Inter Tight, Inter, system-ui, sans-serif"
+    font-size="36"
+    font-weight="800"
+    letter-spacing="0.08em"
+    fill="#0f172a"
+  >AEGIS</text>
+</svg>

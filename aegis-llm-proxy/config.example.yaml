@@ -1,0 +1,38 @@
+# AEGIS LLM Proxy — zokastech.fr
+# Copier vers config.yaml et adapter.
+
+listen: ":8080"
+
+# Fournisseur LLM (OpenAI, Azure, Mistral, Ollama, vLLM…)
+upstream_url: "http://ollama:11434"
+
+# transparent | anonymize | block | alert
+mode: anonymize
+
+# Seuil transmis au moteur pour /v1/analyze
+score_threshold: 0.5
+
+# Mode block : bloquer si score entité >= seuil (0 = toute PII filtrée)
+block_min_score: 0.0
+
+# Mode alert : POST JSON (AEGIS_WEBHOOK_URL en env surcharge)
+webhook_url: ""
+
+# Config opérateurs FFI (identique au gateway)
+anonymize_config_json: '{"analysis":{"score_threshold":0.5},"operators_by_entity":{"EMAIL":{"operator_type":"mask","params":{"visible_prefix":"2","visible_suffix":"0"}},"PHONE":{"operator_type":"mask","params":{"visible_prefix":"2","visible_suffix":"0"}},"CREDIT_CARD":{"operator_type":"redact","params":{}},"IBAN":{"operator_type":"redact","params":{}}}}'
+
+# Vide = tous les types ; sinon liste de clés (EMAIL, PHONE, …)
+protected_entity_types: []
+
+engine:
+  type: http
+  # Gateway AEGIS (analyse + anonymisation)
+  base_url: "http://aegis-gateway:9847"
+  timeout_seconds: 120
+
+# Si la requête cliente n’a pas Authorization, injecter Bearer depuis cette variable d’environnement
+inject_api_key_env: "OPENAI_API_KEY"
+
+dashboard:
+  enabled: true
+  prefix: "/internal/llm-proxy"

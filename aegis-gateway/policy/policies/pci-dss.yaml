@@ -1,0 +1,46 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# PCI-DSS — données de carte : FPE / tokenisation selon implémentation moteur.
+
+regulation: PCI_DSS
+name: pci-dss
+version: "1"
+description: >
+  Réduction du scope PCI : masquage ou FPE des PAN ; pas de stockage CVV (hors périmètre texte brut).
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 365
+  minimized_data_days: 0
+
+entities:
+  - type: CREDIT_CARD
+    action: anonymize
+    operator: fpe
+    required: true
+  - type: BANK_ACCOUNT
+    action: anonymize
+    operator: tokenize
+  - type: PERSON
+    action: anonymize
+    operator: mask
+
+automatic_actions:
+  on_detect:
+    - log
+  on_violation:
+    - block
+    - alert
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: true
+  strip_response_entity_text: true
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+  strip_control_chars: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

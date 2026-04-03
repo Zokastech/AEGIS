@@ -1,0 +1,15 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Liaisons sujet → rôle. Les clés API sont identifiées par leur id (UUID), pas le secret.
+#
+# Exemple api_key_roles :
+#   "550e8400-e29b-41d4-a716-446655440000": viewer
+
+api_key_roles: {}
+
+jwt_subject_roles: {}
+
+mtls_cn_roles: {}
+
+role_permissions_override: {}
+
+role_entity_types: {}

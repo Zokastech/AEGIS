@@ -1,0 +1,86 @@
+/* AEGIS — zokastech.fr — identité Zokastech (Plus Jakarta Sans, fond clair, orange / rose / bleu) */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --brand-orange: #ff8a00;
+  --brand-pink: #e52e71;
+  --brand-blue: #4361ee;
+  --zokastech-dark: #1a1d24;
+  --zokastech-gray: #64748b;
+  --label: #475569;
+  --placeholder: #94a3b8;
+  --page-bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #e2e8f0;
+  --gradient-signature: linear-gradient(135deg, #ff8a00 0%, #e52e71 50%, #4361ee 100%);
+  --gradient-cta-hover: linear-gradient(135deg, #ff9f33 0%, #f05a8c 100%);
+  --gradient-hero-mesh: radial-gradient(ellipse 90% 70% at 50% -30%, rgba(255, 138, 0, 0.14), transparent),
+    radial-gradient(ellipse 55% 50% at 100% 10%, rgba(229, 46, 113, 0.08), transparent),
+    radial-gradient(ellipse 50% 45% at 0% 20%, rgba(67, 97, 238, 0.1), transparent);
+  --shadow-brand: 0 4px 14px rgba(255, 138, 0, 0.22);
+  --shadow-brand-lg: 0 8px 28px rgba(255, 138, 0, 0.18), 0 2px 8px rgba(229, 46, 113, 0.08);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --header-h: 4rem;
+  --footer-bg: #1a1d24;
+  --footer-link: #f1f5f9;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--page-bg);
+  color: var(--zokastech-dark);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--brand-pink);
+  text-decoration: none;
+  transition: color 0.2s var(--ease-smooth);
+}
+a:hover {
+  color: var(--brand-orange);
+  text-decoration: underline;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}

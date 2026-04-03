@@ -1,0 +1,16 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Manifeste hooks pre-commit (placer à la racine du dépôt publié ou utiliser repo: local — voir README.md).
+- id: aegis-pii-scan
+  name: AEGIS — scan PII (zokastech.fr)
+  language: system
+  entry: aegis
+  args:
+    - --score-threshold
+    - '0.55'
+    - --language
+    - fr,en
+    - --format
+    - json
+    - scan
+  files: \.(py|js|ts|tsx|jsx|mjs|cjs|java|go|rs|json|yaml|yml|md|txt|csv|sql|env|log)$
+  pass_filenames: true

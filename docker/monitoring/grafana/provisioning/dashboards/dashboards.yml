@@ -1,0 +1,13 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+apiVersion: 1
+
+providers:
+  - name: AEGIS
+    orgId: 1
+    folder: AEGIS
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

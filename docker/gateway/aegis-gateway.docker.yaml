@@ -1,0 +1,10 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Paramètres runtime gateway (conteneur). La sécurité : security.docker.yaml.
+
+http_listen: ":8080"
+grpc_listen: ":9090"
+read_timeout: 30s
+write_timeout: 30s
+engine_timeout: 30s
+pool_size: 4
+policy_dir: "/policies"

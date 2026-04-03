@@ -1,0 +1,38 @@
+# Proxy AEGIS devant Ollama. Le moteur (aegis-gateway) doit être joignable sur
+# AEGIS_ENGINE_URL (par défaut : hôte via host.docker.internal:9847).
+#
+#   cp config.example.yaml config.yaml
+#   # Démarrer aegis-gateway sur la machine hôte :9847, puis :
+#   docker compose -f docker-compose.example.yml up --build
+#
+# Client OpenAI-compatible :
+#   export OPENAI_API_BASE=http://localhost:8080/v1
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+
+  aegis-llm-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/etc/aegis/llm-proxy.yaml:ro
+    environment:
+      AEGIS_UPSTREAM_URL: http://ollama:11434
+      AEGIS_ENGINE_URL: ${AEGIS_ENGINE_URL:-http://host.docker.internal:9847}
+      AEGIS_LLM_MODE: anonymize
+    depends_on:
+      - ollama
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: ["-config", "/etc/aegis/llm-proxy.yaml"]
+
+volumes:
+  ollama-data: {}

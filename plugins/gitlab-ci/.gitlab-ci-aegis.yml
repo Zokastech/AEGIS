@@ -1,0 +1,84 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# ---------------------------------------------------------------------------
+# Template GitLab CI — inclure dans .gitlab-ci.yml :
+#   include:
+#     - local: '/plugins/gitlab-ci/.gitlab-ci-aegis.yml'
+#   stages:
+#     - pii-scan
+# ---------------------------------------------------------------------------
+# Variables CI/CD (optionnelles) :
+#   AEGIS_IMAGE              — image Docker contenant le binaire `aegis` et `jq`
+#   AEGIS_FAIL_ON_PII        — "true" pour échouer le job si PII détectées
+#   AEGIS_LANGUAGE           — ex. fr,en,de
+#   AEGIS_SCORE_THRESHOLD    — ex. 0.55
+#   AEGIS_CONFIG_PATH        — chemin optionnel vers aegis.yaml dans le dépôt
+# ---------------------------------------------------------------------------
+
+variables:
+  AEGIS_IMAGE: "${AEGIS_IMAGE:-zokastech/aegis:latest}"
+  AEGIS_FAIL_ON_PII: "${AEGIS_FAIL_ON_PII:-true}"
+  AEGIS_LANGUAGE: "${AEGIS_LANGUAGE:-fr,en}"
+  AEGIS_SCORE_THRESHOLD: "${AEGIS_SCORE_THRESHOLD:-0.5}"
+
+aegis-pii-scan:
+  stage: pii-scan
+  image: $AEGIS_IMAGE
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    GIT_DEPTH: "0"
+  script:
+    - |
+      set -euo pipefail
+      command -v aegis >/dev/null || { echo "Image $AEGIS_IMAGE : binaire aegis introuvable"; exit 2; }
+      command -v jq >/dev/null || { echo "jq requis pour le rapport Code Quality"; exit 2; }
+      JQ_FILE="${CI_PROJECT_DIR}/plugins/gitlab-ci/aegis-to-gitlab-quality.jq"
+      if [ -f "$JQ_FILE" ]; then
+        JQ="$JQ_FILE"
+      elif [ -n "${AEGIS_JQ_SCRIPT:-}" ] && [ -f "$AEGIS_JQ_SCRIPT" ]; then
+        JQ="$AEGIS_JQ_SCRIPT"
+      else
+        echo "Fichier jq introuvable : ajoutez plugins/gitlab-ci ou définissez AEGIS_JQ_SCRIPT"
+        exit 2
+      fi
+      BASE="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-${CI_COMMIT_BEFORE_SHA:-}}"
+      HEAD="${CI_COMMIT_SHA:-HEAD}"
+      if [ -n "${CI_MERGE_REQUEST_IID:-}" ] && [ -n "$BASE" ]; then
+        FILES="$(git diff --name-only --diff-filter=d "$BASE" "$HEAD" || true)"
+      else
+        FILES="$(git ls-files)"
+      fi
+      EXT_REGEX='\.(py|js|ts|tsx|jsx|mjs|cjs|java|go|rs|json|yaml|yml|md|txt|csv|sql|env|log)$'
+      : > gl-parts.jsonl
+      FOUND=0
+      CFG_EXTRA=()
+      if [ -n "${AEGIS_CONFIG_PATH:-}" ] && [ -f "$AEGIS_CONFIG_PATH" ]; then
+        CFG_EXTRA+=(--config "$AEGIS_CONFIG_PATH")
+      fi
+      for f in $FILES; do
+        [ -f "$f" ] || continue
+        echo "$f" | grep -qE "$EXT_REGEX" || continue
+        set +e
+        OUT="$(aegis --language "$AEGIS_LANGUAGE" --score-threshold "$AEGIS_SCORE_THRESHOLD" "${CFG_EXTRA[@]}" --format json scan "$f" 2>/dev/null)"
+        EC=$?
+        set -e
+        if [ "$EC" -eq 1 ]; then FOUND=1; fi
+        if [ "$EC" -eq 2 ]; then echo "aegis erreur sur $f"; exit 2; fi
+        echo "$OUT" | jq -c -f "$JQ" >> gl-parts.jsonl 2>/dev/null || true
+      done
+      if [ ! -s gl-parts.jsonl ]; then
+        echo "[]" > gl-code-quality-report.json
+      else
+        jq -s 'flatten' gl-parts.jsonl > gl-code-quality-report.json
+      fi
+      echo "Rapport Code Quality : $(jq 'length' gl-code-quality-report.json) entrée(s)"
+      if [ "$AEGIS_FAIL_ON_PII" = "true" ] && [ "$FOUND" -eq 1 ]; then
+        echo "PII détectées — voir gl-code-quality-report.json"
+        exit 1
+      fi
+  artifacts:
+    when: always
+    reports:
+      codequality: gl-code-quality-report.json
+    paths:
+      - gl-code-quality-report.json

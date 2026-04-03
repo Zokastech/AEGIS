@@ -1,0 +1,53 @@
+{
+  "name": "AEGIS (Rust + Go + Node)",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "stable",
+      "profile": "default"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.22"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "pnpmVersion": "none",
+      "nvmVersion": "none"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": true
+    }
+  },
+
+  "forwardPorts": [5173, 8080, 5432, 6379],
+  "portsAttributes": {
+    "5173": { "label": "Vite (aegis-dashboard)" },
+    "8080": { "label": "aegis-gateway" },
+    "5432": { "label": "PostgreSQL" },
+    "6379": { "label": "Redis" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "golang.go",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "rust-analyzer.check.command": "clippy"
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "GOWORK": "${containerWorkspaceFolder}/go.work"
+  },
+
+  "postCreateCommand": "bash -lc 'cargo install cargo-watch --locked 2>/dev/null || true; go install github.com/air-verse/air@latest 2>/dev/null || true; cd aegis-dashboard && npm install; cd aegis-gateway && go mod tidy; echo AEGIS devcontainer — zokastech.fr — https://zokastech.fr'",
+
+  "postStartCommand": "echo 'Ports: 5173 Vite | 8080 gateway | 5432 Postgres | 6379 Redis | make dev sur l hôte pour Docker Compose complet'"
+}

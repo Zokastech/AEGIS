@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"/>
+<title>AEGIS — rapport de performance</title>
+<style>
+body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 1200px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
+th { background: #f4f4f4; }
+code { font-size: 0.9em; }
+</style></head><body>
+<h1>AEGIS — rapport de performance (zokastech.fr)</h1>
+<p>Généré : 2026-04-01 19:29 UTC — source : Criterion (<code>target/criterion</code>).</p>
+
+
+
+<h2>Latences Criterion (échantillon)</h2>
+<table><thead><tr><th>Groupe</th><th>Cas</th><th>Moyenne</th><th>ns (brut)</th></tr></thead>
+<tbody><tr><td>recognizer_1kb_each</td><td><code>analyze/bic_swift</code></td><td>18.84 µs</td><td>1.88e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/credit_card_luhn</code></td><td>22.19 µs</td><td>2.22e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/crypto_wallet</code></td><td>2.67 µs</td><td>2.67e+03</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/date_eu_iso</code></td><td>20.92 µs</td><td>2.09e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/email_rfc5322_like</code></td><td>3.62 µs</td><td>3.62e+03</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/eu_credit_card_bins</code></td><td>20.05 µs</td><td>2.01e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/eu_vat_intracom</code></td><td>8.67 µs</td><td>8.67e+03</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/fr_nir</code></td><td>3.34 µs</td><td>3.34e+03</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/fr_siren</code></td><td>136.4 ns</td><td>1.36e+02</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/fr_siret</code></td><td>21.49 µs</td><td>2.15e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/iban_iso13616</code></td><td>31.69 µs</td><td>3.17e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/ipv4</code></td><td>24.65 µs</td><td>2.46e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/ipv6</code></td><td>61.49 µs</td><td>6.15e+04</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/phone_e164_eu</code></td><td>7.07 µs</td><td>7.07e+03</td></tr><tr><td>recognizer_1kb_each</td><td><code>analyze/url</code></td><td>27.16 µs</td><td>2.72e+04</td></tr></tbody></table>
+<p><em>Exécutez <code>make bench</code> depuis la racine du dépôt pour régénérer.</em></p>
+</body></html>

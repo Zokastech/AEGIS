@@ -1,0 +1,111 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if .Values.gateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "aegis.fullname" . }}-gateway
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  annotations:
+    {{- include "aegis.brandAnnotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.gateway.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "aegis.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      labels:
+        {{- include "aegis.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway
+        {{- if .Values.podSecurity.labelRestricted }}
+        security.zokastech.fr/pod-standard: restricted
+        {{- end }}
+      annotations:
+        {{- include "aegis.brandAnnotations" . | nindent 8 }}
+        {{- with .Values.gateway.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.gateway.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gateway.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.gateway.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "aegis.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: gateway
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            {{- if .Values.gateway.grpc.enabled }}
+            - name: grpc
+              containerPort: {{ .Values.gateway.grpc.port }}
+              protocol: TCP
+            {{- end }}
+          env:
+            {{- toYaml .Values.gateway.env | nindent 12 }}
+          {{- if or .Values.gateway.secretEnv .Values.gateway.extraSecretData }}
+          envFrom:
+            - secretRef:
+                name: {{ include "aegis.fullname" . }}-gateway-env
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.gateway.probes.livenessPath | quote }}
+              port: http
+              scheme: {{ if .Values.gateway.tls.enabled }}HTTPS{{ else }}HTTP{{ end }}
+            initialDelaySeconds: {{ .Values.gateway.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.gateway.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.gateway.probes.timeoutSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.gateway.probes.readinessPath | quote }}
+              port: http
+              scheme: {{ if .Values.gateway.tls.enabled }}HTTPS{{ else }}HTTP{{ end }}
+            initialDelaySeconds: 5
+            periodSeconds: {{ .Values.gateway.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.gateway.probes.timeoutSeconds }}
+          resources:
+            {{- toYaml .Values.gateway.resources | nindent 12 }}
+          volumeMounts:
+            - name: policies
+              mountPath: /policies
+              readOnly: true
+            {{- if .Values.gateway.configFiles }}
+            - name: gateway-extra-config
+              mountPath: /etc/aegis/chart-config
+              readOnly: true
+            {{- end }}
+            {{- with .Values.gateway.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: policies
+          configMap:
+            name: {{ include "aegis.fullname" . }}-policies
+        {{- if .Values.gateway.configFiles }}
+        - name: gateway-extra-config
+          configMap:
+            name: {{ include "aegis.fullname" . }}-gateway-config
+        {{- end }}
+        {{- with .Values.gateway.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}

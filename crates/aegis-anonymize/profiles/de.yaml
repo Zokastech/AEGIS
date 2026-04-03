@@ -1,0 +1,78 @@
+# AEGIS — zokastech.fr — Profil synthétique DE
+country_code: DE
+locale: de
+phone_country_prefix: "49"
+phone_national_digits: 11
+phone_mobile_leading_digits: ["15", "16", "17"]
+phone_display_format: "+{cc} {a} {b} {c}"
+phone_group_sizes: [3, 4, 4]
+email_domain: "example.com"
+date_format: "{dd}.{mm}.{yyyy}"
+address_template: "{street} {num}, {postal} {city}"
+iban_bban_numeric: true
+iban_bban_length: 18
+national_id_kind: de_rvnr
+
+firstnames_male:
+  - { name: "Max", weight: 12 }
+  - { name: "Felix", weight: 11 }
+  - { name: "Leon", weight: 11 }
+  - { name: "Paul", weight: 10 }
+  - { name: "Jonas", weight: 10 }
+  - { name: "Finn", weight: 9 }
+  - { name: "Lukas", weight: 9 }
+  - { name: "Noah", weight: 9 }
+  - { name: "Ben", weight: 9 }
+  - { name: "Tim", weight: 10 }
+
+firstnames_female:
+  - { name: "Emma", weight: 14 }
+  - { name: "Mia", weight: 13 }
+  - { name: "Hannah", weight: 11 }
+  - { name: "Sophia", weight: 11 }
+  - { name: "Lina", weight: 10 }
+  - { name: "Marie", weight: 9 }
+  - { name: "Lea", weight: 9 }
+  - { name: "Clara", weight: 8 }
+  - { name: "Anna", weight: 8 }
+  - { name: "Laura", weight: 7 }
+
+lastnames:
+  - { name: "Müller", weight: 14 }
+  - { name: "Schmidt", weight: 13 }
+  - { name: "Schneider", weight: 10 }
+  - { name: "Fischer", weight: 9 }
+  - { name: "Weber", weight: 9 }
+  - { name: "Wagner", weight: 8 }
+  - { name: "Becker", weight: 8 }
+  - { name: "Hoffmann", weight: 8 }
+  - { name: "Koch", weight: 7 }
+  - { name: "Richter", weight: 7 }
+
+streets:
+  - "Hauptstraße"
+  - "Bahnhofstraße"
+  - "Gartenweg"
+  - "Schulstraße"
+  - "Berliner Straße"
+  - "Münchener Weg"
+  - "Ringstraße"
+  - "Lindenallee"
+  - "Goethestraße"
+  - "Kirchplatz"
+
+cities:
+  - { name: "Berlin", postal_min: 10115, postal_max: 14199 }
+  - { name: "Hamburg", postal_min: 20095, postal_max: 22769 }
+  - { name: "München", postal_min: 80331, postal_max: 81929 }
+  - { name: "Köln", postal_min: 50667, postal_max: 51149 }
+  - { name: "Frankfurt am Main", postal_min: 60306, postal_max: 65936 }
+  - { name: "Stuttgart", postal_min: 70173, postal_max: 70629 }
+  - { name: "Düsseldorf", postal_min: 40210, postal_max: 40629 }
+  - { name: "Leipzig", postal_min: 4103, postal_max: 4357 }
+
+age_distribution:
+  - { min_age: 18, max_age: 30, weight: 24 }
+  - { min_age: 31, max_age: 45, weight: 34 }
+  - { min_age: 46, max_age: 60, weight: 28 }
+  - { min_age: 61, max_age: 80, weight: 14 }

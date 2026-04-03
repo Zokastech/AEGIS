@@ -1,0 +1,29 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+
+[package]
+name = "aegis-regex"
+description = "Recognizers regex haute performance pour AEGIS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+aho-corasick.workspace = true
+ctor.workspace = true
+phonenumber = "0.3"
+regex.workspace = true
+
+[dev-dependencies]
+criterion = "0.5"
+proptest.workspace = true
+
+[[bench]]
+name = "regex_scan"
+harness = false
+
+[[bench]]
+name = "financial"
+harness = false

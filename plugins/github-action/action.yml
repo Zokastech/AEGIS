@@ -1,0 +1,91 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+name: 'aegis-scan'
+description: 'Scan your codebase for PII leaks with AEGIS'
+author: 'zokastech <https://zokastech.fr>'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  languages:
+    description: 'Comma-separated regex languages for the engine (e.g. fr,en,de)'
+    required: false
+    default: 'fr,en'
+  score_threshold:
+    description: 'Minimum confidence score for detections (0.0–1.0)'
+    required: false
+    default: '0.5'
+  fail_on_pii:
+    description: 'Fail the step when any PII is detected'
+    required: false
+    default: 'true'
+  config_path:
+    description: 'Optional path to an AEGIS engine YAML/JSON config file'
+    required: false
+    default: ''
+  exclude_patterns:
+    description: 'Glob patterns to exclude (newline or comma). Bash glob rules; use ** with care.'
+    required: false
+    default: |
+      **/node_modules/**
+      **/vendor/**
+      **/.git/**
+      **/target/**
+      **/dist/**
+      **/.venv/**
+      **/*.min.js
+      .env.example
+  paths:
+    description: 'Newline-separated directory roots to scan (relative to workspace)'
+    required: false
+    default: '.'
+  scan_mode:
+    description: "pr_files = only changed files on pull_request; full_repo = all tracked files under paths"
+    required: false
+    default: 'auto'
+  cli_version:
+    description: 'Release tag for the CLI binary (e.g. v0.1.0) or "latest"'
+    required: false
+    default: 'latest'
+  release_repo:
+    description: 'owner/repo providing release assets'
+    required: false
+    default: 'zokastech/aegis'
+  comment_pr:
+    description: 'Post a Markdown comment on the pull request when findings exist'
+    required: false
+    default: 'true'
+  github_token:
+    description: 'Token used for PR comments and release API (falls back to env GITHUB_TOKEN)'
+    required: false
+    default: ''
+
+outputs:
+  pii_found:
+    description: 'Whether at least one entity was detected'
+    value: ${{ steps.run.outputs.pii_found }}
+  entity_count:
+    description: 'Total number of detected entities across scanned files'
+    value: ${{ steps.run.outputs.entity_count }}
+  report_path:
+    description: 'Path to the generated Markdown report in the workspace'
+    value: ${{ steps.run.outputs.report_path }}
+
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        INPUT_LANGUAGES: ${{ inputs.languages }}
+        INPUT_SCORE_THRESHOLD: ${{ inputs.score_threshold }}
+        INPUT_FAIL_ON_PII: ${{ inputs.fail_on_pii }}
+        INPUT_CONFIG_PATH: ${{ inputs.config_path }}
+        INPUT_EXCLUDE_PATTERNS: ${{ inputs.exclude_patterns }}
+        INPUT_PATHS: ${{ inputs.paths }}
+        INPUT_SCAN_MODE: ${{ inputs.scan_mode }}
+        INPUT_CLI_VERSION: ${{ inputs.cli_version }}
+        INPUT_RELEASE_REPO: ${{ inputs.release_repo }}
+        INPUT_COMMENT_PR: ${{ inputs.comment_pr }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: bash "${{ github.action_path }}/aegis-scan.sh"

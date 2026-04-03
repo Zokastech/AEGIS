@@ -1,0 +1,79 @@
+# AEGIS — zokastech.fr — Profil synthétique NL
+country_code: NL
+locale: nl
+postal_width: 4
+phone_country_prefix: "31"
+phone_national_digits: 9
+phone_mobile_leading_digits: ["6"]
+phone_display_format: "+{cc} {a} {b} {c} {d}"
+phone_group_sizes: [1, 2, 3, 3]
+email_domain: "example.com"
+date_format: "{dd}-{mm}-{yyyy}"
+address_template: "{street} {num}, {postal} {city}"
+iban_bban_numeric: true
+iban_bban_length: 14
+national_id_kind: nl_bsn
+
+firstnames_male:
+  - { name: "Daan", weight: 12 }
+  - { name: "Sem", weight: 11 }
+  - { name: "Lucas", weight: 11 }
+  - { name: "Finn", weight: 10 }
+  - { name: "Levi", weight: 10 }
+  - { name: "Noah", weight: 10 }
+  - { name: "Milan", weight: 9 }
+  - { name: "Luuk", weight: 9 }
+  - { name: "Jesse", weight: 9 }
+  - { name: "Max", weight: 9 }
+
+firstnames_female:
+  - { name: "Emma", weight: 14 }
+  - { name: "Sophie", weight: 12 }
+  - { name: "Julia", weight: 11 }
+  - { name: "Eva", weight: 10 }
+  - { name: "Mila", weight: 10 }
+  - { name: "Tess", weight: 9 }
+  - { name: "Noa", weight: 9 }
+  - { name: "Lotte", weight: 8 }
+  - { name: "Sara", weight: 8 }
+  - { name: "Anna", weight: 9 }
+
+lastnames:
+  - { name: "De Jong", weight: 12 }
+  - { name: "Jansen", weight: 11 }
+  - { name: "De Vries", weight: 10 }
+  - { name: "Van den Berg", weight: 10 }
+  - { name: "Van Dijk", weight: 9 }
+  - { name: "Bakker", weight: 9 }
+  - { name: "Visser", weight: 8 }
+  - { name: "Smit", weight: 8 }
+  - { name: "Meijer", weight: 8 }
+  - { name: "Mulder", weight: 8 }
+
+streets:
+  - "Hoofdstraat"
+  - "Kerkstraat"
+  - "Dorpsweg"
+  - "Stationsplein"
+  - "Molenweg"
+  - "Prinsengracht"
+  - "Van Oldenbarneveltstraat"
+  - "Coolsingel"
+  - "Vrijheidslaan"
+  - "Herengracht"
+
+cities:
+  - { name: "Amsterdam", postal_min: 1011, postal_max: 1109 }
+  - { name: "Rotterdam", postal_min: 3011, postal_max: 3089 }
+  - { name: "Den Haag", postal_min: 2511, postal_max: 2597 }
+  - { name: "Utrecht", postal_min: 3511, postal_max: 3585 }
+  - { name: "Eindhoven", postal_min: 5611, postal_max: 5647 }
+  - { name: "Groningen", postal_min: 9711, postal_max: 9747 }
+  - { name: "Maastricht", postal_min: 6211, postal_max: 6229 }
+  - { name: "Haarlem", postal_min: 2011, postal_max: 2037 }
+
+age_distribution:
+  - { min_age: 18, max_age: 30, weight: 25 }
+  - { min_age: 31, max_age: 45, weight: 33 }
+  - { min_age: 46, max_age: 60, weight: 27 }
+  - { min_age: 61, max_age: 80, weight: 15 }
