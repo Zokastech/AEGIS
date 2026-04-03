@@ -18,7 +18,7 @@ ort-coreml = ["ort/coreml"]
 
 [dependencies]
 aegis-core = { path = "../aegis-core" }
-ndarray = "0.16"
+ndarray = "0.17"
 # Série 2.0.0-rc.5 : MSRV 1.70 (compatible stable CI). Pour ORT 1.24+, passer à rc.12+.
 ort = { version = "=2.0.0-rc.5", default-features = true, features = ["download-binaries", "ndarray"] }
 serde = { workspace = true }

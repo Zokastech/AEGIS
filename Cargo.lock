@@ -111,7 +111,7 @@ name = "aegis-ner"
 version = "0.1.0"
 dependencies = [
  "aegis-core",
- "ndarray",
+ "ndarray 0.17.2",
  "ort",
  "serde",
  "serde_json",
@@ -1350,6 +1350,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "ndarray"
+version = "0.17.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "520080814a7a6b4a6e9070823bb24b4531daac8c4627e08ba5de8c5ef2f2752d"
+dependencies = [
+ "matrixmultiply",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "portable-atomic",
+ "portable-atomic-util",
+ "rawpointer",
+]
+
+[[package]]
 name = "nom"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1461,7 +1476,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "45e45a172e6c0fb7d640e92c7740f4ea476bfc49ef5c52ea9c73e9fae32b09fe"
 dependencies = [
  "half",
- "ndarray",
+ "ndarray 0.16.1",
  "ort-sys",
  "thiserror 1.0.69",
  "tracing",
