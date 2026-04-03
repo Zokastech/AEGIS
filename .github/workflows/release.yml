@@ -66,7 +66,7 @@ jobs:
           tar -czvf "aegis-cli-${TAG}-${{ matrix.label }}.tar.gz" -C pack aegis
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003
 
       - name: cosign sign-blob (archive CLI)
         shell: bash
@@ -197,7 +197,7 @@ jobs:
           sbom: true
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003
 
       # Signature keyless (OIDC) — nécessite id-token: write.
       - name: cosign sign
