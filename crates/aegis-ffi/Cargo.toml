@@ -27,4 +27,4 @@ serde_json.workspace = true
 
 pyo3 = { version = "0.23", optional = true, features = ["auto-initialize"] }
 napi = { version = "2", optional = true, default-features = false, features = ["napi4"] }
-napi-derive = { version = "2", optional = true }
+napi-derive = { version = "3", optional = true }
