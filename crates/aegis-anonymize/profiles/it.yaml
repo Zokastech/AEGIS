@@ -1,0 +1,78 @@
+# AEGIS — zokastech.fr — Profil synthétique IT
+country_code: IT
+locale: it
+phone_country_prefix: "39"
+phone_national_digits: 10
+phone_mobile_leading_digits: ["3"]
+phone_display_format: "+{cc} {a} {b} {c}"
+phone_group_sizes: [3, 3, 4]
+email_domain: "example.com"
+date_format: "{dd}/{mm}/{yyyy}"
+address_template: "{street}, {num} — {postal} {city}"
+iban_bban_numeric: true
+iban_bban_length: 23
+national_id_kind: it_cf
+
+firstnames_male:
+  - { name: "Marco", weight: 13 }
+  - { name: "Luca", weight: 12 }
+  - { name: "Alessandro", weight: 11 }
+  - { name: "Matteo", weight: 11 }
+  - { name: "Andrea", weight: 10 }
+  - { name: "Giuseppe", weight: 9 }
+  - { name: "Francesco", weight: 9 }
+  - { name: "Lorenzo", weight: 8 }
+  - { name: "Davide", weight: 8 }
+  - { name: "Simone", weight: 9 }
+
+firstnames_female:
+  - { name: "Giulia", weight: 14 }
+  - { name: "Chiara", weight: 12 }
+  - { name: "Francesca", weight: 11 }
+  - { name: "Sara", weight: 10 }
+  - { name: "Valentina", weight: 9 }
+  - { name: "Elena", weight: 9 }
+  - { name: "Martina", weight: 9 }
+  - { name: "Alessia", weight: 8 }
+  - { name: "Elisa", weight: 8 }
+  - { name: "Federica", weight: 10 }
+
+lastnames:
+  - { name: "Rossi", weight: 14 }
+  - { name: "Russo", weight: 12 }
+  - { name: "Ferrari", weight: 10 }
+  - { name: "Esposito", weight: 9 }
+  - { name: "Bianchi", weight: 9 }
+  - { name: "Romano", weight: 8 }
+  - { name: "Colombo", weight: 8 }
+  - { name: "Ricci", weight: 8 }
+  - { name: "Marino", weight: 8 }
+  - { name: "Greco", weight: 8 }
+
+streets:
+  - "Via Roma"
+  - "Via Garibaldi"
+  - "Corso Vittorio Emanuele"
+  - "Via Dante"
+  - "Piazza del Popolo"
+  - "Via Mazzini"
+  - "Lungotevere"
+  - "Via Manzoni"
+  - "Via Verdi"
+  - "Via Milano"
+
+cities:
+  - { name: "Roma", postal_min: 00118, postal_max: 00199 }
+  - { name: "Milano", postal_min: 20121, postal_max: 20162 }
+  - { name: "Napoli", postal_min: 80121, postal_max: 80147 }
+  - { name: "Torino", postal_min: 10121, postal_max: 10156 }
+  - { name: "Palermo", postal_min: 90121, postal_max: 90151 }
+  - { name: "Genova", postal_min: 16121, postal_max: 16167 }
+  - { name: "Bologna", postal_min: 40121, postal_max: 40141 }
+  - { name: "Firenze", postal_min: 50121, postal_max: 50145 }
+
+age_distribution:
+  - { min_age: 18, max_age: 30, weight: 23 }
+  - { min_age: 31, max_age: 45, weight: 35 }
+  - { min_age: 46, max_age: 60, weight: 27 }
+  - { min_age: 61, max_age: 82, weight: 15 }

@@ -1,0 +1,103 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Exemple de configuration moteur (copier vers aegis-config.yaml actif).
+
+# --- Recognizers ---
+recognizers:
+  default_regex:
+    enabled: true
+    languages: [en, fr, de, es, it, nl, pt, pl]
+  # Désactiver par nom retourné par Recognizer::name() (insensible à la casse)
+  disabled: []
+    # - phone_e164_eu
+
+# --- Seuils par type d’entité (post-pipeline ; optionnel) ---
+entity_thresholds:
+  EMAIL: 0.82
+  CREDIT_CARD: 0.72
+  PERSON: 0.55
+
+# --- Niveau global du pipeline (1 = regex, 2 = +contexte, 3 = +NER) ---
+pipeline_level: 3
+
+# --- Détail pipeline (fusionné avec pipeline_level ; champs optionnels) ---
+pipeline:
+  levels: l1_l2_l3
+  output_score_threshold: 0.48
+  ner_invocation_score_threshold: 0.78
+  short_circuit_l1_score: 0.95
+  weight_level1: 0.45
+  weight_level2: 0.30
+  weight_level3: 0.25
+  timeout_level1_ms: 2
+  timeout_level2_ms: 8
+  timeout_level3_ms: 60
+  adjacent_merge_gap_chars: 1
+  overlap_iou_min: 0.35
+  record_decision_trace: false
+  analysis:
+    language: fr
+    score_threshold: 0.35
+    return_decision_process: false
+    context_window_size: 8
+
+# --- Context words & quasi-identifiants (niveau 2) ---
+context_scorer:
+  context_window_chars: 96
+  languages:
+    fr:
+      person_boost: [patient, client, M., Mme, monsieur]
+      person_penalty: [ville de, pays, région]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    en:
+      person_boost: [patient, client, Mr., Mrs., Ms.]
+      person_penalty: [city of, country]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    de:
+      person_boost: [Patient, Kunde, Herr, Frau]
+      person_penalty: [Stadt, Land, Region]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    es:
+      person_boost: [paciente, cliente, Sr., Sra.]
+      person_penalty: [ciudad de, país, región]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    it:
+      person_boost: [paziente, cliente, Sig., Sig.ra]
+      person_penalty: [città di, paese, regione]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    nl:
+      person_boost: [patiënt, klant, Dhr., Mevr.]
+      person_penalty: [stad van, land, regio]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    pt:
+      person_boost: [paciente, cliente, Sr., Sra.]
+      person_penalty: [cidade de, país, região]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+    pl:
+      person_boost: [pacjent, klient, Pan, Pani]
+      person_penalty: [miasto, kraj, region]
+      boost_delta: 0.08
+      penalty_delta: 0.12
+  combinations:
+    - within_chars: 120
+      require_entity_types: [DATE, LOCATION]
+      alert_score_boost: 0.15
+      note: quasi_id_date_location
+
+# --- NER / ONNX (niveau 3) ---
+ner:
+  model_path: models/ner-mini.onnx
+  device: cpu
+  batch_size: 8
+  thread_pool_size: 2
+
+# --- Analyse par défaut (surcharge partielle) ---
+analysis:
+  language: fr
+  score_threshold: 0.4

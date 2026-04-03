@@ -1,0 +1,20 @@
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Service dev aegis-gateway : Rust (aegis-ffi .so) + Go CGO + air (tag aegisffi).
+# Air récent (ex. v1.64+) exige Go >= 1.25 ; aligner l’image même si go.mod reste en 1.22.
+FROM golang:1.25-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libc6-dev ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Toolchain Rust (build de libaegis_ffi.so dans le volume /work au démarrage).
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:/go/bin:/usr/local/go/bin:${PATH}"
+
+RUN go install github.com/air-verse/air@latest
+
+COPY docker/scripts/dev-gateway-entry.sh /usr/local/bin/dev-gateway-entry.sh
+RUN chmod +x /usr/local/bin/dev-gateway-entry.sh
+
+WORKDIR /work/aegis-gateway
+CMD ["/usr/local/bin/dev-gateway-entry.sh"]

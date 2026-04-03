@@ -1,0 +1,48 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Suite de benchmarks micro / macro (Criterion) — voir benchmarks/README.md
+
+[package]
+name = "aegis-benchmarks"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+description = "Micro et macro benchmarks AEGIS (zokastech.fr)"
+
+[dependencies]
+aegis-anonymize = { path = "../crates/aegis-anonymize" }
+aegis-core = { path = "../crates/aegis-core" }
+aegis-ffi = { path = "../crates/aegis-ffi" }
+aegis-regex = { path = "../crates/aegis-regex" }
+criterion = { workspace = true }
+libc = { workspace = true }
+rayon = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[[bench]]
+name = "micro_recognizers"
+harness = false
+
+[[bench]]
+name = "micro_pipeline"
+harness = false
+
+[[bench]]
+name = "micro_anonymize"
+harness = false
+
+[[bench]]
+name = "micro_ffi_json"
+harness = false
+
+[[bench]]
+name = "macro_load"
+harness = false
+
+[[bin]]
+name = "aegis-memory-rusage"
+path = "src/bin/memory_rusage.rs"

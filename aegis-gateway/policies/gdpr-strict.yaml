@@ -1,0 +1,43 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Politique stricte alignée RGPD : minimisation, pas de rétention de mappings par défaut.
+# Réf. : art. 5 (minimisation), art. 25 (privacy by design), art. 32 (sécurité du traitement).
+# Les mesures techniques complémentaires (chiffrement, journaux, accès) sont décrites dans docs/en/security/.
+
+regulation: GDPR
+name: gdpr-strict
+description: >
+  Masquage ou suppression des PII détectées ; journalisation réduite aux métadonnées ;
+  aucune rétention prolongée des tables de pseudonymisation sans base légale documentée.
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 90
+
+entities:
+  - type: EMAIL
+    action: anonymize
+    operator: mask
+  - type: PHONE
+    action: anonymize
+    operator: mask
+  - type: PERSON
+    action: anonymize
+    operator: replace
+  - type: IBAN
+    action: anonymize
+    operator: redact
+  - type: CREDIT_CARD
+    action: anonymize
+    operator: redact
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: true
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

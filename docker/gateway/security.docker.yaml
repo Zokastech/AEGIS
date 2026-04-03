@@ -1,0 +1,43 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Fusion sécurité pour Docker (chemins absolus, auth désactivée pour démo OOTB).
+
+production: false
+
+development:
+  disable_auth: true
+
+tls:
+  enabled: true
+  cert_file: /etc/aegis/tls/cert.pem
+  key_file: /etc/aegis/tls/key.pem
+  auto_generate_self_signed: false
+  client_ca_file: ""
+
+mtls:
+  require: false
+
+cors:
+  allow_origins: ["*"]
+
+api_keys:
+  file_path: /etc/aegis/api_keys.yaml
+  pepper: ""
+
+rbac:
+  backend: yaml
+  file_path: /etc/aegis/rbac/rbac.yaml
+  postgres_dsn: ""
+
+jwt:
+  enabled: false
+
+oidc:
+  enabled: false
+
+audit:
+  backend: file
+  file_path: /var/lib/aegis/audit.jsonl
+  postgres_dsn: ""
+  rotate_max_mb: 50
+  rotate_max_age: 24h
+  archive_dir: /var/lib/aegis/audit-archive

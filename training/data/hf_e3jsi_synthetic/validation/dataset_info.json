@@ -1,0 +1,58 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "tokens": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "Sequence"
+    },
+    "ner_tags": {
+      "feature": {
+        "names": [
+          "O",
+          "B-PERSON",
+          "I-PERSON",
+          "B-EMAIL",
+          "B-PHONE",
+          "I-PHONE",
+          "B-IBAN",
+          "I-IBAN",
+          "B-CREDIT_CARD",
+          "I-CREDIT_CARD",
+          "B-SSN",
+          "I-SSN",
+          "B-PASSPORT",
+          "B-ADDRESS",
+          "I-ADDRESS",
+          "B-ORGANIZATION",
+          "I-ORGANIZATION",
+          "B-LOCATION",
+          "I-LOCATION",
+          "B-DATE",
+          "B-NATIONAL_ID",
+          "I-NATIONAL_ID",
+          "B-TAX_ID",
+          "I-TAX_ID",
+          "B-MEDICAL_RECORD",
+          "I-MEDICAL_RECORD",
+          "B-LICENSE_PLATE"
+        ],
+        "_type": "ClassLabel"
+      },
+      "_type": "Sequence"
+    },
+    "lang": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "domain": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}

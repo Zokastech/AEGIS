@@ -1,0 +1,36 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Droit à l’effacement (RGPD art. 17) — politique d’orchestration effacement + zéro rétention mapping.
+
+regulation: GDPR
+name: gdpr-article-17
+version: "1"
+description: >
+  Orientée effacement : aucune rétention de pseudonymes ; endpoint DELETE /v1/subjects/{id}
+  doit purger tous les mappings pour le sujet. Ne supprime pas les backups hors gateway.
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 90
+  minimized_data_days: 0
+
+entities: []
+
+automatic_actions:
+  on_detect:
+    - log_minimal
+  on_violation:
+    - alert
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: false
+  strip_response_entity_text: true
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+  strip_control_chars: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

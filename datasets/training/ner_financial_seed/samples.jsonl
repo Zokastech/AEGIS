@@ -1,0 +1,5 @@
+{"tokens": ["Wire", "to", "IBAN", "DE89", "3704", "0044", "0532", "0130", "00", "ref", "INV-2024-0092"], "ner_tags": ["O", "O", "O", "B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "O", "O"], "lang": "en", "domain": "financial_seed"}
+{"tokens": ["Paiement", "carte", "4974", "0123", "4567", "8901", "exp", "12/27"], "ner_tags": ["O", "O", "B-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "O", "O"], "lang": "fr", "domain": "financial_seed"}
+{"tokens": ["TVA", "intracom", "ES", "B12345678", "client", "ACME"], "ner_tags": ["O", "O", "B-TAX_ID", "I-TAX_ID", "O", "B-ORGANIZATION"], "lang": "es", "domain": "financial_seed"}
+{"tokens": ["SIREN", "552", "100", "554", "headquarters", "Lyon"], "ner_tags": ["O", "B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "O", "B-LOCATION"], "lang": "fr", "domain": "financial_seed"}
+{"tokens": ["Account", "holder", "Jane", "Doe", ",", "SWIFT", "DEUTDEFF"], "ner_tags": ["O", "O", "B-PERSON", "I-PERSON", "O", "O", "O"], "lang": "en", "domain": "financial_seed"}

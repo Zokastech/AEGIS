@@ -1,0 +1,144 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Production-like stack : `cp .env.example .env` puis `docker compose up -d --build`
+# L’image aegis-gateway inclut le moteur Rust (aegis-ffi) — plus de MockEngine dans ce flux.
+#
+# Réseaux : frontend (dashboard ↔ gateway), backend (gateway ↔ core, redis, postgres).
+
+name: aegis
+
+networks:
+  frontend:
+    name: aegis-frontend
+    driver: bridge
+  backend:
+    name: aegis-backend
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  aegis_models:
+  aegis_audit:
+
+services:
+  onnx-init:
+    image: curlimages/curl:8.6.0
+    env_file: .env
+    volumes:
+      - aegis_models:/models
+    networks:
+      - backend
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ -z "$$NER_ONNX_URL" ]; then
+          echo "NER_ONNX_URL vide : moteur core en pipeline L1+L2 (regex + contexte)."
+          exit 0
+        fi
+        if [ ! -s /models/ner.onnx ]; then
+          curl -fsSL "$$NER_ONNX_URL" -o /models/ner.onnx
+          echo "ONNX téléchargé dans le volume aegis_models."
+        fi
+    restart: "no"
+
+  aegis-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.core
+      args:
+        NER_ONNX_URL: ${NER_ONNX_URL:-}
+    image: ${AEGIS_CORE_IMAGE:-aegis/core:local}
+    env_file: .env
+    depends_on:
+      onnx-init:
+        condition: service_completed_successfully
+    volumes:
+      - aegis_models:/opt/aegis/models:ro
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/aegis", "analyze", "ping", "--config", "/etc/aegis/aegis.yaml"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
+
+  aegis-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.gateway
+    image: ${AEGIS_GATEWAY_IMAGE:-aegis/gateway:local}
+    env_file: .env
+    environment:
+      AEGIS_INSECURE_HTTP: ${AEGIS_INSECURE_HTTP:-0}
+    volumes:
+      - aegis_audit:/var/lib/aegis
+    networks:
+      frontend: {}
+      backend: {}
+    ports:
+      - "${GATEWAY_HTTPS_PORT:-8443}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # Image distroless : pas de shell/wget ; sonde désactivée (utiliser K8s httpGet ou un sidecar).
+    healthcheck:
+      disable: true
+
+  aegis-dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    image: ${AEGIS_DASHBOARD_IMAGE:-aegis/dashboard:local}
+    networks:
+      - frontend
+    ports:
+      - "${DASHBOARD_PORT:-3000}:8080"
+    depends_on:
+      - aegis-gateway
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-aegis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-aegis}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  redis:
+    image: redis:${REDIS_VERSION:-7}-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

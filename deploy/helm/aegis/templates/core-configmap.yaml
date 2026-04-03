@@ -1,0 +1,15 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.core.enabled .Values.core.configMap.create .Values.core.configMap.data }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "aegis.fullname" . }}-core-config
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+  annotations:
+    {{- include "aegis.brandAnnotations" . | nindent 4 }}
+data:
+  {{ .Values.core.configMap.key | default "aegis.yaml" | quote }}: |
+{{ .Values.core.configMap.data | nindent 4 }}
+{{- end }}

@@ -1,0 +1,7 @@
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Service dev « aegis-core » : surveillance du workspace Rust (cargo-watch).
+FROM rust:bookworm
+RUN cargo install cargo-watch --locked
+WORKDIR /work
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+CMD ["cargo", "watch", "-x", "check --workspace"]

@@ -1,0 +1,5 @@
+{"tokens": ["Contact", ":", "alice.demo@societe.eu"], "ner_tags": ["O", "O", "B-EMAIL"], "lang": "fr", "domain": "custom_seed"}
+{"tokens": ["M", ".", "Martin", "habite", "12", "rue", "des", "Lilas", ",", "Paris"], "ner_tags": ["O", "O", "B-PERSON", "O", "B-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "O", "B-LOCATION"], "lang": "fr", "domain": "custom_seed"}
+{"tokens": ["IBAN", ":", "FR76", "3000", "6000", "0112", "3456", "7890", "189"], "ner_tags": ["O", "O", "B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN"], "lang": "fr", "domain": "custom_seed"}
+{"tokens": ["Card", "ending", "4532", "0123", "4567", "8901", "exp", "12/27"], "ner_tags": ["O", "O", "B-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "O", "O"], "lang": "en", "domain": "custom_seed"}
+{"tokens": ["VAT", "number", "DE", "123456789", "for", "invoice"], "ner_tags": ["O", "O", "B-TAX_ID", "I-TAX_ID", "O", "O"], "lang": "en", "domain": "custom_seed"}

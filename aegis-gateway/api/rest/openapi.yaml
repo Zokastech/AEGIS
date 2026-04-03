@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  title: AEGIS Gateway API
+  version: 1.0.0
+  description: |
+    Passerelle HTTP pour le moteur AEGIS (zokastech.fr). Les annotations swag complètent ce fichier.
+servers:
+  - url: http://localhost:8080
+paths:
+  /v1/analyze:
+    post:
+      tags: [analyze]
+      summary: Analyser un texte
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeRequest'
+      responses:
+        '200':
+          description: Résultat moteur (JSON serde Rust)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponse'
+  /v1/analyze/batch:
+    post:
+      tags: [analyze]
+      summary: Analyse par lot (pagination)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnalyzeBatchRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeBatchResponse'
+  /v1/anonymize:
+    post:
+      tags: [anonymize]
+      summary: Analyse + anonymisation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnonymizeRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnonymizeResponse'
+  /v1/deanonymize:
+    post:
+      tags: [admin]
+      summary: Dé-anonymisation (admin, FFI à étendre)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeanonymizeRequest'
+      responses:
+        '501':
+          description: Non implémenté côté aegis-ffi
+  /v1/recognizers:
+    get:
+      tags: [meta]
+      summary: Recognizers actifs (catalogue)
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecognizersResponse'
+  /v1/entities:
+    get:
+      tags: [meta]
+      summary: Types d'entités supportés
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityTypesResponse'
+  /v1/config:
+    put:
+      tags: [admin]
+      summary: Mise à jour config à chaud (YAML fusionné)
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConfigRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateConfigResponse'
+  /v1/health:
+    get:
+      tags: [health]
+      summary: Health check
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /v1/openapi.yaml:
+    get:
+      tags: [meta]
+      summary: Spécification OpenAPI 3.0
+      responses:
+        '200':
+          content:
+            application/yaml:
+              schema:
+                type: string
+  /metrics:
+    get:
+      tags: [observability]
+      summary: Métriques Prometheus
+      responses:
+        '200':
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    AnalyzeRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        analysis_config_json: { type: string }
+    AnalyzeResponse:
+      type: object
+      properties:
+        result: { type: object, additionalProperties: true }
+    AnalyzeBatchRequest:
+      type: object
+      properties:
+        texts:
+          type: array
+          items: { type: string }
+        page: { type: integer }
+        page_size: { type: integer }
+    AnalyzeBatchResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { type: object }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
+        has_more: { type: boolean }
+    AnonymizeRequest:
+      type: object
+      properties:
+        text: { type: string }
+        config_json: { type: string }
+    AnonymizeResponse:
+      type: object
+      properties:
+        result: { type: object }
+    DeanonymizeRequest:
+      type: object
+      properties:
+        anonymized_result_json: { type: string }
+        key_material_json: { type: string }
+    RecognizersResponse:
+      type: object
+    EntityTypesResponse:
+      type: object
+    UpdateConfigRequest:
+      type: object
+      properties:
+        yaml: { type: string }
+    UpdateConfigResponse:
+      type: object
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string }
+        rust_version: { type: string }

@@ -1,0 +1,124 @@
+# =============================================================================
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Scans de sécurité : Rust (cargo-audit), Go (govulncheck), conteneurs (Trivy)
+# =============================================================================
+# La configuration Dependabot (.github/dependabot.yml) complète ce workflow en
+# ouvrant des PR de mise à jour pour Cargo, Go modules, npm, pip et Actions.
+# =============================================================================
+name: Security
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Hebdo : lundi 06:00 UTC — détecte vuln. même sans activité sur la branche.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # cargo-audit : base de données RustSec (advisory-db).
+  # continue-on-error : ne bloque pas la CI si la DB ou un advisory FP casse le build.
+  # ---------------------------------------------------------------------------
+  rust-audit:
+    name: cargo audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - name: Install cargo-audit (locked)
+        run: cargo install cargo-audit --locked
+
+      - name: cargo audit
+        continue-on-error: true
+        run: cargo audit
+
+  # ---------------------------------------------------------------------------
+  # govulncheck : analyse statique des appels aux APIs vulnérables (Go team).
+  # ---------------------------------------------------------------------------
+  go-vulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: |
+            aegis-gateway/go.sum
+            aegis-policy/go.sum
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: govulncheck (aegis-policy)
+        working-directory: aegis-policy
+        run: govulncheck ./...
+
+      - name: govulncheck (aegis-gateway)
+        working-directory: aegis-gateway
+        run: govulncheck ./...
+
+  # ---------------------------------------------------------------------------
+  # Trivy : construction locale de l’image gateway + scan (CVEs, misconfig).
+  # Image Trivy pinnée pour reproductibilité ; exit-code 0 = alerte sans fail PR.
+  # Ajustez exit-code à 1 pour bloquer sur HIGH/CRITICAL en durcissement.
+  # ---------------------------------------------------------------------------
+  trivy-image:
+    name: Trivy (Dockerfile.gateway)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Build image (load into Docker)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: docker/Dockerfile.gateway
+          load: true
+          tags: aegis-gateway:security-scan
+          push: false
+
+      - name: Run Trivy scanner
+        env:
+          TRIVY_VERSION: 0.58.1
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:${TRIVY_VERSION} image \
+            --severity CRITICAL,HIGH,MEDIUM \
+            --exit-code 0 \
+            aegis-gateway:security-scan
+
+      - name: Trivy (SARIF pour GitHub Security tab — optionnel)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          TRIVY_VERSION: 0.58.1
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/work" -w /work \
+            aquasec/trivy:${TRIVY_VERSION} image \
+            --format sarif \
+            --output trivy-results.sarif \
+            aegis-gateway:security-scan || true
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: trivy-sarif
+          path: trivy-results.sarif
+          if-no-files-found: ignore

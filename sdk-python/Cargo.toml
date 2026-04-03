@@ -1,0 +1,22 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+[package]
+name = "aegis-pii-native"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+authors = ["zokastech <https://zokastech.fr>"]
+repository = "https://github.com/zokastech/aegis"
+description = "Extension PyO3 pour le SDK Python aegis-pii (moteur AEGIS)"
+
+[lib]
+name = "aegis_pii_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.23", features = ["extension-module"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+aegis-core = { path = "../crates/aegis-core" }
+aegis-anonymize = { path = "../crates/aegis-anonymize" }
+aegis-regex = { path = "../crates/aegis-regex" }

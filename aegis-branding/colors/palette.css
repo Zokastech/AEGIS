@@ -1,0 +1,25 @@
+/**
+ * AEGIS — zokastech.fr — Apache 2.0 / MIT
+ * Palette officielle — Zokastech : Innovate • Connect • Grow
+ */
+:root {
+  /* Primaire & secondaire */
+  --color-primary: #0066ff;
+  --color-primary-dark: #0052cc;
+  --color-secondary: #1a1f3a;
+
+  /* Accents */
+  --color-accent-warm: #ff6b35;
+  --color-accent-tech: #00d9ff;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+
+  /* Neutres */
+  --color-light: #f8f9fa;
+  --color-border: #e5e7eb;
+  --color-text-muted: #374151;
+  --color-text: #0f172a;
+
+  /* Dégradé discret (UI) */
+  --gradient-brand: linear-gradient(135deg, #0066ff 0%, #00d9ff 100%);
+}

@@ -1,0 +1,327 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# ---------------------------------------------------------------------------
+# Chart Helm 3 — valeurs par défaut sécurisées (non-root, capabilities drop).
+# Adaptez images, ressources et ingress à votre environnement (prod / staging).
+# ---------------------------------------------------------------------------
+
+global:
+  # Libellés et métadonnées de marque (annotations Kubernetes, docs).
+  brand:
+    name: AEGIS
+    organization: zokastech.fr
+    homeUrl: https://zokastech.fr
+    primaryHex: "#1a56db"
+    accentGoldHex: "#d4a843"
+    inkHex: "#0a0f1a"
+
+# Surcharge du nom de release Helm (rare).
+nameOverride: ""
+fullnameOverride: ""
+
+# ---------------------------------------------------------------------------
+# ServiceAccount — utilisé par gateway, dashboard et core (même identité K8s).
+# ---------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  annotations: {}
+  # Si vide et create=true : {{ release-name }}-aegis
+  name: ""
+
+# ---------------------------------------------------------------------------
+# RBAC Kubernetes — Role + RoleBinding dans le namespace (lecture ConfigMap/Secret ciblés).
+# Le gateway ne parle pas à l’API K8s par défaut ; activez pour futurs sidecars / operators.
+# ---------------------------------------------------------------------------
+rbac:
+  create: false
+  # Règles supplémentaires (tableau RBAC standard) fusionnées avec les règles de base.
+  extraRules: []
+
+# ---------------------------------------------------------------------------
+# Pod Security Standards — labels appliqués au pod (le enforce au niveau namespace
+# reste à configurer sur le Namespace : pod-security.kubernetes.io/enforce=restricted).
+# PodSecurityPolicy est déprécié depuis K8s 1.25 ; ne pas l’utiliser.
+# ---------------------------------------------------------------------------
+podSecurity:
+  # Si true : ajoute app.kubernetes.io/component et un label indicatif PSS (informatif).
+  labelRestricted: true
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# ---------------------------------------------------------------------------
+# aegis-core — moteur Rust (CLI / worker). Pas d’exposition HTTP par défaut.
+# Monte un PVC optionnel pour modèles ONNX (NER) et une ConfigMap de config moteur.
+# ---------------------------------------------------------------------------
+core:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/zokastech/aegis-core
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Commande / args (adapter à l’image : debian slim utilise sleep ; image avec tini : voir docker/Dockerfile.core).
+  command:
+    - sleep
+    - infinity
+  args: []
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  # PVC pour /opt/aegis/models (ONNX). Désactivé = emptyDir éphémère.
+  persistence:
+    enabled: false
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+  # ConfigMap moteur : create=true génère {{fullname}}-core-config ; sinon utilisez name existant.
+  configMap:
+    create: false
+    name: ""
+    key: aegis.yaml
+    # Contenu si create=true (YAML moteur AEGIS).
+    data: ""
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    cpuMetric: true
+    targetCPUUtilizationPercentage: 75
+    # Métrique custom (API custom.metrics.k8s.io) — nécessite prometheus-adapter ou équivalent.
+    prometheus:
+      enabled: false
+      # Nom exact tel qu’exposé par l’adapter (ex. règle sur rate(aegis_analyze_requests_total[1m])).
+      metricName: aegis_core_analyze_requests_per_second
+      # Cible moyenne par pod (chaîne Quantité Kubernetes, ex. "10" ou "500m").
+      averageValue: "5"
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+# ---------------------------------------------------------------------------
+# aegis-gateway — API HTTP/HTTPS + gRPC.
+# ---------------------------------------------------------------------------
+gateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/zokastech/aegis-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    # Port gRPC (même Service, second port).
+  grpc:
+    enabled: true
+    port: 9090
+  # Si le listener TLS est activé dans la config du binaire, les probes doivent utiliser HTTPS.
+  tls:
+    enabled: false
+  probes:
+    livenessPath: /health/live
+    readinessPath: /health/ready
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  env:
+    - name: AEGIS_POLICY
+      value: /policies/gdpr-strict.yaml
+  # Variables sensibles (créées dans un Secret {{fullname}}-gateway-env).
+  secretEnv: {}
+  # Données additionnelles du Secret (fusionnées avec secretEnv).
+  extraSecretData: {}
+  # Fichiers YAML fusionnés : montés depuis ConfigMap {{fullname}}-gateway-config (optionnel).
+  configFiles: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraVolumeMounts: []
+  extraVolumes: []
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 20
+    # Si false : pas de métrique CPU dans le HPA (utile pour scaler uniquement sur Prometheus).
+    cpuMetric: true
+    targetCPUUtilizationPercentage: 70
+    # Métrique Pods (custom.metrics.k8s.io) — nécessite prometheus-adapter (règle sur aegis_*).
+    prometheus:
+      enabled: false
+      metricName: aegis_gateway_http_requests_per_second
+      averageValue: "100"
+  pdb:
+    enabled: true
+    minAvailable: 1
+
+# ---------------------------------------------------------------------------
+# aegis-dashboard — UI statique (nginx). Port conteneur = targetPort des probes.
+# ---------------------------------------------------------------------------
+dashboard:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/zokastech/aegis-dashboard
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  containerPort: 8080
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# ---------------------------------------------------------------------------
+# Redis embarqué (dev / petits clusters). Préférer ElastiCache / Memorystore en production.
+# ---------------------------------------------------------------------------
+redis:
+  enabled: false
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  auth:
+    enabled: false
+    password: ""
+  persistence:
+    enabled: false
+    size: 1Gi
+    storageClass: ""
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    fsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+
+# ---------------------------------------------------------------------------
+# PostgreSQL — valeurs documentaires uniquement (pas de sous-chart Bitnami ici).
+# Utilisez un service managé ou un chart postgres dédié ; branchez le DSN via gateway.env / secret.
+# ---------------------------------------------------------------------------
+postgresql:
+  enabled: false
+  auth:
+    username: aegis
+    password: changeme
+    database: aegis
+  persistence:
+    enabled: false
+    size: 8Gi
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# ---------------------------------------------------------------------------
+# Ingress — NGINX / traefik / autre. TLS : secret pré-créé ou cert-manager (annotations).
+# ---------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    # Décommentez avec cert-manager installé sur le cluster :
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # cert-manager.io/acme-challenge-type: http01
+  hosts:
+    - host: aegis.example.com
+      paths:
+        - path: /v1
+          pathType: Prefix
+          service: gateway
+        - path: /metrics
+          pathType: Prefix
+          service: gateway
+        - path: /health
+          pathType: Prefix
+          service: gateway
+    - host: dashboard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: dashboard
+  # tls:
+  #   - secretName: aegis-tls
+  #     hosts:
+  #       - aegis.example.com
+  tls: []
+
+# ---------------------------------------------------------------------------
+# NetworkPolicy — une ressource par composant activé (isolation ingress/egress de base).
+# ---------------------------------------------------------------------------
+networkPolicy:
+  enabled: false
+  gateway: true
+  core: true
+  dashboard: true
+  redis: true
+  # Namespace autorisé en ingress vers gateway/dashboard (labels kubernetes.io/metadata.name).
+  allowIngressFromNamespace: ""
+  # Autoriser egress vers le DNS du cluster (kube-dns / CoreDNS).
+  egressDNS: true
+  # CIDR additionnels (ex. API managée hors cluster).
+  extraEgressCIDRs: []
+
+# ---------------------------------------------------------------------------
+# Prometheus Operator — ServiceMonitor pour scraper /metrics sur le gateway.
+# ---------------------------------------------------------------------------
+metrics:
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    # Si le gateway sert /metrics en HTTPS avec cert auto-signé.
+    insecureSkipVerify: true
+    path: /metrics
+    labels: {}
+    scheme: http

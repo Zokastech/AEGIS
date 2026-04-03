@@ -1,0 +1,25 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Pipeline fine-tuning NER PII EU (Python 3.10+)
+
+# Pin numpy<2 : wheels torch/onnx souvent compilés contre NumPy 1.x.
+# Pin transformers<5 : évite l’exigence torch>=2.4 et les changements hub « local path ».
+torch>=2.1.0
+transformers>=4.38.0,<5.0
+datasets>=2.18.0
+accelerate>=0.27.0
+evaluate>=0.4.1
+seqeval>=1.2.2
+numpy>=1.24.0,<2.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+onnx>=1.15.0
+onnxruntime>=1.17.0
+protobuf>=4.25.0
+sentencepiece>=0.1.99
+tqdm>=4.66.0
+matplotlib>=3.8.0
+Jinja2>=3.1.0
+
+# Optionnel : baseline Presidio (evaluate.py)
+presidio-analyzer>=2.2.0
+spacy>=3.7.0

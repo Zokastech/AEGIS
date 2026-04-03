@@ -1,0 +1,9 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Stockage des clés API (secrets jamais en clair : SHA-256 avec pepper).
+# Définir le pepper : champ pepper ci-dessous ou variable AEGIS_API_KEY_PEPPER.
+#
+# Génération (outil CLI à brancher) : hash = SHA256(pepper + plain_secret)
+# Rôles : viewer | operator | admin | auditor
+
+pepper: ""
+keys: []

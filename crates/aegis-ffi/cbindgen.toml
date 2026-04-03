@@ -1,0 +1,23 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Génération optionnelle : `cbindgen --config cbindgen.toml --crate aegis-ffi -o include/aegis_generated.h`
+# Le fichier canonique pour intégrateurs reste `include/aegis.h` (types opaques + doc Doxygen).
+
+language = "C"
+include_guard = "AEGIS_FFI_GENERATED_H"
+sys_includes = ["stdint.h", "stdbool.h"]
+includes = []
+tab_width = 4
+style = "both"
+
+[export]
+include = ["aegis_version", "aegis_last_error"]
+exclude = []
+prefix = "AEGIS_EXPORT_"
+item_types = ["functions", "enums", "structs", "typedefs"]
+
+[fn]
+must_use = "AEGIS_MUST_USE"
+
+[parse]
+parse_deps = false
+extra_bindings = []

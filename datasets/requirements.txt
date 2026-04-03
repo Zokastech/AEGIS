@@ -1,0 +1,8 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Benchmark PII : AEGIS vs Presidio (Python 3.10+)
+
+requests>=2.31.0
+numpy>=1.24.0
+matplotlib>=3.8.0
+presidio-analyzer>=2.2.0
+spacy>=3.7.0

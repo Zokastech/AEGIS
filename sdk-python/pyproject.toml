@@ -1,0 +1,54 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+[build-system]
+requires = ["maturin>=1.6,<2"]
+build-backend = "maturin"
+
+[project]
+name = "aegis-pii"
+version = "0.1.0"
+description = "SDK Python pour AEGIS — détection et anonymisation PII (zokastech.fr)"
+readme = "README.md"
+license = "Apache-2.0 OR MIT"
+authors = [{ name = "zokastech", email = "contact@zokastech.fr" }]
+requires-python = ">=3.9"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Rust",
+  "Topic :: Security",
+  "Topic :: Text Processing",
+]
+keywords = ["pii", "gdpr", "anonymization", "ner", "privacy", "aegis", "zokastech"]
+
+dependencies = []
+
+[project.optional-dependencies]
+pandas = ["pandas>=2.0"]
+langchain = ["langchain-core>=0.2"]
+llamaindex = ["llama-index-core>=0.10.0"]
+integrations = ["langchain-core>=0.2", "llama-index-core>=0.10.0"]
+dev = ["pytest>=7.0", "pytest-benchmark>=4.0"]
+
+[project.urls]
+Homepage = "https://zokastech.fr"
+Repository = "https://github.com/zokastech/aegis"
+
+[tool.maturin]
+module-name = "aegis._native"
+python-source = "."
+features = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+  "presidio: tests nécessitant presidio_analyzer",
+]

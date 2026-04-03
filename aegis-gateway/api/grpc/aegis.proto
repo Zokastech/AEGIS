@@ -1,0 +1,34 @@
+// AEGIS — zokastech.fr — Apache 2.0 / MIT
+//
+// API gRPC v1 : payloads JSON (UTF-8) transportés dans google.protobuf.StringValue.value
+// pour éviter la génération de messages protobuf projet-spécifiques (wrappers déjà fournis).
+//
+// Conventions :
+//   - Analyze: value = JSON {"text":"...","analysis_config_json":"..."} (champ optionnel)
+//   - AnalyzeBatch: value = JSON {"texts":[...],"page":1,"page_size":20}
+//   - Anonymize: value = JSON {"text":"...","config_json":"..."}
+//   - Deanonymize: value = JSON {"anonymized_result_json":"...","key_material_json":"..."}
+//   - ListRecognizers / ListEntityTypes / Health : value = "{}" ou vide
+//   - UpdateConfig: value = YAML ou JSON gateway (fragment fusionné viper)
+//   - StreamAnalyze (bidi) : chaque message StringValue.value = ligne de log ou JSON {"log_line":"...","request_id":"..."}
+//     réponse : JSON résultat analyse pour la ligne.
+
+syntax = "proto3";
+
+package aegis.gateway.v1;
+
+import "google/protobuf/wrappers.proto";
+
+option go_package = "github.com/zokastech/aegis/aegis-gateway/api/grpc/grpcapi;grpcapi";
+
+service AegisGateway {
+  rpc Analyze(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc AnalyzeBatch(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc Anonymize(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc Deanonymize(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc ListRecognizers(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc ListEntityTypes(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc UpdateConfig(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc Health(google.protobuf.StringValue) returns (google.protobuf.StringValue);
+  rpc StreamAnalyze(stream google.protobuf.StringValue) returns (stream google.protobuf.StringValue);
+}

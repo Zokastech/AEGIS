@@ -1,0 +1,17 @@
+{
+  "name": "aegis-branding",
+  "version": "1.0.0",
+  "description": "AEGIS visual identity assets (Zokastech)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "export": "node scripts/export-assets.mjs"
+  },
+  "keywords": ["aegis", "branding", "zokastech"],
+  "author": "Zokastech",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5"
+  }
+}

@@ -1,0 +1,63 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+#
+# Moteur Rust (CLI aegis) + config. Objectif image compacte : binaire strip + debian:bookworm-slim.
+# Un seul modèle NER ONNX « production » dépasse souvent 50 Mo : par défaut pipeline L1+L2 sans ONNX
+# (voir aegis-docker.yaml). Modèles : volume aegis_models (service onnx-init + NER_ONNX_URL) ou
+# build-arg NER_ONNX_URL pour intégrer un .onnx dans l’image (couche dédiée).
+
+ARG RUST_VERSION=1.80
+
+FROM rust:${RUST_VERSION}-slim AS builder
+WORKDIR /src
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY Cargo.toml Cargo.lock ./
+COPY crates ./crates
+
+# Ne pas monter /src/target en cache BuildKit : ce répertoire n’est pas inclus dans le
+# calque image ; cp vers /artifacts ne produit alors pas de fichier visible pour COPY --from.
+# On garde le cache registry + git ; on supprime target/ dans le même RUN pour limiter la taille du calque.
+ARG NER_ONNX_URL=""
+ENV CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    mkdir -p /artifacts /tmp/models && \
+    cargo build --release -p aegis-cli && \
+    cp /src/target/release/aegis /artifacts/aegis && \
+    strip /artifacts/aegis || true && \
+    rm -rf /src/target && \
+    if [ -n "$NER_ONNX_URL" ]; then \
+      curl -fsSL "$NER_ONNX_URL" -o /tmp/models/ner.onnx; \
+    fi
+
+FROM debian:bookworm-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 65532 aegis \
+    && useradd --uid 65532 --gid 65532 --shell /usr/sbin/nologin --create-home aegis
+
+COPY --from=builder /artifacts/aegis /usr/local/bin/aegis
+COPY --from=builder /tmp/models/ /opt/aegis/models/
+COPY docker/core/aegis-docker.yaml /etc/aegis/aegis.yaml
+
+RUN mkdir -p /opt/aegis/models /var/lib/aegis \
+    && chown -R aegis:aegis /opt/aegis /var/lib/aegis /etc/aegis
+
+USER aegis:aegis
+WORKDIR /var/lib/aegis
+
+ENV AEGIS_CONFIG=/etc/aegis/aegis.yaml
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+# Processus de fond minimal (partage des binaires / config avec d’autres services)
+CMD ["sleep", "infinity"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD ["/usr/local/bin/aegis", "analyze", "ping", "--config", "/etc/aegis/aegis.yaml"]
