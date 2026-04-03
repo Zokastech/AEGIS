@@ -22,7 +22,7 @@ tracing.workspace = true
 [dev-dependencies]
 aegis-anonymize = { path = "../aegis-anonymize" }
 aegis-regex = { path = "../aegis-regex" }
-criterion = "0.5"
+criterion = "0.8"
 proptest.workspace = true
 rayon.workspace = true
 regex.workspace = true

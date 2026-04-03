@@ -17,7 +17,7 @@ phonenumber = "0.3"
 regex.workspace = true
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.8"
 proptest.workspace = true
 
 [[bench]]
