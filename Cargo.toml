@@ -43,5 +43,5 @@ ctor = "0.2"
 proptest = "1.5"
 criterion = "0.5"
 libc = "0.2"
-# ≥0.24.1 : RUSTSEC-2025-0020 (PyString::from_object) — garder aligné avec sdk-python/Cargo.toml
-pyo3 = { version = "0.24.1", features = ["auto-initialize"] }
+# RUSTSEC-2025-0020 : pyo3 ≥ 0.24.1 (voir sdk-python/Cargo.toml)
+pyo3 = { version = "0.24.2", features = ["auto-initialize"] }

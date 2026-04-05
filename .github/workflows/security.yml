@@ -46,6 +46,27 @@ jobs:
       - name: Install cargo-audit (locked)
         run: cargo install cargo-audit --locked
 
+      - name: Verify pyo3 in Cargo.lock (RUSTSEC-2025-0020)
+        run: |
+          python3 <<'PY'
+          import re
+          from pathlib import Path
+          text = Path("Cargo.lock").read_text(encoding="utf-8")
+          m = re.search(r'\[\[package\]\]\nname = "pyo3"\nversion = "([^"]+)"', text)
+          if not m:
+              print("::notice::No pyo3 package in Cargo.lock (optional dep unused); audit may still be clean.")
+              raise SystemExit(0)
+          ver = m.group(1)
+          print(f"Cargo.lock pyo3 = {ver}")
+          parts = [int(x) for x in ver.split(".")[:3]]
+          while len(parts) < 3:
+              parts.append(0)
+          ok = parts[0] > 0 or parts[1] > 24 or (parts[1] == 24 and parts[2] >= 1)
+          if not ok:
+              print(f"::error::pyo3 {ver} is vulnerable (RUSTSEC-2025-0020). Run: cargo update -p pyo3 && commit Cargo.lock (+ Cargo.toml workspace pyo3 if needed)")
+              raise SystemExit(1)
+          PY
+
       - name: cargo audit
         run: cargo audit
 
@@ -103,6 +124,10 @@ jobs:
 
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Resolved gateway modules (grpc / jwt)
+        working-directory: aegis-gateway
+        run: go list -m google.golang.org/grpc github.com/golang-jwt/jwt/v5 github.com/labstack/echo/v4
 
       - name: govulncheck (aegis-policy)
         working-directory: aegis-policy
