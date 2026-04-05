@@ -7,7 +7,8 @@ use aegis_core::anonymizer::{Operator, OperatorConfig, OperatorType};
 use aegis_core::entity::{Entity, EntityType};
 use std::collections::HashMap;
 
-const KEY32: &str = "abcdef00112233445566778899aabbccddeeff00112233445566778899aabb";
+/// 64 hex digits → 32 octets (AES-256).
+const KEY32: &str = "abcdef00112233445566778899aabbccddeeff00112233445566778899aabb00";
 
 fn synth_entities_fr(text: &str) -> Vec<Entity> {
     let name = "Claire Martin";
