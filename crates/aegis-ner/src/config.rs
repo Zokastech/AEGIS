@@ -165,7 +165,9 @@ pub(crate) fn parse_hf_id2label_json(raw: &str) -> crate::error::Result<HashMap<
         .ok_or_else(|| NerError::Config("missing id2label field".into()))?;
     let mut m = HashMap::new();
     for (k, val) in obj {
-        let id: u32 = k.parse().map_err(|_| NerError::Config(format!("id2label key: {k}")))?;
+        let id: u32 = k
+            .parse()
+            .map_err(|_| NerError::Config(format!("id2label key: {k}")))?;
         let label = val
             .as_str()
             .ok_or_else(|| NerError::Config("id2label value is not a string".into()))?
@@ -186,8 +188,6 @@ impl NerConfig {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn parse_hf_id2label() {
         let j = r#"{"id2label": {"0": "O", "1": "B-PER"}}"#;

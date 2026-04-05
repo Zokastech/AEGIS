@@ -57,7 +57,7 @@ impl Recognizer for NerRecognizer {
             .values()
             .cloned()
             .collect();
-        v.sort_by(|a, b| a.config_key().cmp(&b.config_key()));
+        v.sort_by_key(|a| a.config_key());
         v.dedup_by(|a, b| a.config_key() == b.config_key());
         v
     }
@@ -84,9 +84,7 @@ impl Recognizer for NerRecognizer {
 
         preds
             .into_iter()
-            .filter(|p| {
-                p.score >= threshold && allow.map_or(true, |a| a.contains(&p.entity_type))
-            })
+            .filter(|p| p.score >= threshold && allow.is_none_or(|a| a.contains(&p.entity_type)))
             .map(|p| {
                 let end = p.end.min(text.len());
                 let start = p.start.min(end);

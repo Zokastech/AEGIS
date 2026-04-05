@@ -6,10 +6,10 @@ use std::collections::HashMap;
 
 use ndarray::s;
 use ndarray::Array2;
-#[cfg(feature = "ort-coreml")]
-use ort::CoreMLExecutionProvider;
 #[cfg(feature = "ort-cuda")]
 use ort::CUDAExecutionProvider;
+#[cfg(feature = "ort-coreml")]
+use ort::CoreMLExecutionProvider;
 #[cfg(feature = "ort-tensorrt")]
 use ort::TensorRTExecutionProvider;
 use ort::{
@@ -132,7 +132,11 @@ impl NerEngine {
 
     /// Run inference on a single text.
     pub fn predict(&self, text: &str) -> Result<Vec<NerPrediction>> {
-        Ok(self.predict_batch(&[text])?.into_iter().next().unwrap_or_default())
+        Ok(self
+            .predict_batch(&[text])?
+            .into_iter()
+            .next()
+            .unwrap_or_default())
     }
 
     /// Batch inference (max size [`NerConfig::batch_size`]).
@@ -160,8 +164,8 @@ impl NerEngine {
                 .map_err(|e| NerError::Tokenizer(e.to_string()))?;
             let ids = enc.get_ids().to_vec();
             let mask = enc.get_attention_mask().to_vec();
-            let offsets: Vec<(usize, usize)> = enc.get_offsets().iter().copied().collect();
-            let tokens = enc.get_tokens().iter().cloned().collect();
+            let offsets: Vec<(usize, usize)> = enc.get_offsets().to_vec();
+            let tokens = enc.get_tokens().to_vec();
             rows.push(EncodedRow {
                 ids,
                 mask,

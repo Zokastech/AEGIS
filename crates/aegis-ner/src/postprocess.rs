@@ -31,10 +31,7 @@ enum IobPrefix {
 
 fn parse_label(raw: &str) -> (IobPrefix, String) {
     let raw = raw.trim();
-    if raw == "O"
-        || raw.eq_ignore_ascii_case("outside")
-        || raw.eq_ignore_ascii_case("pad")
-    {
+    if raw == "O" || raw.eq_ignore_ascii_case("outside") || raw.eq_ignore_ascii_case("pad") {
         return (IobPrefix::O, String::new());
     }
     if let Some(rest) = raw.strip_prefix("B-") {
@@ -55,10 +52,7 @@ fn parse_label(raw: &str) -> (IobPrefix, String) {
     (IobPrefix::B, raw.to_string())
 }
 
-fn resolve_entity_type(
-    suffix: &str,
-    map: &HashMap<String, EntityType>,
-) -> Option<EntityType> {
+fn resolve_entity_type(suffix: &str, map: &HashMap<String, EntityType>) -> Option<EntityType> {
     if suffix.is_empty() {
         return None;
     }
@@ -79,7 +73,14 @@ fn aggregate_scores(scores: &[f64], how: ScoreAggregation) -> f64 {
     }
 }
 
-type CurrentSpan = (String, EntityType, Vec<f64>, usize, usize, Vec<SubTokenScore>);
+type CurrentSpan = (
+    String,
+    EntityType,
+    Vec<f64>,
+    usize,
+    usize,
+    Vec<SubTokenScore>,
+);
 
 fn flush_span(
     current: &mut Option<CurrentSpan>,
@@ -139,21 +140,20 @@ pub fn merge_token_predictions(
         match prefix {
             IobPrefix::B | IobPrefix::U => {
                 flush_span(&mut current, source_text, &mut out, aggregation);
-                current = Some((
-                    suffix.clone(),
-                    et,
-                    vec![p.score],
-                    p.start,
-                    p.end,
-                    vec![sub],
-                ));
+                current = Some((suffix.clone(), et, vec![p.score], p.start, p.end, vec![sub]));
                 if matches!(prefix, IobPrefix::U) {
                     flush_span(&mut current, source_text, &mut out, aggregation);
                 }
             }
             IobPrefix::I | IobPrefix::L => {
-                if let Some((ref key, ref c_et, ref mut scores, ref mut start, ref mut end, ref mut subs)) =
-                    current
+                if let Some((
+                    ref key,
+                    ref c_et,
+                    ref mut scores,
+                    ref mut start,
+                    ref mut end,
+                    ref mut subs,
+                )) = current
                 {
                     if key == &suffix && *c_et == et {
                         scores.push(p.score);
@@ -165,27 +165,14 @@ pub fn merge_token_predictions(
                         }
                     } else {
                         flush_span(&mut current, source_text, &mut out, aggregation);
-                        current = Some((
-                            suffix.clone(),
-                            et,
-                            vec![p.score],
-                            p.start,
-                            p.end,
-                            vec![sub],
-                        ));
+                        current =
+                            Some((suffix.clone(), et, vec![p.score], p.start, p.end, vec![sub]));
                         if matches!(prefix, IobPrefix::L) {
                             flush_span(&mut current, source_text, &mut out, aggregation);
                         }
                     }
                 } else {
-                    current = Some((
-                        suffix.clone(),
-                        et,
-                        vec![p.score],
-                        p.start,
-                        p.end,
-                        vec![sub],
-                    ));
+                    current = Some((suffix.clone(), et, vec![p.score], p.start, p.end, vec![sub]));
                     if matches!(prefix, IobPrefix::L) {
                         flush_span(&mut current, source_text, &mut out, aggregation);
                     }
@@ -214,13 +201,7 @@ mod tests {
         .collect()
     }
 
-    fn tok(
-        label: &str,
-        score: f64,
-        start: usize,
-        end: usize,
-        text: &str,
-    ) -> TokenPrediction {
+    fn tok(label: &str, score: f64, start: usize, end: usize, text: &str) -> TokenPrediction {
         TokenPrediction {
             raw_label: label.into(),
             score,
@@ -234,11 +215,12 @@ mod tests {
     #[test]
     fn merges_iob2_person() {
         let text = "Jean Dupont vit à Paris";
+        // Offsets are byte indices (UTF-8); « à » is 2 bytes, so « Paris » starts at byte 19.
         let preds = vec![
             tok("B-PER", 0.9, 0, 4, "Jean"),
             tok("I-PER", 0.85, 5, 11, "Dupont"),
             tok("O", 0.99, 12, 15, "vit"),
-            tok("B-LOC", 0.88, 18, 23, "Paris"),
+            tok("B-LOC", 0.88, 19, 24, "Paris"),
         ];
         let m = merge_token_predictions(text, &preds, &map(), ScoreAggregation::Mean);
         assert_eq!(m.len(), 2);
