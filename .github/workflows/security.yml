@@ -82,7 +82,7 @@ jobs:
           cargo deny --version
 
       - name: cargo deny check
-        run: cargo deny check --log-level warn
+        run: cargo deny check
 
   # ---------------------------------------------------------------------------
   # govulncheck (Go)
