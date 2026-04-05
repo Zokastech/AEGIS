@@ -1,0 +1,15 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+[package]
+name = "aegis-ner-training"
+description = "NER niveau 3 : lien pipeline Python (training/) → ONNX → aegis_ner"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+
+[dependencies]
+aegis-core = { path = "../aegis-core" }
+aegis-ner = { path = "../aegis-ner" }

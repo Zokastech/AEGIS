@@ -135,6 +135,18 @@ def main() -> None:
         action="store_true",
         help="Optimiseur Adafactor au lieu d’AdamW (états optimiseur plus légers) — utile si OOM MPS sur Mac 16 Go.",
     )
+    parser.add_argument(
+        "--max_steps",
+        type=int,
+        default=-1,
+        help="Si > 0, limite l’entraînement à ce nombre de steps (prioritaire sur num_train_epochs). "
+        "Active eval/save par steps (adapté au CI).",
+    )
+    parser.add_argument(
+        "--disable_early_stopping",
+        action="store_true",
+        help="Désactive EarlyStoppingCallback (recommandé avec --max_steps court en CI).",
+    )
     args = parser.parse_args()
 
     if not args.cpu:
@@ -179,11 +191,6 @@ def main() -> None:
     compute_metrics = compute_metrics_builder(id2label)
 
     ta_params = inspect.signature(TrainingArguments.__init__).parameters
-    eval_kw = (
-        {"eval_strategy": "epoch"}
-        if "eval_strategy" in ta_params
-        else {"evaluation_strategy": "epoch"}
-    )
     device_kw: Dict[str, Any] = {}
     if args.cpu:
         if "use_cpu" in ta_params:
@@ -191,9 +198,32 @@ def main() -> None:
         else:
             device_kw["no_cuda"] = True
         device_kw["use_mps_device"] = False
+
+    eval_kw: Dict[str, Any]
+    save_strategy: str
+    save_steps_kw: Dict[str, Any] = {}
+    max_steps_kw: Dict[str, Any] = {}
+    log_steps = 50
+    if args.max_steps > 0:
+        eval_steps = max(1, min(25, args.max_steps // 3))
+        log_steps = max(1, min(10, args.max_steps))
+        if "eval_strategy" in ta_params:
+            eval_kw = {"eval_strategy": "steps", "eval_steps": eval_steps}
+        else:
+            eval_kw = {"evaluation_strategy": "steps", "eval_steps": eval_steps}
+        save_strategy = "steps"
+        save_steps_kw = {"save_steps": eval_steps}
+        max_steps_kw = {"max_steps": args.max_steps}
+    else:
+        if "eval_strategy" in ta_params:
+            eval_kw = {"eval_strategy": "epoch"}
+        else:
+            eval_kw = {"evaluation_strategy": "epoch"}
+        save_strategy = "epoch"
+
     ta_kw: Dict[str, Any] = dict(
         output_dir=args.output_dir,
-        save_strategy="epoch",
+        save_strategy=save_strategy,
         learning_rate=args.learning_rate,
         per_device_train_batch_size=args.per_device_train_batch_size,
         per_device_eval_batch_size=args.per_device_eval_batch_size,
@@ -205,12 +235,14 @@ def main() -> None:
         greater_is_better=True,
         save_total_limit=3,
         seed=args.seed,
-        logging_steps=50,
+        logging_steps=log_steps,
         fp16=args.fp16 and not args.cpu,
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         report_to=[],
         **device_kw,
         **eval_kw,
+        **save_steps_kw,
+        **max_steps_kw,
     )
     if args.gradient_checkpointing and "gradient_checkpointing" in ta_params:
         ta_kw["gradient_checkpointing"] = True
@@ -218,6 +250,9 @@ def main() -> None:
         ta_kw["optim"] = "adafactor"
     training_args = TrainingArguments(**ta_kw)
 
+    callbacks = []
+    if not args.disable_early_stopping:
+        callbacks.append(EarlyStoppingCallback(early_stopping_patience=2))
     trainer_kw: Dict[str, Any] = dict(
         model=model,
         args=training_args,
@@ -225,7 +260,7 @@ def main() -> None:
         eval_dataset=tokenized["validation"],
         data_collator=data_collator,
         compute_metrics=compute_metrics,
-        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
+        callbacks=callbacks,
     )
     _ts = inspect.signature(Trainer.__init__).parameters
     if "processing_class" in _ts:

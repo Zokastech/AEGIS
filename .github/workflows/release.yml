@@ -153,6 +153,34 @@ jobs:
             aegis-*-sbom-all.tar.gz
 
   # ---------------------------------------------------------------------------
+  # Chart Helm « application complète » (core, gateway, dashboard, Redis, ingress…).
+  # ---------------------------------------------------------------------------
+  helm-chart-release:
+    name: Helm chart (release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4
+        with:
+          version: v3.16.2
+
+      - name: helm lint & package
+        run: |
+          set -euo pipefail
+          mkdir -p dist-helm
+          helm lint deploy/helm/aegis
+          BASE_VER=$(grep -E '^version:' deploy/helm/aegis/Chart.yaml | awk '{print $2}' | tr -d '"' | tr -d "'")
+          TAG="${GITHUB_REF_NAME}"
+          helm package deploy/helm/aegis -d dist-helm --version "${BASE_VER}" --app-version "${TAG}"
+
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: helm-aegis-chart
+          path: dist-helm/*.tgz
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
   # Image Docker multi-plateforme → ghcr.io ; provenance/SBOM BuildKit ; cosign OIDC.
   # ---------------------------------------------------------------------------
   docker-ghcr:
@@ -214,7 +242,7 @@ jobs:
   # ---------------------------------------------------------------------------
   collect-slsa-subjects:
     name: SLSA — sujets (hashes)
-    needs: [rust-release-binaries, sbom-release]
+    needs: [rust-release-binaries, sbom-release, helm-chart-release]
     runs-on: ubuntu-latest
     outputs:
       hashes: ${{ steps.hash.outputs.hashes }}
@@ -230,7 +258,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p slsa-flat
-          find slsa-assets -type f \( -name '*.tar.gz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp -t slsa-flat {} +
+          find slsa-assets -type f \( -name '*.tar.gz' -o -name '*.tgz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp -t slsa-flat {} +
           cd slsa-flat
           shopt -s nullglob
           files=(*)
@@ -246,7 +274,7 @@ jobs:
   # ---------------------------------------------------------------------------
   github-release:
     name: Publish GitHub Release
-    needs: [rust-release-binaries, sbom-release, docker-ghcr]
+    needs: [rust-release-binaries, sbom-release, docker-ghcr, helm-chart-release]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -261,7 +289,7 @@ jobs:
       - name: Flatten artifact tree for upload
         run: |
           mkdir -p flat
-          find release-assets -type f \( -name '*.tar.gz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp {} flat/ \;
+          find release-assets -type f \( -name '*.tar.gz' -o -name '*.tgz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp {} flat/ \;
           ls -la flat
 
       - uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe

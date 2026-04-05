@@ -94,6 +94,11 @@ def main() -> None:
     parser.add_argument("--out_dir", type=str, default="./exports/onnx_ner")
     parser.add_argument("--seq_len", type=int, default=128)
     parser.add_argument("--bench_runs", type=int, default=30)
+    parser.add_argument(
+        "--skip_benchmark",
+        action="store_true",
+        help="N’exécute pas le bench latence PyTorch/ONNX (CI plus rapide).",
+    )
     args = parser.parse_args()
 
     model_dir = os.path.abspath(os.path.expanduser(args.model_dir))
@@ -126,52 +131,54 @@ def main() -> None:
     # Quantifier depuis le graphe ONNX d’origine (l’optimiseur ORT peut casser shape_inference).
     quantize_dynamic(onnx_fp32, onnx_int8, weight_type=QuantType.QUInt8)
 
-    text = "Contact: Marie Dupont email m.dupont@acme.eu IBAN FR76 3000 6000 0112 3456 7890 189"
-    enc = tokenizer(
-        [text],
-        return_tensors="pt",
-        padding="max_length",
-        truncation=True,
-        max_length=args.seq_len,
-    )
-    input_ids = enc["input_ids"].numpy().astype(np.int64)
-    attention_mask = enc["attention_mask"].numpy().astype(np.int64)
-
-    def pt_run():
-        with torch.no_grad():
-            _ = model(
-                input_ids=torch.from_numpy(input_ids),
-                attention_mask=torch.from_numpy(attention_mask),
-            ).logits.numpy()
-
-    sess_fp32 = InferenceSession(onnx_fp32, providers=["CPUExecutionProvider"])
-    sess_opt = InferenceSession(onnx_opt, providers=["CPUExecutionProvider"])
-    sess_q = InferenceSession(onnx_int8, providers=["CPUExecutionProvider"])
-
-    def ort_run(sess: InferenceSession):
-        _ = sess.run(
-            None,
-            {"input_ids": input_ids, "attention_mask": attention_mask},
+    if not args.skip_benchmark:
+        text = "Contact: Marie Dupont email m.dupont@acme.eu IBAN FR76 3000 6000 0112 3456 7890 189"
+        enc = tokenizer(
+            [text],
+            return_tensors="pt",
+            padding="max_length",
+            truncation=True,
+            max_length=args.seq_len,
         )
+        input_ids = enc["input_ids"].numpy().astype(np.int64)
+        attention_mask = enc["attention_mask"].numpy().astype(np.int64)
 
-    results: Dict[str, Tuple[float, float]] = {}
-    results["pytorch_fp32"] = benchmark(pt_run, runs=args.bench_runs)
-    results["onnx_fp32"] = benchmark(lambda: ort_run(sess_fp32), runs=args.bench_runs)
-    results["onnx_optimized"] = benchmark(lambda: ort_run(sess_opt), runs=args.bench_runs)
-    results["onnx_int8"] = benchmark(lambda: ort_run(sess_q), runs=args.bench_runs)
+        def pt_run():
+            with torch.no_grad():
+                _ = model(
+                    input_ids=torch.from_numpy(input_ids),
+                    attention_mask=torch.from_numpy(attention_mask),
+                ).logits.numpy()
 
-    report = os.path.join(args.out_dir, "latency_benchmark.txt")
-    lines = [
-        f"seq_len={args.seq_len} runs={args.bench_runs}",
-        f"num_labels={len(LABELS)}",
-        "",
-    ]
-    for k, (m, s) in results.items():
-        lines.append(f"{k}: mean_s={m:.6f} stdev_s={s:.6f}")
-    with open(report, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+        sess_fp32 = InferenceSession(onnx_fp32, providers=["CPUExecutionProvider"])
+        sess_opt = InferenceSession(onnx_opt, providers=["CPUExecutionProvider"])
+        sess_q = InferenceSession(onnx_int8, providers=["CPUExecutionProvider"])
 
-    print("\n".join(lines))
+        def ort_run(sess: InferenceSession):
+            _ = sess.run(
+                None,
+                {"input_ids": input_ids, "attention_mask": attention_mask},
+            )
+
+        results: Dict[str, Tuple[float, float]] = {}
+        results["pytorch_fp32"] = benchmark(pt_run, runs=args.bench_runs)
+        results["onnx_fp32"] = benchmark(lambda: ort_run(sess_fp32), runs=args.bench_runs)
+        results["onnx_optimized"] = benchmark(lambda: ort_run(sess_opt), runs=args.bench_runs)
+        results["onnx_int8"] = benchmark(lambda: ort_run(sess_q), runs=args.bench_runs)
+
+        report = os.path.join(args.out_dir, "latency_benchmark.txt")
+        lines = [
+            f"seq_len={args.seq_len} runs={args.bench_runs}",
+            f"num_labels={len(LABELS)}",
+            "",
+        ]
+        for k, (m, s) in results.items():
+            lines.append(f"{k}: mean_s={m:.6f} stdev_s={s:.6f}")
+        with open(report, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+
+        print("\n".join(lines))
+
     print(f"\nTokenizer (Rust `tokenizers`): {tok_path}/tokenizer.json")
     print(f"ONNX INT8: {onnx_int8}")
 

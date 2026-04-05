@@ -8,6 +8,7 @@ members = [
     "crates/aegis-core",
     "crates/aegis-regex",
     "crates/aegis-ner",
+    "crates/aegis-ner-training",
     "crates/aegis-anonymize",
     "crates/aegis-fpe",
     "crates/aegis-ffi",

@@ -21,6 +21,10 @@ python -m spacy download en_core_web_sm  # si vous utilisez --with_presidio
 
 **Note (monorepo)** : à la racine du dépôt, le dossier `datasets/` n’est pas le paquet Hugging Face. Les scripts sous `training/` passent par `ensure_hf_datasets.py` pour importer le bon module ; en Jupyter, gardez `sys.path` avec `training/` en tête comme dans le notebook.
 
+**CI / image Docker (niveau 3)** : `requirements-ci.txt` couvre les tests légers (sans PyTorch). Image : `docker build -f docker/Dockerfile.training -t aegis-training-ner .` depuis la racine du monorepo. Côté Rust, le crate `crates/aegis-ner-training` documente la chaîne **training → ONNX → `aegis_ner::NerEngine`**.
+
+**Pipeline L3 automatisé (local ou CI)** : après `pip install -r requirements.txt`, depuis `training/` exécuter `bash scripts/run_l3_pipeline.sh` (variables optionnelles `AEGIS_L3_EXAMPLES`, `AEGIS_L3_MAX_STEPS`, `AEGIS_L3_MODEL_NAME`). Sur GitHub : workflow **Helm & NER L3 pipeline** — sur `main`/`master` un smoke CPU produit l’artefact `aegis-ner-l3-onnx.tgz` (ONNX + `tokenizer.json` pour montage PVC `/opt/aegis/models`) ; **workflow_dispatch** permet d’augmenter exemples/steps. Le chart Helm complet est packagé dans le même workflow (artefact `aegis-helm-chart`) et joint aux **Releases** pour les tags `v*`.
+
 ## 1. Jeu de données synthétique
 
 Génère **≥ 50 000** exemples (défaut), IOB2, 11 langues UE, plusieurs domaines (email, formulaire, log, ticket, presse, chat), export Hugging Face `datasets` sur disque :
