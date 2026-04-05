@@ -13,6 +13,9 @@ members = [
     "crates/aegis-ffi",
     "crates/aegis-cli",
 ]
+exclude = [
+    "sdk-python",
+]
 
 [workspace.package]
 version = "0.1.0"

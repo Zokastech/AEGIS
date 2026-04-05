@@ -26,10 +26,9 @@ fn plausible_phone(s: &str) -> bool {
             || t.contains('-')
             || t.contains('.')
             || t.contains('/')
-            || t
-                .as_bytes()
-                .windows(3)
-                .any(|w| w[0].is_ascii_digit() && w[1].is_ascii_whitespace() && w[2].is_ascii_digit());
+            || t.as_bytes().windows(3).any(|w| {
+                w[0].is_ascii_digit() && w[1].is_ascii_whitespace() && w[2].is_ascii_digit()
+            });
         if !has_grouping {
             return false;
         }
