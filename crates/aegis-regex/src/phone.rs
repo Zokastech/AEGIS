@@ -17,6 +17,23 @@ fn plausible_phone(s: &str) -> bool {
     if s.contains('+') {
         return (8..=15).contains(&digits.len());
     }
+    // NANP regex accepts 10 contiguous digits (and may include a leading `\s*`); require real
+    // grouping — not just padding spaces (e.g. " 9876543210" from `\b\s*` before the run).
+    if digits.len() == 10 && !s.trim_start().starts_with('0') {
+        let t = s.trim();
+        let has_grouping = t.contains('(')
+            || t.contains(')')
+            || t.contains('-')
+            || t.contains('.')
+            || t.contains('/')
+            || t
+                .as_bytes()
+                .windows(3)
+                .any(|w| w[0].is_ascii_digit() && w[1].is_ascii_whitespace() && w[2].is_ascii_digit());
+        if !has_grouping {
+            return false;
+        }
+    }
     (8..=14).contains(&digits.len())
 }
 
@@ -26,10 +43,10 @@ pub fn phone_recognizer() -> PatternRecognizer {
     let re = compile(concat!(
         r"\+\s*(?:33|49|39|34|31|32|351|48|352|353|44|41|43|45|46|47|358|30|420|36|40|372|371|370|356|386|421|385)\s*",
         r"(?:[\s.\-/]*\d){7,14}\d|",
-        r"(?:^|\b)(?:\+1[\s.\-]+)?(?:\([0-9]{3}\)|[0-9]{3})[\s.\-]?[0-9]{3}[\s.\-]?[0-9]{4}\b|",
+        r"(?:^|\b)\s*(?:\+1[\s.\-]+)?(?:\([0-9]{3}\)|[0-9]{3})[\s.\-]?[0-9]{3}[\s.\-]?[0-9]{4}\b|",
         r"\b0[1-9](?:[\s.\-/]\d{2}){4}\b|",
         r"\b0[67](?:[\s.\-/](?:\d{2}|\*{2}|[•xX]{2})){4}\b|",
-        r"\b0\d{2,4}[\s.\-/]?(?:\d{2,4}[\s.\-/]?){2,6}\d{2,4}\b",
+        r"\b0[\s.\-/]*\d{2,4}(?:[\s.\-/]+\d{2,8}){1,8}\b",
     ));
     let pos: Vec<&str> = phone_positive_context();
     let neg: Vec<&str> = phone_negative_context();
