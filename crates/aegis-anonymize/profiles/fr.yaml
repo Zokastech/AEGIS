@@ -67,7 +67,7 @@ cities:
   - { name: "Lyon", postal_min: 69001, postal_max: 69009 }
   - { name: "Marseille", postal_min: 13001, postal_max: 13016 }
   - { name: "Toulouse", postal_min: 31000, postal_max: 31200 }
-  - { name: "Nice", postal_min: 06000, postal_max: 06300 }
+  - { name: "Nice", postal_min: 6000, postal_max: 6300 }
   - { name: "Nantes", postal_min: 44000, postal_max: 44300 }
   - { name: "Strasbourg", postal_min: 67000, postal_max: 67200 }
   - { name: "Bordeaux", postal_min: 33000, postal_max: 33800 }

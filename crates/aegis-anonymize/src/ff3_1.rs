@@ -12,7 +12,6 @@ use aes::{Aes128, Aes192, Aes256};
 use num_bigint::BigUint;
 use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero};
-use std::cmp::Ordering;
 
 #[derive(Debug, Clone, thiserror::Error)]
 pub enum Ff3Error {
@@ -34,48 +33,52 @@ fn ceil2_ceil_half(n: usize) -> usize {
     (n >> 1) + (n & 1)
 }
 
-fn pow_uv(radix: u32, u: usize, v: usize) -> (BigUint, BigUint) {
-    let r = BigUint::from(radix as u64);
-    match u.cmp(&v) {
-        Ordering::Greater => {
-            let pow_v = r.pow(v as u32);
-            let pow_u = &pow_v * &r;
-            (pow_u, pow_v)
-        }
-        _ => {
-            let pow_u = r.pow(u as u32);
-            let pow_v = if u == v { pow_u.clone() } else { &pow_u * &r };
-            (pow_u, pow_v)
-        }
+/// Same numeric weighting as Python `ff3.decode_int_r` (not plain big-endian digit parse).
+fn decode_int_r_style(s: &[u32], radix: u32) -> BigUint {
+    let strlen = s.len();
+    let base = BigUint::from(radix as u64);
+    let mut num = BigUint::zero();
+    for (idx, &digit) in s.iter().rev().enumerate() {
+        let power = strlen - (idx + 1);
+        num += BigUint::from(digit as u64) * base.pow(power as u32);
     }
+    num
 }
 
-fn str2num_rev(src: &[u32], radix: u32) -> BigUint {
-    let mut y = BigUint::zero();
-    let r = BigUint::from(radix as u64);
-    for i in (0..src.len()).rev() {
-        y = y * &r + BigUint::from(src[i] as u64);
+/// Same as Python `ff3.encode_int_r`: LSB at `v[0]`, pad with digit 0 to `length`.
+fn encode_int_r_style(n: &BigUint, length: usize, radix: u32) -> Vec<u32> {
+    let base = BigUint::from(radix as u64);
+    let mut x: Vec<u32> = Vec::new();
+    let mut nn = n.clone();
+    while nn >= base {
+        let (dv, rem) = nn.div_rem(&base);
+        x.push(rem.to_u32().unwrap_or(0));
+        nn = dv;
     }
-    y
+    x.push(nn.to_u32().unwrap_or(0));
+    while x.len() < length {
+        x.push(0);
+    }
+    x.truncate(length);
+    x
 }
 
-fn num2str_rev(x: &BigUint, dst: &mut [u32], radix: u32) {
-    let r = BigUint::from(radix as u64);
-    let mut xx = x.clone();
-    for d in dst.iter_mut() {
-        let (dv, rem) = xx.div_rem(&r);
-        *d = rem.to_u32().unwrap_or(0);
-        xx = dv;
-    }
+fn biguint_to_fixed_12_be(val: &BigUint) -> [u8; 12] {
+    let mut out = [0u8; 12];
+    let raw = val.to_bytes_be();
+    let n = raw.len().min(12);
+    out[12 - n..].copy_from_slice(&raw[raw.len() - n..]);
+    out
 }
 
-/// `BigUint` → octets big-endian (comme BN_bn2bin).
-fn biguint_to_be_bytes_min(x: &BigUint, max_take: usize) -> Vec<u8> {
-    let mut v = x.to_bytes_be();
-    if v.len() > max_take {
-        v = v[v.len() - max_take..].to_vec();
-    }
-    v
+fn calculate_p_block(i: usize, w: &[u8; 4], b: &[u32], radix: u32) -> [u8; 16] {
+    let mut p = [0u8; 16];
+    p[0..4].copy_from_slice(w.as_slice());
+    p[3] ^= i as u8;
+    let val = decode_int_r_style(b, radix);
+    let bbytes = biguint_to_fixed_12_be(&val);
+    p[4..16].copy_from_slice(&bbytes);
+    p
 }
 
 fn aes_encrypt_block(key: &[u8], block: &mut [u8; 16]) -> Result<(), Ff3Error> {
@@ -123,51 +126,39 @@ pub fn ff3_encrypt(
     let n = digits.len();
     let u = ceil2_ceil_half(n);
     let v = n - u;
-    let (pow_u, pow_v) = pow_uv(radix, u, v);
-    let temp = (u as f64 * (radix as f64).log2()).ceil() as usize;
-    let _b = (temp >> 3) + usize::from((temp & 7) > 0);
+    let r = BigUint::from(radix as u64);
+    let mod_u = r.pow(u as u32);
+    let mod_v = r.pow(v as u32);
+    let tl: [u8; 4] = tweak8[0..4].try_into().unwrap();
+    let tr: [u8; 4] = tweak8[4..8].try_into().unwrap();
 
-    let mut out = digits.to_vec();
-    let mut a_off = 0usize;
-    let mut b_off = u;
+    let mut a = digits[0..u].to_vec();
+    let mut b = digits[u..n].to_vec();
 
     for i in 0..ROUNDS {
-        let m = if (i & 1) == 1 { v } else { u };
-        let mut p = [0u8; 16];
-        if (i & 1) == 1 {
-            p[..4].copy_from_slice(&tweak8[..4]);
+        let (m, w, modulus) = if (i & 1) == 0 {
+            (u, tr, &mod_u)
         } else {
-            p[..4].copy_from_slice(&tweak8[4..8]);
-        }
-        p[3] ^= i as u8;
+            (v, tl, &mod_v)
+        };
 
-        let b_src = &out[b_off..b_off + (n - m)];
-        let bnum = str2num_rev(b_src, radix);
-
-        let raw = biguint_to_be_bytes_min(&bnum, 12);
-        p[4..16].fill(0);
-        let bl = raw.len().min(12);
-        if bl > 0 {
-            p[16 - bl..16].copy_from_slice(&raw[raw.len() - bl..]);
-        }
-
+        let mut p = calculate_p_block(i, &w, &b, radix);
         rev_bytes(&mut p);
         aes_encrypt_block(key, &mut p)?;
         rev_bytes(&mut p);
-
         let y = BigUint::from_bytes_be(&p);
 
-        let a_src = &out[a_off..a_off + m];
-        let anum = str2num_rev(a_src, radix);
-        let qpow = if (i & 1) == 1 { &pow_v } else { &pow_u };
-        let c = (anum + y) % qpow;
+        let a_num = decode_int_r_style(&a, radix);
+        let c = (a_num + y) % modulus;
+        let c_digits = encode_int_r_style(&c, m, radix);
 
-        let dst_b = &mut out[b_off..b_off + m];
-        num2str_rev(&c, dst_b, radix);
-
-        std::mem::swap(&mut a_off, &mut b_off);
+        a = b;
+        b = c_digits;
     }
 
+    let mut out = Vec::with_capacity(n);
+    out.extend_from_slice(&a);
+    out.extend_from_slice(&b);
     Ok(out)
 }
 
@@ -189,52 +180,41 @@ pub fn ff3_decrypt(
     let n = digits.len();
     let u = ceil2_ceil_half(n);
     let v = n - u;
-    let (pow_u, pow_v) = pow_uv(radix, u, v);
-    let temp = (u as f64 * (radix as f64).log2()).ceil() as usize;
-    let _b = (temp >> 3) + usize::from((temp & 7) > 0);
+    let r = BigUint::from(radix as u64);
+    let mod_u = r.pow(u as u32);
+    let mod_v = r.pow(v as u32);
+    let tl: [u8; 4] = tweak8[0..4].try_into().unwrap();
+    let tr: [u8; 4] = tweak8[4..8].try_into().unwrap();
 
-    let mut out = digits.to_vec();
-    let mut a_off = 0usize;
-    let mut b_off = u;
+    let mut a = digits[0..u].to_vec();
+    let mut b = digits[u..n].to_vec();
 
     for i in (0..ROUNDS).rev() {
-        let m = if (i & 1) == 1 { v } else { u };
-        let mut p = [0u8; 16];
-        if (i & 1) == 1 {
-            p[..4].copy_from_slice(&tweak8[..4]);
+        let (m, w, modulus) = if (i & 1) == 0 {
+            (u, tr, &mod_u)
         } else {
-            p[..4].copy_from_slice(&tweak8[4..8]);
-        }
-        p[3] ^= i as u8;
+            (v, tl, &mod_v)
+        };
 
-        let a_src = &out[a_off..a_off + (n - m)];
-        let anum = str2num_rev(a_src, radix);
-
-        let raw = biguint_to_be_bytes_min(&anum, 12);
-        p[4..16].fill(0);
-        let bl = raw.len().min(12);
-        if bl > 0 {
-            p[16 - bl..16].copy_from_slice(&raw[raw.len() - bl..]);
-        }
-
+        let mut p = calculate_p_block(i, &w, &a, radix);
         rev_bytes(&mut p);
         aes_encrypt_block(key, &mut p)?;
         rev_bytes(&mut p);
-
         let y = BigUint::from_bytes_be(&p);
 
-        let b_src = &out[b_off..b_off + m];
-        let bnum = str2num_rev(b_src, radix);
-        let qpow = if (i & 1) == 1 { &pow_v } else { &pow_u };
-        let y_mod = &y % qpow;
-        let c = (bnum.clone() + qpow.clone() * BigUint::from(16u32) - y_mod) % qpow;
+        let b_num = decode_int_r_style(&b, radix);
+        let y_m = &y % modulus;
+        let b_m = &b_num % modulus;
+        let c = (b_m + modulus - y_m) % modulus;
+        let c_digits = encode_int_r_style(&c, m, radix);
 
-        let dst_a = &mut out[a_off..a_off + m];
-        num2str_rev(&c, dst_a, radix);
-
-        std::mem::swap(&mut a_off, &mut b_off);
+        b = a;
+        a = c_digits;
     }
 
+    let mut out = Vec::with_capacity(n);
+    out.extend_from_slice(&a);
+    out.extend_from_slice(&b);
     Ok(out)
 }
 

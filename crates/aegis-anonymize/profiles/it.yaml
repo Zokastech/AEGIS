@@ -62,7 +62,7 @@ streets:
   - "Via Milano"
 
 cities:
-  - { name: "Roma", postal_min: 00118, postal_max: 00199 }
+  - { name: "Roma", postal_min: 118, postal_max: 199 }
   - { name: "Milano", postal_min: 20121, postal_max: 20162 }
   - { name: "Napoli", postal_min: 80121, postal_max: 80147 }
   - { name: "Torino", postal_min: 10121, postal_max: 10156 }

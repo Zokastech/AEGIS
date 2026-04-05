@@ -105,6 +105,6 @@ mod tests {
         };
         let iban = "FR7630006000011234567890189";
         let out = MaskOperator.operate(&ent(iban), "", &c);
-        assert_eq!(out, "FR76**********************0189");
+        assert_eq!(out, "FR76*******************0189");
     }
 }
