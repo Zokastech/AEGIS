@@ -1,6 +1,8 @@
 module github.com/zokastech/aegis/aegis-gateway
 
-go 1.22
+go 1.23
+
+toolchain go1.23.10
 
 require (
 	github.com/coreos/go-oidc/v3 v3.11.0

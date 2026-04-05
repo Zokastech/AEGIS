@@ -3,7 +3,7 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/zokastech/aegis/ci.yml?branch=main&label=CI&logo=github)](https://github.com/zokastech/aegis/actions)
 [![License](https://img.shields.io/badge/license-Apache--2.0%20%2B%20MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-workspace-orange?logo=rust)](Cargo.toml)
-[![Go](https://img.shields.io/badge/Go-1.22-00ADD8?logo=go)](go.work)
+[![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go)](go.work)
 [![zokastech](https://img.shields.io/badge/AEGIS-zokastech.fr-1a56db)](https://zokastech.fr)
 
 **Advanced European Guardian for Information Security** — open-source PII detection and anonymization for text, with an EU and compliance focus; an open alternative to Microsoft Presidio.

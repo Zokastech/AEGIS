@@ -20,7 +20,7 @@ Runnable samples for **AEGIS** ([zokastech.fr](https://zokastech.fr)). Most Pyth
    cd examples/nodejs && npm install
    ```
 
-4. **Go 1.22+** + **Rust** pour `go/` (bibliothèque FFI) — voir `examples/go/README.md`.
+4. **Go 1.23+** + **Rust** pour `go/` (bibliothèque FFI) — voir `examples/go/README.md`.
 
 ## Index
 
