@@ -49,9 +49,7 @@ pub fn es_seguridad_social_validate(s: &str) -> bool {
     if d.len() != 12 {
         return false;
     }
-    let n: u64 = d[..10]
-        .iter()
-        .fold(0u64, |acc, &x| acc * 10 + x as u64);
+    let n: u64 = d[..10].iter().fold(0u64, |acc, &x| acc * 10 + x as u64);
     let k = 97 - (n % 97);
     let key = if k == 97 { 97u32 } else { k as u32 };
     let g = d[10] * 10 + d[11];

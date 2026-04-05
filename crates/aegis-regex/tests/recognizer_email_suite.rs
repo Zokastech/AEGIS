@@ -139,31 +139,41 @@ fn edge_multiline() {
 #[test]
 fn ml_fr_courriel() {
     let r = email_recognizer();
-    assert!(!r.analyze("Mon courriel est jean@poste.fr", &cfg()).is_empty());
+    assert!(!r
+        .analyze("Mon courriel est jean@poste.fr", &cfg())
+        .is_empty());
 }
 
 #[test]
 fn ml_de_email_wort() {
     let r = email_recognizer();
-    assert!(!r.analyze("E-Mail Adresse max@firma.de bitte", &cfg()).is_empty());
+    assert!(!r
+        .analyze("E-Mail Adresse max@firma.de bitte", &cfg())
+        .is_empty());
 }
 
 #[test]
 fn ml_es_correo() {
     let r = email_recognizer();
-    assert!(!r.analyze("correo electrónico ana@empresa.es", &cfg()).is_empty());
+    assert!(!r
+        .analyze("correo electrónico ana@empresa.es", &cfg())
+        .is_empty());
 }
 
 #[test]
 fn ml_it_email_label() {
     let r = email_recognizer();
-    assert!(!r.analyze("email commerciale: info@azienda.it", &cfg()).is_empty());
+    assert!(!r
+        .analyze("email commerciale: info@azienda.it", &cfg())
+        .is_empty());
 }
 
 #[test]
 fn ml_nl_contact() {
     let r = email_recognizer();
-    assert!(!r.analyze("neem contact op via jan@bedrijf.nl", &cfg()).is_empty());
+    assert!(!r
+        .analyze("neem contact op via jan@bedrijf.nl", &cfg())
+        .is_empty());
 }
 
 // --- Scoring : mots de contexte ---

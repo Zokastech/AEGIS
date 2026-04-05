@@ -111,10 +111,7 @@ mod tests {
     #[test]
     fn visa_masked_last_four() {
         let r = masked_credit_card_recognizer();
-        let v = r.analyze(
-            "Visa **** **** **** 4832 (expiration 09/27)",
-            &cfg(),
-        );
+        let v = r.analyze("Visa **** **** **** 4832 (expiration 09/27)", &cfg());
         assert_eq!(v.len(), 1, "{v:?}");
         assert!(v[0].text.contains("4832"));
     }
@@ -122,8 +119,6 @@ mod tests {
     #[test]
     fn masked_requires_brand_and_four_digits() {
         let r = masked_credit_card_recognizer();
-        assert!(r
-            .analyze("**** **** **** 4832", &cfg())
-            .is_empty());
+        assert!(r.analyze("**** **** **** 4832", &cfg()).is_empty());
     }
 }

@@ -42,7 +42,13 @@ impl ModelZoo {
         name: "DistilBERT NER (léger, usage EU)",
         url: "https://huggingface.co/elastic/distilbert-base-uncased-finetuned-conll03-english",
         size_bytes: 260_000_000,
-        languages: &["en", "fr", "de", "es", "it (transfert / multilingue possible)"],
+        languages: &[
+            "en",
+            "fr",
+            "de",
+            "es",
+            "it (transfert / multilingue possible)",
+        ],
         entities_supported: &["PER", "ORG", "LOC", "MISC"],
         accuracy_metrics: "F1 CoNLL ~0.92 (anglais) ; autres langues selon fine-tuning",
         params_millions: Some(66),
@@ -97,7 +103,8 @@ pub fn download_model(model_id: &str, cache_dir: &Path) -> Result<PathBuf> {
         .call()
         .map_err(|e| NerError::Download(e.to_string()))?;
     let mut f = File::create(&dest).map_err(NerError::from)?;
-    std::io::copy(&mut resp.into_reader(), &mut f).map_err(|e| NerError::Download(e.to_string()))?;
+    std::io::copy(&mut resp.into_reader(), &mut f)
+        .map_err(|e| NerError::Download(e.to_string()))?;
     Ok(dest)
 }
 

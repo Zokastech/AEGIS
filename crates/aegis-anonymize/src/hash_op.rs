@@ -40,7 +40,11 @@ impl Operator for HashOperator {
             .map(|s| s.as_str())
             .unwrap_or("sha256");
 
-        let global_salt = config.params.get("salt").map(|s| s.as_bytes()).unwrap_or(b"");
+        let global_salt = config
+            .params
+            .get("salt")
+            .map(|s| s.as_bytes())
+            .unwrap_or(b"");
         let per_entity = config
             .params
             .get("salt_scope")

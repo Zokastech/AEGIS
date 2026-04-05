@@ -26,7 +26,8 @@ fn bench_all_recognizers_10kb(c: &mut Criterion) {
         b.iter(|| {
             let mut total = 0usize;
             for r in &recs {
-                total = total.wrapping_add(black_box(r.analyze(black_box(text.as_str()), &cfg)).len());
+                total =
+                    total.wrapping_add(black_box(r.analyze(black_box(text.as_str()), &cfg)).len());
             }
             black_box(total)
         });

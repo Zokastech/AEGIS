@@ -165,6 +165,7 @@ pub fn gdpr_art9_sensitive_recognizer() -> GdprArt9Recognizer {
             base_score: 0.41,
         },
     ];
-    let inner = CompositeNationalRecognizer::new("gdpr_art9_keywords", rules, vec!["*"], &ctx).with_min_score(0.28);
+    let inner = CompositeNationalRecognizer::new("gdpr_art9_keywords", rules, vec!["*"], &ctx)
+        .with_min_score(0.28);
     GdprArt9Recognizer { inner }
 }

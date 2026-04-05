@@ -20,7 +20,10 @@ fn parse_key(config: &OperatorConfig) -> Result<[u8; 32], String> {
         .ok_or_else(|| "missing key_hex (64 hex chars for AES-256)".to_string())?;
     let raw = hex::decode(hex_key.trim()).map_err(|e| e.to_string())?;
     if raw.len() != 32 {
-        return Err(format!("key_hex must decode to 32 bytes, got {}", raw.len()));
+        return Err(format!(
+            "key_hex must decode to 32 bytes, got {}",
+            raw.len()
+        ));
     }
     let mut k = [0u8; 32];
     k.copy_from_slice(&raw);
@@ -30,7 +33,12 @@ fn parse_key(config: &OperatorConfig) -> Result<[u8; 32], String> {
 pub struct EncryptOperator;
 
 impl EncryptOperator {
-    pub fn decrypt_blob(key: &[u8; 32], nonce: &[u8; 12], ciphertext: &[u8], aad: &[u8]) -> Result<Vec<u8>, String> {
+    pub fn decrypt_blob(
+        key: &[u8; 32],
+        nonce: &[u8; 12],
+        ciphertext: &[u8],
+        aad: &[u8],
+    ) -> Result<Vec<u8>, String> {
         if key.len() != 32 {
             return Err("AES-256 key must be 32 bytes".into());
         }
@@ -38,7 +46,13 @@ impl EncryptOperator {
         let cipher = Aes256Gcm::new(key);
         let nonce = Nonce::from_slice(nonce);
         cipher
-            .decrypt(nonce, aes_gcm::aead::Payload { msg: ciphertext, aad })
+            .decrypt(
+                nonce,
+                aes_gcm::aead::Payload {
+                    msg: ciphertext,
+                    aad,
+                },
+            )
             .map_err(|_| "aes-gcm decrypt".to_string())
     }
 }

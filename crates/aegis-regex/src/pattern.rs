@@ -129,7 +129,13 @@ impl PatternRecognizer {
     }
 
     /// Computes final score or `None` if the match is rejected (deny-in-match).
-    fn score_for_match(&self, text: &str, start: usize, end: usize, config: &AnalysisConfig) -> Option<f64> {
+    fn score_for_match(
+        &self,
+        text: &str,
+        start: usize,
+        end: usize,
+        config: &AnalysisConfig,
+    ) -> Option<f64> {
         if let Some(ref ac) = self.deny_in_match_ac {
             let slice = text.get(start..end)?.as_bytes();
             if ac.find_iter(slice).next().is_some() {
@@ -229,14 +235,8 @@ mod tests {
 
     #[test]
     fn deny_in_match_rejects() {
-        let r = PatternRecognizer::new(
-            "t",
-            sample_email_re(),
-            EntityType::Email,
-            vec!["*"],
-            0.9,
-        )
-        .with_deny_substrings(&["example.com", "test.invalid"]);
+        let r = PatternRecognizer::new("t", sample_email_re(), EntityType::Email, vec!["*"], 0.9)
+            .with_deny_substrings(&["example.com", "test.invalid"]);
         let text = "contact user@example.com now";
         let cfg = AnalysisConfig::default();
         let v = r.analyze(text, &cfg);
@@ -245,15 +245,9 @@ mod tests {
 
     #[test]
     fn context_boost_increases_score() {
-        let r = PatternRecognizer::new(
-            "t",
-            sample_email_re(),
-            EntityType::Email,
-            vec!["*"],
-            0.5,
-        )
-        .with_min_score(0.3)
-        .with_context_boost_words(&["email"], 0.25);
+        let r = PatternRecognizer::new("t", sample_email_re(), EntityType::Email, vec!["*"], 0.5)
+            .with_min_score(0.3)
+            .with_context_boost_words(&["email"], 0.25);
         let text = "my email is a@b.co";
         let cfg = AnalysisConfig::default();
         let v = r.analyze(text, &cfg);
@@ -263,15 +257,9 @@ mod tests {
 
     #[test]
     fn context_penalty_reduces_score_below_min() {
-        let r = PatternRecognizer::new(
-            "t",
-            sample_email_re(),
-            EntityType::Email,
-            vec!["*"],
-            0.95,
-        )
-        .with_min_score(0.5)
-        .with_context_penalty_words(&["example"], 0.5);
+        let r = PatternRecognizer::new("t", sample_email_re(), EntityType::Email, vec!["*"], 0.95)
+            .with_min_score(0.5)
+            .with_context_penalty_words(&["example"], 0.5);
         let text = "see example a@b.co for info";
         let cfg = AnalysisConfig::default();
         assert!(r.analyze(text, &cfg).is_empty());

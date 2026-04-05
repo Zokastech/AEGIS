@@ -27,11 +27,15 @@ fn de(s: &str) -> bool {
 }
 
 fn it(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{2}\d{3}[A-Z]{2}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{2}\d{3}[A-Z]{2}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn es(s: &str) -> bool {
-    Regex::new(r"^\d{4}[A-Z]{3}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^\d{4}[A-Z]{3}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn nl(s: &str) -> bool {
@@ -85,15 +89,21 @@ fn ie(s: &str) -> bool {
 }
 
 fn dk(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{2}\d{5}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{2}\d{5}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn fi(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{3}\d{3}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{3}\d{3}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn gr(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{3}\d{4}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{3}\d{4}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn cz(s: &str) -> bool {
@@ -109,7 +119,9 @@ fn ro(s: &str) -> bool {
 }
 
 fn hu(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{3}\d{3}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{3}\d{3}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn sk(s: &str) -> bool {
@@ -127,7 +139,9 @@ fn hr(s: &str) -> bool {
 
 fn si(s: &str) -> bool {
     let n = norm_plate(s);
-    Regex::new(r"^[A-Z]{1,2}\d{1,2}[A-Z]{2}$").unwrap().is_match(&n)
+    Regex::new(r"^[A-Z]{1,2}\d{1,2}[A-Z]{2}$")
+        .unwrap()
+        .is_match(&n)
 }
 
 fn ee(s: &str) -> bool {
@@ -137,19 +151,27 @@ fn ee(s: &str) -> bool {
 }
 
 fn lv(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{2}\d{4}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{2}\d{4}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn lt(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{3}\d{3}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{3}\d{3}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn cy(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{3}\d{3}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{3}\d{3}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn lu(s: &str) -> bool {
-    Regex::new(r"^[A-Z]{2}\d{4}$").unwrap().is_match(&norm_plate(s))
+    Regex::new(r"^[A-Z]{2}\d{4}$")
+        .unwrap()
+        .is_match(&norm_plate(s))
 }
 
 fn mt(s: &str) -> bool {

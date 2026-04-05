@@ -42,20 +42,8 @@ pub fn email_positive_context() -> Vec<&'static str> {
 /// Negative cues (false positives / fictional data) — 5 languages.
 pub fn email_negative_context() -> Vec<&'static str> {
     vec![
-        "example",
-        "sample",
-        "test",
-        "fake",
-        "dummy",
-        "invalid",
-        "exemple",
-        "faux",
-        "beispiel",
-        "muster",
-        "ejemplo",
-        "prueba",
-        "esempio",
-        "fittizio",
+        "example", "sample", "test", "fake", "dummy", "invalid", "exemple", "faux", "beispiel",
+        "muster", "ejemplo", "prueba", "esempio", "fittizio",
     ]
 }
 
@@ -86,17 +74,8 @@ pub fn phone_positive_context() -> Vec<&'static str> {
 
 pub fn phone_negative_context() -> Vec<&'static str> {
     vec![
-        "example",
-        "test",
-        "sample",
-        "fake",
-        "exemple",
-        "beispiel",
-        "ejemplo",
-        "esempio",
-        "iban",
-        "credit",
-        "card",
+        "example", "test", "sample", "fake", "exemple", "beispiel", "ejemplo", "esempio", "iban",
+        "credit", "card",
     ]
 }
 
@@ -123,17 +102,8 @@ pub fn card_positive_context() -> Vec<&'static str> {
 
 pub fn card_negative_context() -> Vec<&'static str> {
     vec![
-        "example",
-        "test",
-        "sample",
-        "invalid",
-        "fake",
-        "exemple",
-        "beispiel",
-        "ejemplo",
-        "esempio",
-        "phone",
-        "iban",
+        "example", "test", "sample", "invalid", "fake", "exemple", "beispiel", "ejemplo",
+        "esempio", "phone", "iban",
     ]
 }
 
@@ -157,14 +127,7 @@ pub fn ip_positive_context() -> Vec<&'static str> {
 }
 
 pub fn ip_negative_context() -> Vec<&'static str> {
-    vec![
-        "version",
-        "example",
-        "test",
-        "fake",
-        "exemple",
-        "beispiel",
-    ]
+    vec!["version", "example", "test", "fake", "exemple", "beispiel"]
 }
 
 pub fn url_positive_context() -> Vec<&'static str> {
@@ -214,12 +177,7 @@ pub fn date_positive_context() -> Vec<&'static str> {
 }
 
 pub fn date_negative_context() -> Vec<&'static str> {
-    vec![
-        "version",
-        "v.",
-        "release",
-        "build",
-    ]
+    vec!["version", "v.", "release", "build"]
 }
 
 pub fn crypto_positive_context() -> Vec<&'static str> {
@@ -242,12 +200,5 @@ pub fn crypto_positive_context() -> Vec<&'static str> {
 }
 
 pub fn crypto_negative_context() -> Vec<&'static str> {
-    vec![
-        "example",
-        "test",
-        "fake",
-        "invalid",
-        "exemple",
-        "beispiel",
-    ]
+    vec!["example", "test", "fake", "invalid", "exemple", "beispiel"]
 }

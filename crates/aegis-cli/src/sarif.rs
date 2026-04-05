@@ -66,10 +66,7 @@ fn collect_rules(keys: &HashSet<String>) -> Vec<Value> {
 }
 
 /// Builds an aggregated SARIF document for one or more analyzed files.
-pub fn build_document(
-    tool_version: &str,
-    files: &[(String, String, AnalysisResult)],
-) -> Value {
+pub fn build_document(tool_version: &str, files: &[(String, String, AnalysisResult)]) -> Value {
     let mut type_keys: HashSet<String> = HashSet::new();
     let mut results: Vec<Value> = Vec::new();
 

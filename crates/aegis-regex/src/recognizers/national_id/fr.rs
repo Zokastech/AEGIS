@@ -182,9 +182,16 @@ mod tests {
 
     fn synth_cni() -> String {
         let body: Vec<u32> = (0..11).map(|i| ((i * 7 + 3) % 10) as u32).collect();
-        let sum: u32 = body.iter().enumerate().map(|(i, &d)| d * (i as u32 + 1)).sum();
+        let sum: u32 = body
+            .iter()
+            .enumerate()
+            .map(|(i, &d)| d * (i as u32 + 1))
+            .sum();
         let check = sum % 10;
-        let mut s: String = body.iter().map(|d| char::from_digit(*d, 10).unwrap()).collect();
+        let mut s: String = body
+            .iter()
+            .map(|d| char::from_digit(*d, 10).unwrap())
+            .collect();
         s.push(char::from_digit(check, 10).unwrap());
         s
     }

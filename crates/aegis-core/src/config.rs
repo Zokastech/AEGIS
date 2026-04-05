@@ -81,9 +81,7 @@ mod operators_by_entity_serde {
         m.end()
     }
 
-    pub fn deserialize<'de, D>(
-        de: D,
-    ) -> Result<HashMap<EntityType, OperatorConfig>, D::Error>
+    pub fn deserialize<'de, D>(de: D) -> Result<HashMap<EntityType, OperatorConfig>, D::Error>
     where
         D: Deserializer<'de>,
     {

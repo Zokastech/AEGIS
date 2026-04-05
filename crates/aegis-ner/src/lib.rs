@@ -37,9 +37,7 @@ pub mod prediction;
 pub mod recognizer_adapter;
 
 pub use aegis_core;
-pub use config::{
-    default_id2label_map, NerConfig, NerDevice, ScoreAggregation,
-};
+pub use config::{default_id2label_map, NerConfig, NerDevice, ScoreAggregation};
 pub use engine::NerEngine;
 pub use error::{NerError, Result};
 pub use models::{download_model, list_models, ModelInfo, ModelZoo};

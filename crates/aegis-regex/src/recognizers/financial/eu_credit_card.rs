@@ -109,7 +109,10 @@ mod tests {
                 break;
             }
         }
-        assert!(hit, "aucune variante Luhn valide pour le BIN 497301234567890x");
+        assert!(
+            hit,
+            "aucune variante Luhn valide pour le BIN 497301234567890x"
+        );
     }
 
     #[test]

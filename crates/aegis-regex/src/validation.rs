@@ -48,12 +48,12 @@ pub fn email_rfc5322_pragmatic(s: &str) -> bool {
     if tld.len() < 2 || !tld.chars().all(|c| c.is_ascii_alphabetic()) {
         return false;
     }
-    let local_ok = local.chars().all(|c| {
-        c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '%' | '+' | '-')
-    });
-    let domain_ok = domain.chars().all(|c| {
-        c.is_ascii_alphanumeric() || matches!(c, '.' | '-')
-    });
+    let local_ok = local
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '%' | '+' | '-'));
+    let domain_ok = domain
+        .chars()
+        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '-'));
     local_ok && domain_ok
 }
 

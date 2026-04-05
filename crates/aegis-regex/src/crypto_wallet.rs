@@ -3,9 +3,7 @@
 use crate::context_lexicon::{crypto_negative_context, crypto_positive_context};
 use crate::pattern::PatternRecognizer;
 use crate::static_regex::compile;
-use crate::validation::{
-    validate_btc_bech32, validate_btc_p2pkh_p2sh, validate_ethereum_address,
-};
+use crate::validation::{validate_btc_bech32, validate_btc_p2pkh_p2sh, validate_ethereum_address};
 use aegis_core::entity::EntityType;
 use std::sync::Arc;
 
@@ -92,7 +90,10 @@ mod tests {
     fn multilingual_context() {
         let r = crypto_wallet_recognizer();
         assert!(!r
-            .analyze("portafoglio 0x742d35Cc6634C0532925a3b844Bc454e4438f44e", &cfg())
+            .analyze(
+                "portafoglio 0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                &cfg()
+            )
             .is_empty());
     }
 }

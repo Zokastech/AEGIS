@@ -2,9 +2,9 @@
 
 //! YAML schema for `aegis-config.yaml` (engine + pipeline + NER).
 
+use crate::context::ContextScorerConfig;
 use crate::entity::EntityType;
 use crate::error::Result;
-use crate::context::ContextScorerConfig;
 use crate::pipeline::{PipelineConfig, PipelineLevels};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -122,10 +122,7 @@ impl AegisEngineConfig {
 
     /// Construit un [`PipelineConfig`] en appliquant `pipeline_level` puis le bloc `pipeline`.
     pub fn merged_pipeline_config(&self) -> PipelineConfig {
-        let mut base = self
-            .pipeline
-            .clone()
-            .unwrap_or_default();
+        let mut base = self.pipeline.clone().unwrap_or_default();
         if let Some(lvl) = self.pipeline_level {
             base.levels = match lvl {
                 1 => PipelineLevels::L1Only,

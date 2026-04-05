@@ -22,9 +22,7 @@ mod types;
 
 pub use engine::AnonymizerEngine;
 pub use error::{AnonymizeError, Result};
-pub use types::{
-    AnonymizationConfig, AnonymizedResult, ReverseMetadata, TransformationRecord,
-};
+pub use types::{AnonymizationConfig, AnonymizedResult, ReverseMetadata, TransformationRecord};
 
 pub use encrypt::EncryptOperator;
 pub use fpe_op::FpeOperator;

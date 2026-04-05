@@ -25,23 +25,24 @@ pub mod registry;
 
 pub use anonymizer::{Operator, OperatorConfig, OperatorType};
 pub use config::{AegisConfig, AnalysisConfig};
-pub use engine::{
-    AnalyzerEngine, AnalyzerEngineBuilder, DefaultRegexLoaderFn, PipelineLevel,
-    register_default_regex_loader,
-};
-pub use ffi::{
-    engine_analyze_json_c, engine_create_boxed, ffi_last_error_ptr, ffi_set_last_error, ffi_string_free,
-};
-pub use entity::{AnalysisResult, Entity, EntityType};
-pub use error::{AegisError, Result};
-pub use recognizer::Recognizer;
-pub use registry::{RecognizerRegistry, RecognizerRegistryBuilder};
 pub use context::{
     CombinationRule, ContextRule, ContextScorer, ContextScorerConfig, LanguageContextRules,
     LemmaAnalyzer, QuasiComboRuleYaml, QuasiIdentifierDetector, QuasiIdentifierReport,
     QuasiIdentifierYamlSection, ScorerWindowSettings, ScorerYamlBlock,
 };
-pub use pipeline::{
-    DecisionTrace, DetectionPipeline, FusedCandidate, MockNerBackend, NerBackend, PipelineConfig,
-    PipelineLevels, PipelineOutput, ScoreFusion, TraceStep, is_contextual_entity_type,
+pub use engine::{
+    register_default_regex_loader, AnalyzerEngine, AnalyzerEngineBuilder, DefaultRegexLoaderFn,
+    PipelineLevel,
 };
+pub use entity::{AnalysisResult, Entity, EntityType};
+pub use error::{AegisError, Result};
+pub use ffi::{
+    engine_analyze_json_c, engine_create_boxed, ffi_last_error_ptr, ffi_set_last_error,
+    ffi_string_free,
+};
+pub use pipeline::{
+    is_contextual_entity_type, DecisionTrace, DetectionPipeline, FusedCandidate, MockNerBackend,
+    NerBackend, PipelineConfig, PipelineLevels, PipelineOutput, ScoreFusion, TraceStep,
+};
+pub use recognizer::Recognizer;
+pub use registry::{RecognizerRegistry, RecognizerRegistryBuilder};

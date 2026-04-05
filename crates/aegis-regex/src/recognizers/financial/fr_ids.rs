@@ -361,9 +361,7 @@ mod tests {
             &siret[9..14]
         );
         let r = siret_recognizer();
-        let phrase = format!(
-            r#"« KM Data » (SIRET possible : {spaced} — non confirmé)"#
-        );
+        let phrase = format!(r#"« KM Data » (SIRET possible : {spaced} — non confirmé)"#);
         let v = r.analyze(&phrase, &AnalysisConfig::default());
         assert!(!v.is_empty(), "expected SIRET in {phrase}");
     }
@@ -515,7 +513,10 @@ mod tests {
         let a = siren_with_check_digit("10000000");
         let b = siren_with_check_digit("20000000");
         let r = siren_recognizer();
-        let hits = r.analyze(&format!("SIREN {a} ou SIREN {b}"), &AnalysisConfig::default());
+        let hits = r.analyze(
+            &format!("SIREN {a} ou SIREN {b}"),
+            &AnalysisConfig::default(),
+        );
         assert!(hits.len() >= 2);
     }
 
@@ -525,10 +526,12 @@ mod tests {
         use aegis_core::config::AnalysisConfig;
         let siren = siren_with_check_digit("12345678");
         let st = siret_luhn_valid_for_siren(&siren);
-        assert!(siret_recognizer()
-            .analyze(&st, &AnalysisConfig::default())
-            .len()
-            == 1);
+        assert!(
+            siret_recognizer()
+                .analyze(&st, &AnalysisConfig::default())
+                .len()
+                == 1
+        );
     }
 
     #[test]
@@ -571,10 +574,12 @@ mod tests {
         let n: u64 = base.parse().unwrap();
         let k = 97 - (n % 97);
         let num = format!("{base}{k:02}");
-        assert!(nir_recognizer()
-            .analyze(&num, &AnalysisConfig::default())
-            .len()
-            >= 1);
+        assert!(
+            nir_recognizer()
+                .analyze(&num, &AnalysisConfig::default())
+                .len()
+                >= 1
+        );
     }
 
     #[test]

@@ -204,12 +204,7 @@ impl ContextScorer {
         &'a self,
         lang: &str,
         leg: &'a LegacyPerson,
-    ) -> (
-        &'a HashSet<String>,
-        &'a HashSet<String>,
-        f64,
-        f64,
-    ) {
+    ) -> (&'a HashSet<String>, &'a HashSet<String>, f64, f64) {
         let rules = self
             .cfg
             .languages
@@ -226,12 +221,7 @@ impl ContextScorer {
             .or_else(|| leg.penalty_by_lang.get("en"))
             .unwrap_or(&leg.default_penalty);
         if let Some(r) = rules {
-            (
-                bs,
-                ps,
-                r.effective_boost_delta(),
-                r.penalty_delta,
-            )
+            (bs, ps, r.effective_boost_delta(), r.penalty_delta)
         } else {
             (bs, ps, 0.08, 0.12)
         }
@@ -429,7 +419,11 @@ mod tests {
     fn patient_boosts_person() {
         let s = ContextScorer::default_eu();
         let text = "Le patient Jean Dupont est admis.";
-        let jean = person(text.find("Jean").unwrap(), text.find("Dupont").unwrap() + "Dupont".len(), 0.7);
+        let jean = person(
+            text.find("Jean").unwrap(),
+            text.find("Dupont").unwrap() + "Dupont".len(),
+            0.7,
+        );
         let (sc, hits) = s.adjust_entity_score(text, &jean, Some("fr"));
         assert!(sc > jean.score, "score {sc} hits {hits:?}");
         assert!(hits.iter().any(|h| h.contains("patient")));
@@ -446,7 +440,9 @@ mod tests {
         );
         let (sc, hits) = s.adjust_entity_score(text, &paris, Some("fr"));
         assert!(sc < paris.score, "score {sc} hits {hits:?}");
-        assert!(hits.iter().any(|h| h.contains("ville de") || h.contains("penalty")));
+        assert!(hits
+            .iter()
+            .any(|h| h.contains("ville de") || h.contains("penalty")));
     }
 
     #[test]

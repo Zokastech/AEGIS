@@ -175,8 +175,8 @@ pub fn eu_address_recognizer() -> PatternRecognizer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use aegis_core::config::AnalysisConfig;
     use crate::Recognizer;
+    use aegis_core::config::AnalysisConfig;
 
     #[test]
     fn postal_formats() {

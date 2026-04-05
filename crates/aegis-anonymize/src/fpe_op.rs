@@ -6,8 +6,8 @@ use aegis_core::anonymizer::{Operator, OperatorConfig};
 use aegis_core::entity::Entity;
 use aes::cipher::{BlockEncrypt, KeyInit};
 use aes::Aes256;
-use aes_gcm::aead::OsRng;
 use aes_gcm::aead::rand_core::RngCore;
+use aes_gcm::aead::OsRng;
 
 pub const FPE_PREFIX: &str = "aegis_fpe:v1:";
 

@@ -3,11 +3,9 @@
 //! [`AnalyzerEngine`] — main entry point (Presidio-style three-level pipeline).
 
 use crate::config::{AegisConfig, AegisEngineConfig, AnalysisConfig};
-use crate::entity::{
-    AnalysisResult, Entity, EntityType, JsonEntityDecisionTrace, JsonTraceStep,
-};
-use crate::error::{AegisError, Result};
 use crate::context::ContextScorer;
+use crate::entity::{AnalysisResult, Entity, EntityType, JsonEntityDecisionTrace, JsonTraceStep};
+use crate::error::{AegisError, Result};
 use crate::pipeline::{
     DecisionTrace, DetectionPipeline, MockNerBackend, NerBackend, PipelineConfig, PipelineLevels,
     TraceStep,
@@ -104,15 +102,14 @@ impl AnalyzerEngine {
         self.registry
             .all()
             .into_iter()
-            .filter(|r| {
-                !self
-                    .disabled_recognizers
-                    .contains(&r.name().to_lowercase())
-            })
+            .filter(|r| !self.disabled_recognizers.contains(&r.name().to_lowercase()))
             .collect()
     }
 
-    fn ner_backend_for_levels(&self, levels: PipelineLevels) -> Result<Option<Arc<dyn NerBackend>>> {
+    fn ner_backend_for_levels(
+        &self,
+        levels: PipelineLevels,
+    ) -> Result<Option<Arc<dyn NerBackend>>> {
         if !levels.l3() {
             return Ok(None);
         }
@@ -120,10 +117,7 @@ impl AnalyzerEngine {
             Some(p) if !p.is_empty() => p,
             _ => return Ok(None),
         };
-        let mut g = self
-            .ner_lazy
-            .lock()
-            .unwrap_or_else(|e| e.into_inner());
+        let mut g = self.ner_lazy.lock().unwrap_or_else(|e| e.into_inner());
         if g.is_none() {
             *g = Some(load_ner_lazy(path)?);
         }
@@ -325,7 +319,8 @@ impl AnalyzerEngineBuilder {
 
     /// Loads default regex recognizers when `aegis-regex` is linked (`ctor` registration).
     pub fn with_default_recognizers(mut self, languages: &[&str]) -> Self {
-        self.pending_default_regex_langs = Some(languages.iter().map(|s| (*s).to_string()).collect());
+        self.pending_default_regex_langs =
+            Some(languages.iter().map(|s| (*s).to_string()).collect());
         self
     }
 
@@ -379,7 +374,8 @@ impl AnalyzerEngineBuilder {
                 .iter()
                 .map(|s| s.as_str())
                 .collect();
-            self.pending_default_regex_langs = Some(langs.iter().map(|s| (*s).to_string()).collect());
+            self.pending_default_regex_langs =
+                Some(langs.iter().map(|s| (*s).to_string()).collect());
         }
         Ok(())
     }

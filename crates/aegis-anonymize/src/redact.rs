@@ -9,7 +9,12 @@ pub struct RedactOperator;
 
 impl Operator for RedactOperator {
     fn operate(&self, _entity: &Entity, _text: &str, config: &OperatorConfig) -> String {
-        if config.params.get("use_empty").map(|v| v == "true" || v == "1").unwrap_or(false) {
+        if config
+            .params
+            .get("use_empty")
+            .map(|v| v == "true" || v == "1")
+            .unwrap_or(false)
+        {
             return String::new();
         }
         config

@@ -3,8 +3,8 @@
 //! Context words (10 languages: EN, FR, DE, ES, IT, NL, PT, PL, RO, SV) and window scoring.
 
 use crate::utf8_window::byte_window_utf8;
-use aho_corasick::AhoCorasick;
 use aegis_core::config::AnalysisConfig;
+use aho_corasick::AhoCorasick;
 
 pub fn build_ac(patterns: &[&str]) -> Option<AhoCorasick> {
     if patterns.is_empty() {

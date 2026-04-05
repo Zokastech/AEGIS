@@ -56,14 +56,13 @@ pub use ip_address::{ipv4_recognizer, ipv6_recognizer};
 pub use multi_pattern::{LiteralMatch, MultiPatternScanner};
 pub use pattern::PatternRecognizer;
 pub use phone::phone_recognizer;
+pub use recognizers::eu::all_eu_recognizers;
 pub use recognizers::financial::{
     bic_country_plausible, bic_structure_ok, bic_swift_recognizer, eu_credit_card_recognizer,
     eu_vat_recognizer, financial_recognizers, iban_mod97_valid, iban_recognizer, nir_key_ok,
     nir_match_validate, nir_recognizer, nir_shape_ok, normalize_iban, siren_luhn_ok,
-    siren_recognizer, siret_luhn_ok,
-    siret_recognizer, IbanRecognizer,
+    siren_recognizer, siret_luhn_ok, siret_recognizer, IbanRecognizer,
 };
-pub use recognizers::eu::all_eu_recognizers;
 pub use recognizers::national_id::all_eu_national_id_recognizers;
 pub use url_recognizer::url_recognizer;
 pub use validation::{

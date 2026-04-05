@@ -69,10 +69,7 @@ impl AnonymizerEngine {
         }
     }
 
-    fn resolve_config<'a>(
-        e: &Entity,
-        config: &'a AnonymizationConfig,
-    ) -> Cow<'a, OperatorConfig> {
+    fn resolve_config<'a>(e: &Entity, config: &'a AnonymizationConfig) -> Cow<'a, OperatorConfig> {
         let key = e.entity_type.config_key();
         if let Some(c) = config.operators_by_entity.get(&key) {
             return Cow::Borrowed(c);
@@ -110,10 +107,8 @@ impl AnonymizerEngine {
             }
             OperatorType::Fpe => {
                 if replacement.starts_with(FPE_PREFIX) && !replacement.contains("ERR") {
-                    split_fpe_token(replacement).map(|(nonce, _)| ReverseMetadata::FpeDigitsV1 {
-                        key_id,
-                        nonce,
-                    })
+                    split_fpe_token(replacement)
+                        .map(|(nonce, _)| ReverseMetadata::FpeDigitsV1 { key_id, nonce })
                 } else {
                     None
                 }
@@ -153,9 +148,7 @@ impl AnonymizerEngine {
                 let k = e.entity_type.config_key();
                 let n = serial_by_type.entry(k).or_insert(0);
                 *n += 1;
-                cfg
-                    .params
-                    .insert("__serial__".into(), n.to_string());
+                cfg.params.insert("__serial__".into(), n.to_string());
             }
             if matches!(cfg.operator_type, OperatorType::Encrypt | OperatorType::Fpe) {
                 let kid = cfg
@@ -172,8 +165,7 @@ impl AnonymizerEngine {
             ent.text = slice.clone();
             let replacement = op.operate(&ent, &slice, &cfg);
             let operator = format!("{:?}", cfg.operator_type);
-            let reverse =
-                Self::build_reverse(cfg.operator_type.clone(), &replacement, &cfg);
+            let reverse = Self::build_reverse(cfg.operator_type.clone(), &replacement, &cfg);
 
             steps.push(Step {
                 start: e.start,
@@ -288,9 +280,8 @@ impl AnonymizerEngine {
                 kb.copy_from_slice(kv);
                 let pt = EncryptOperator::decrypt_blob(&kb, nonce, ciphertext, aad.as_bytes())
                     .map_err(AnonymizeError::DecryptFailed)?;
-                String::from_utf8(pt).map_err(|e| {
-                    AnonymizeError::DecryptFailed(format!("utf-8: {e}"))
-                })
+                String::from_utf8(pt)
+                    .map_err(|e| AnonymizeError::DecryptFailed(format!("utf-8: {e}")))
             }
             Some(ReverseMetadata::FpeDigitsV1 { key_id, nonce }) => {
                 let (_, body) = split_fpe_token(&t.replacement)

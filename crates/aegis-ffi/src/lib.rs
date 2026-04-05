@@ -7,17 +7,19 @@
 use aegis_regex as _;
 
 use aegis_anonymize::{AnonymizationConfig, AnonymizerEngine};
+use aegis_core::anonymizer::OperatorConfig;
 use aegis_core::config::AnalysisConfig;
 use aegis_core::engine::AnalyzerEngineBuilder;
 use aegis_core::entity::AnalysisResult;
-use aegis_core::ffi::{engine_analyze_json_c, ffi_last_error_ptr, ffi_set_last_error, ffi_string_free};
-use aegis_core::anonymizer::OperatorConfig;
+use aegis_core::ffi::{
+    engine_analyze_json_c, ffi_last_error_ptr, ffi_set_last_error, ffi_string_free,
+};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::ptr;
 use std::panic::{catch_unwind, AssertUnwindSafe};
+use std::ptr;
 
 #[cfg(feature = "python")]
 pub mod python_shim;
@@ -55,11 +57,10 @@ fn cstr_to_str<'a>(ptr: *const c_char, field: &'static str) -> Option<&'a str> {
 /// Empty string or `NULL` → default regex recognizers `en` + `fr` (if `aegis-regex` is linked).
 #[no_mangle]
 pub unsafe extern "C" fn aegis_init(config_json: *const c_char) -> *mut AegisHandle {
-    catch_unwind(AssertUnwindSafe(|| init_inner(config_json)))
-        .unwrap_or_else(|_| {
-            panic_to_last_error();
-            ptr::null_mut()
-        })
+    catch_unwind(AssertUnwindSafe(|| init_inner(config_json))).unwrap_or_else(|_| {
+        panic_to_last_error();
+        ptr::null_mut()
+    })
 }
 
 unsafe fn init_inner(config_json: *const c_char) -> *mut AegisHandle {
@@ -110,11 +111,13 @@ pub unsafe extern "C" fn aegis_analyze(
     text: *const c_char,
     config_json: *const c_char,
 ) -> *mut c_char {
-    catch_unwind(AssertUnwindSafe(|| analyze_inner(handle, text, config_json)))
-        .unwrap_or_else(|_| {
-            panic_to_last_error();
-            ptr::null_mut()
-        })
+    catch_unwind(AssertUnwindSafe(|| {
+        analyze_inner(handle, text, config_json)
+    }))
+    .unwrap_or_else(|_| {
+        panic_to_last_error();
+        ptr::null_mut()
+    })
 }
 
 unsafe fn analyze_inner(
@@ -171,11 +174,13 @@ pub unsafe extern "C" fn aegis_anonymize(
     text: *const c_char,
     config_json: *const c_char,
 ) -> *mut c_char {
-    catch_unwind(AssertUnwindSafe(|| anonymize_inner(handle, text, config_json)))
-        .unwrap_or_else(|_| {
-            panic_to_last_error();
-            ptr::null_mut()
-        })
+    catch_unwind(AssertUnwindSafe(|| {
+        anonymize_inner(handle, text, config_json)
+    }))
+    .unwrap_or_else(|_| {
+        panic_to_last_error();
+        ptr::null_mut()
+    })
 }
 
 unsafe fn anonymize_inner(
@@ -226,9 +231,7 @@ unsafe fn anonymize_inner(
         operators_by_entity: cfg.operators_by_entity,
         default_operator: cfg.default_operator,
     };
-    let out = ctx
-        .anonymizer
-        .anonymize(t, &analyzed.entities, &anon_cfg);
+    let out = ctx.anonymizer.anonymize(t, &analyzed.entities, &anon_cfg);
     #[derive(serde::Serialize)]
     struct AnonymizeFfiOut {
         anonymized: aegis_anonymize::AnonymizedResult,
@@ -259,11 +262,10 @@ pub unsafe extern "C" fn aegis_analyze_batch(
     handle: *mut AegisHandle,
     texts_json: *const c_char,
 ) -> *mut c_char {
-    catch_unwind(AssertUnwindSafe(|| batch_inner(handle, texts_json)))
-        .unwrap_or_else(|_| {
-            panic_to_last_error();
-            ptr::null_mut()
-        })
+    catch_unwind(AssertUnwindSafe(|| batch_inner(handle, texts_json))).unwrap_or_else(|_| {
+        panic_to_last_error();
+        ptr::null_mut()
+    })
 }
 
 unsafe fn batch_inner(handle: *mut AegisHandle, texts_json: *const c_char) -> *mut c_char {

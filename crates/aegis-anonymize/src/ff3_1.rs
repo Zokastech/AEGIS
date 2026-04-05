@@ -44,11 +44,7 @@ fn pow_uv(radix: u32, u: usize, v: usize) -> (BigUint, BigUint) {
         }
         _ => {
             let pow_u = r.pow(u as u32);
-            let pow_v = if u == v {
-                pow_u.clone()
-            } else {
-                &pow_u * &r
-            };
+            let pow_v = if u == v { pow_u.clone() } else { &pow_u * &r };
             (pow_u, pow_v)
         }
     }
@@ -110,7 +106,12 @@ fn aes_encrypt_block(key: &[u8], block: &mut [u8; 16]) -> Result<(), Ff3Error> {
 }
 
 /// Chiffre un tableau de chiffres `digits[i] ∈ [0, radix)` (longueur n ≥ 1).
-pub fn ff3_encrypt(digits: &[u32], radix: u32, key: &[u8], tweak8: &[u8; 8]) -> Result<Vec<u32>, Ff3Error> {
+pub fn ff3_encrypt(
+    digits: &[u32],
+    radix: u32,
+    key: &[u8],
+    tweak8: &[u8; 8],
+) -> Result<Vec<u32>, Ff3Error> {
     if digits.is_empty() {
         return Err(Ff3Error::Empty);
     }
@@ -171,7 +172,12 @@ pub fn ff3_encrypt(digits: &[u32], radix: u32, key: &[u8], tweak8: &[u8; 8]) -> 
 }
 
 /// Decrypt (inverse of [`ff3_encrypt`]).
-pub fn ff3_decrypt(digits: &[u32], radix: u32, key: &[u8], tweak8: &[u8; 8]) -> Result<Vec<u32>, Ff3Error> {
+pub fn ff3_decrypt(
+    digits: &[u32],
+    radix: u32,
+    key: &[u8],
+    tweak8: &[u8; 8],
+) -> Result<Vec<u32>, Ff3Error> {
     if digits.is_empty() {
         return Err(Ff3Error::Empty);
     }

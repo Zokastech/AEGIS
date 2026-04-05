@@ -18,13 +18,80 @@ pub fn bic_country_plausible(s: &str) -> bool {
     let cc = &u[4..6];
     matches!(
         cc,
-        "AD" | "AE" | "AT" | "AU" | "BA" | "BE" | "BG" | "BH" | "BR" | "BY" | "CH" | "CN"
-            | "CY" | "CZ" | "DE" | "DK" | "EE" | "EG" | "ES" | "FI" | "FO" | "FR" | "GB" | "GE"
-            | "GI" | "GL" | "GR" | "GT" | "HK" | "HR" | "HU" | "IE" | "IL" | "IN" | "IQ" | "IS"
-            | "IT" | "JO" | "JP" | "KW" | "KZ" | "LB" | "LI" | "LT" | "LU" | "LV" | "MC" | "MD"
-            | "ME" | "MK" | "MT" | "MU" | "MX" | "NL" | "NO" | "NZ" | "OM" | "PL" | "PS" | "PT"
-            | "QA" | "RO" | "RS" | "SA" | "SE" | "SG" | "SI" | "SK" | "SM" | "TR" | "UA" | "US"
-            | "VA" | "VG" | "XK"
+        "AD" | "AE"
+            | "AT"
+            | "AU"
+            | "BA"
+            | "BE"
+            | "BG"
+            | "BH"
+            | "BR"
+            | "BY"
+            | "CH"
+            | "CN"
+            | "CY"
+            | "CZ"
+            | "DE"
+            | "DK"
+            | "EE"
+            | "EG"
+            | "ES"
+            | "FI"
+            | "FO"
+            | "FR"
+            | "GB"
+            | "GE"
+            | "GI"
+            | "GL"
+            | "GR"
+            | "GT"
+            | "HK"
+            | "HR"
+            | "HU"
+            | "IE"
+            | "IL"
+            | "IN"
+            | "IQ"
+            | "IS"
+            | "IT"
+            | "JO"
+            | "JP"
+            | "KW"
+            | "KZ"
+            | "LB"
+            | "LI"
+            | "LT"
+            | "LU"
+            | "LV"
+            | "MC"
+            | "MD"
+            | "ME"
+            | "MK"
+            | "MT"
+            | "MU"
+            | "MX"
+            | "NL"
+            | "NO"
+            | "NZ"
+            | "OM"
+            | "PL"
+            | "PS"
+            | "PT"
+            | "QA"
+            | "RO"
+            | "RS"
+            | "SA"
+            | "SE"
+            | "SG"
+            | "SI"
+            | "SK"
+            | "SM"
+            | "TR"
+            | "UA"
+            | "US"
+            | "VA"
+            | "VG"
+            | "XK"
     )
 }
 
@@ -78,7 +145,9 @@ pub fn bic_swift_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl", "ro", "sv"],
         0.88,
     )
-    .with_validator(Arc::new(|m| bic_structure_ok(m) && bic_country_plausible(m)))
+    .with_validator(Arc::new(|m| {
+        bic_structure_ok(m) && bic_country_plausible(m)
+    }))
     .with_min_score(0.42)
     .with_context_boost_words(&ctx, 0.07)
     .with_context_penalty_words(&["example", "testbank", "XXXX", "dummy"], 0.15)
@@ -228,9 +297,6 @@ mod tests {
     #[test]
     fn entity_bank_account() {
         let r = bic_swift_recognizer();
-        assert!(matches!(
-            r.supported_entities()[0],
-            EntityType::BankAccount
-        ));
+        assert!(matches!(r.supported_entities()[0], EntityType::BankAccount));
     }
 }

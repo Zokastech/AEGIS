@@ -38,10 +38,7 @@ impl MultiPatternScanner {
     }
 
     /// Iterator over `haystack`: linear time in input size.
-    pub fn find_iter<'a>(
-        &'a self,
-        haystack: &'a [u8],
-    ) -> impl Iterator<Item = LiteralMatch> + 'a {
+    pub fn find_iter<'a>(&'a self, haystack: &'a [u8]) -> impl Iterator<Item = LiteralMatch> + 'a {
         self.ac.find_iter(haystack).map(|m| LiteralMatch {
             start: m.start(),
             end: m.end(),

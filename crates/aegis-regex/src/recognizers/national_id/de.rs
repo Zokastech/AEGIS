@@ -69,7 +69,11 @@ pub fn de_reisepass_validate(s: &str) -> bool {
 
 /// German social insurance number: 12 digits + one letter A–Y (not **S**) + 3 digits; check on 15 digits (weights 2,1,2,5,7,…).
 pub fn de_sozialversicherung_validate(s: &str) -> bool {
-    let u = s.to_ascii_uppercase().chars().filter(|c| !c.is_whitespace()).collect::<String>();
+    let u = s
+        .to_ascii_uppercase()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>();
     let re = Regex::new(r"^(\d{12})([A-Y])(\d{3})$").unwrap();
     let Some(cap) = re.captures(&u) else {
         return false;

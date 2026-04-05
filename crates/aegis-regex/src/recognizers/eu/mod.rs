@@ -11,5 +11,5 @@ pub mod license_plate;
 pub mod quasi_identifiers;
 
 pub use all_eu_recognizers::all_eu_recognizers;
-pub use gdpr_sensitive::GdprArt9Recognizer;
 pub use eu_phone::EuExtendedPhoneRecognizer;
+pub use gdpr_sensitive::GdprArt9Recognizer;

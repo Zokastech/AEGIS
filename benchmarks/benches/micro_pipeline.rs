@@ -4,11 +4,11 @@
 
 use aegis_benchmarks::{corpus_n_bytes, SIZES};
 use aegis_core::engine::{AnalyzerEngineBuilder, PipelineLevel};
-use aegis_regex as _;
 use aegis_core::entity::{Entity, EntityType};
 use aegis_core::pipeline::{
     ContextScorer, DetectionPipeline, MockNerBackend, NerBackend, PipelineConfig, PipelineLevels,
 };
+use aegis_regex as _;
 use aegis_regex::default_regex_recognizers;
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use std::sync::Arc;
@@ -92,5 +92,10 @@ fn bench_pipeline_l123(c: &mut Criterion) {
     g.finish();
 }
 
-criterion_group!(benches, bench_engine_l1, bench_engine_l12, bench_pipeline_l123);
+criterion_group!(
+    benches,
+    bench_engine_l1,
+    bench_engine_l12,
+    bench_pipeline_l123
+);
 criterion_main!(benches);

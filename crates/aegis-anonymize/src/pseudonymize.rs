@@ -10,7 +10,11 @@ pub struct PseudonymizeOperator;
 
 impl Operator for PseudonymizeOperator {
     fn operate(&self, entity: &Entity, _text: &str, config: &OperatorConfig) -> String {
-        let salt = config.params.get("salt").map(|s| s.as_str()).unwrap_or("aegis_ps");
+        let salt = config
+            .params
+            .get("salt")
+            .map(|s| s.as_str())
+            .unwrap_or("aegis_ps");
         let mut h = Hasher::new();
         h.update(salt.as_bytes());
         h.update(entity.entity_type.config_key().as_bytes());

@@ -9,38 +9,19 @@ use std::sync::Arc;
 
 fn iban_stub() -> PatternRecognizer {
     let re = Regex::new(r"\b[A-Z]{2}\d{2}[A-Z0-9]{10,30}\b").unwrap();
-    PatternRecognizer::new(
-        "iban_stub",
-        re,
-        EntityType::Iban,
-        vec!["en", "fr"],
-        0.85,
-    )
-    .with_min_score(0.4)
+    PatternRecognizer::new("iban_stub", re, EntityType::Iban, vec!["en", "fr"], 0.85)
+        .with_min_score(0.4)
 }
 
 fn ssn_stub() -> PatternRecognizer {
     let re = Regex::new(r"\b\d{3}-\d{2}-\d{4}\b").unwrap();
-    PatternRecognizer::new(
-        "ssn_stub",
-        re,
-        EntityType::Ssn,
-        vec!["en"],
-        0.8,
-    )
-    .with_min_score(0.4)
+    PatternRecognizer::new("ssn_stub", re, EntityType::Ssn, vec!["en"], 0.8).with_min_score(0.4)
 }
 
 fn plate_stub() -> PatternRecognizer {
     let re = Regex::new(r"\b[A-Z]{2}-\d{3}-[A-Z]{2}\b").unwrap();
-    PatternRecognizer::new(
-        "plate_fr",
-        re,
-        EntityType::VehiclePlate,
-        vec!["fr"],
-        0.7,
-    )
-    .with_min_score(0.35)
+    PatternRecognizer::new("plate_fr", re, EntityType::VehiclePlate, vec!["fr"], 0.7)
+        .with_min_score(0.35)
 }
 
 #[test]
@@ -131,10 +112,7 @@ analysis:
     let dumped = serde_json::to_string(&cfg).unwrap();
     let cfg2: AegisEngineConfig = serde_json::from_str(&dumped).unwrap();
     assert_eq!(cfg2.pipeline_level, Some(2));
-    assert_eq!(
-        cfg2.analysis.as_ref().unwrap().score_threshold,
-        0.55
-    );
+    assert_eq!(cfg2.analysis.as_ref().unwrap().score_threshold, 0.55);
 }
 
 /// `pipeline_level` dans le JSON d’analyse (Playground / API) doit surcharger le niveau YAML du moteur.
@@ -161,7 +139,11 @@ fn per_request_pipeline_level_two_runs_context_trace_not_level_one() {
         .into_iter()
         .find(|e| e.entity_type == EntityType::Iban)
         .expect("iban l2");
-    let steps_l2 = iban_l2.decision_trace.as_ref().map(|t| t.steps.as_slice()).unwrap_or(&[]);
+    let steps_l2 = iban_l2
+        .decision_trace
+        .as_ref()
+        .map(|t| t.steps.as_slice())
+        .unwrap_or(&[]);
     assert!(
         steps_l2.iter().any(|s| s.name.contains("L2:")),
         "avec pipeline_level=2 on attend des étapes L2 dans la trace, obtenu {:?}",
@@ -178,7 +160,11 @@ fn per_request_pipeline_level_two_runs_context_trace_not_level_one() {
         .into_iter()
         .find(|e| e.entity_type == EntityType::Iban)
         .expect("iban l1");
-    let steps_l1 = iban_l1.decision_trace.as_ref().map(|t| t.steps.as_slice()).unwrap_or(&[]);
+    let steps_l1 = iban_l1
+        .decision_trace
+        .as_ref()
+        .map(|t| t.steps.as_slice())
+        .unwrap_or(&[]);
     assert!(
         !steps_l1.iter().any(|s| s.name.contains("L2:")),
         "avec pipeline_level=1 il ne doit pas y avoir d’étapes L2, obtenu {:?}",

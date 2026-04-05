@@ -121,7 +121,10 @@ impl SyntheticDataGenerator {
     }
 
     /// Loads YAML from disk and stores it under `country_code` (uppercase).
-    pub fn load_profile_yaml(path: &str, replace_code: Option<&str>) -> Result<CountryProfile, SyntheticError> {
+    pub fn load_profile_yaml(
+        path: &str,
+        replace_code: Option<&str>,
+    ) -> Result<CountryProfile, SyntheticError> {
         let raw = std::fs::read_to_string(path)
             .map_err(|e| SyntheticError::InvalidProfile(e.to_string()))?;
         let mut p: CountryProfile = serde_yaml::from_str(&raw)
@@ -142,7 +145,12 @@ impl SyntheticDataGenerator {
     }
 
     /// Generates a synthetic value for `entity` using the profile and seed.
-    pub fn generate(&self, entity: &Entity, country_code: &str, seed: u64) -> Result<String, SyntheticError> {
+    pub fn generate(
+        &self,
+        entity: &Entity,
+        country_code: &str,
+        seed: u64,
+    ) -> Result<String, SyntheticError> {
         let p = self
             .profile(country_code)
             .ok_or_else(|| SyntheticError::UnknownProfile(country_code.to_uppercase()))?;
@@ -225,7 +233,11 @@ fn pick_lastname(profile: &CountryProfile, rng: &mut StdRng) -> String {
 pub fn synthetic_person_parts(profile: &CountryProfile, seed: u64) -> (String, String, bool) {
     let mut rng = rng_from(sub_seed(seed, 1));
     let male = rng_from(sub_seed(seed, 0)).gen_bool(0.5);
-    (pick_firstname(profile, male, &mut rng), pick_lastname(profile, &mut rng), male)
+    (
+        pick_firstname(profile, male, &mut rng),
+        pick_lastname(profile, &mut rng),
+        male,
+    )
 }
 
 fn latin_email_slug(s: &str) -> String {
@@ -307,7 +319,9 @@ fn synthetic_phone(profile: &CountryProfile, seed: u64) -> String {
         .get(rng.gen_range(0..prefixes.len().max(1)))
         .cloned()
         .unwrap_or_else(|| "6".into());
-    let rem = profile.phone_national_digits.saturating_sub(lead.len() as u8) as usize;
+    let rem = profile
+        .phone_national_digits
+        .saturating_sub(lead.len() as u8) as usize;
     let mut national = lead;
     for _ in 0..rem {
         national.push(char::from_digit(rng.gen_range(0..10), 10).unwrap());
@@ -330,7 +344,9 @@ fn synthetic_phone(profile: &CountryProfile, seed: u64) -> String {
     } else {
         parts.push(national.clone());
     }
-    let mut s = profile.phone_display_format.replace("{cc}", &profile.phone_country_prefix);
+    let mut s = profile
+        .phone_display_format
+        .replace("{cc}", &profile.phone_country_prefix);
     for (i, ch) in ('a'..='z').enumerate() {
         let token = format!("{{{ch}}}");
         if s.contains(&token) {
@@ -450,10 +466,7 @@ const DNI_TABLE: &str = "TRWAGMYFPDXBNJZSQVHLCKE";
 fn synthetic_es_dni(seed: u64) -> String {
     let mut rng = rng_from(sub_seed(seed, 7));
     let n = rng.gen_range(10_000_000..=99_999_999u32);
-    let letter = DNI_TABLE
-        .chars()
-        .nth((n % 23) as usize)
-        .unwrap_or('A');
+    let letter = DNI_TABLE.chars().nth((n % 23) as usize).unwrap_or('A');
     format!("{n:08}{letter}")
 }
 
@@ -676,7 +689,11 @@ pub fn generate_synthetic(entity: &Entity, profile: &CountryProfile, seed: u64) 
         | EntityType::CryptoWallet
         | EntityType::VehiclePlate
         | EntityType::Custom(_) => {
-            format!("[SYNTH:{}:{}]", entity.entity_type.config_key(), sub_seed(seed, 99))
+            format!(
+                "[SYNTH:{}:{}]",
+                entity.entity_type.config_key(),
+                sub_seed(seed, 99)
+            )
         }
     }
 }

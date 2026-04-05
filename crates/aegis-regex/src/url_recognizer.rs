@@ -119,7 +119,9 @@ mod tests {
     #[test]
     fn rejects_two_label_person_name_not_url() {
         let r = url_recognizer();
-        assert!(r.analyze("contact marie.durand (pas une URL)", &cfg()).is_empty());
+        assert!(r
+            .analyze("contact marie.durand (pas une URL)", &cfg())
+            .is_empty());
     }
 
     #[test]

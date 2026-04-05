@@ -138,8 +138,12 @@ impl Recognizer for QuasiIdentifierRecognizer {
             if !has_d || !has_g {
                 continue;
             }
-            let ds = date_finder().find(win).map(|x| lo + x.start()..lo + x.end());
-            let gs = gender_finder().find(win).map(|x| lo + x.start()..lo + x.end());
+            let ds = date_finder()
+                .find(win)
+                .map(|x| lo + x.start()..lo + x.end());
+            let gs = gender_finder()
+                .find(win)
+                .map(|x| lo + x.start()..lo + x.end());
             let mut starts = vec![m.start()];
             let mut ends = vec![m.end()];
             if let Some(r) = ds {
@@ -156,10 +160,7 @@ impl Recognizer for QuasiIdentifierRecognizer {
             let mut metadata = HashMap::new();
             metadata.insert("level".into(), "regex".into());
             metadata.insert("quasi_pattern".into(), "postal_dob_gender".into());
-            metadata.insert(
-                "reidentification_risk".into(),
-                "elevated".into(),
-            );
+            metadata.insert("reidentification_risk".into(), "elevated".into());
             metadata.insert("human_review_recommended".into(), "true".into());
             metadata.insert("sweeney_reference".into(), "k_anonymity".into());
             if config.return_decision_process {

@@ -8,8 +8,8 @@ use std::sync::Arc;
 
 /// Odd/even position tables (indices 0–35 = 0–9 then A–Z), per codice fiscale spec.
 const CF_ODD: [u32; 36] = [
-    1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8,
-    12, 14, 16, 10, 22, 25, 24, 23,
+    1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6,
+    8, 12, 14, 16, 10, 22, 25, 24, 23,
 ];
 
 const CF_EVEN: [u32; 36] = [
@@ -64,9 +64,7 @@ pub fn it_codice_fiscale_validate(s: &str) -> bool {
 /// CIE: `LL#####LL` (shape only, no unified public checksum).
 pub fn it_cie_validate(s: &str) -> bool {
     let u = s.to_ascii_uppercase();
-    Regex::new(r"^[A-Z]{2}\d{5}[A-Z]{2}$")
-        .unwrap()
-        .is_match(&u)
+    Regex::new(r"^[A-Z]{2}\d{5}[A-Z]{2}$").unwrap().is_match(&u)
 }
 
 /// Partita IVA: 11 digits, last digit checks the first 10 (alternating weights 1/2, reduce >9).
