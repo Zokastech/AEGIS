@@ -70,14 +70,20 @@ pub fn es_national_id_recognizer() -> CompositeNationalRecognizer {
     let rules = vec![
         IdRule {
             name: "es_dni",
-            re: Regex::new(r"(?xi)\b(?:DNI|NIF)[\s.:]+(\d{8}[A-Za-z])\b|\b(\d{8}[A-Za-z])(?=\s*(?:DNI|NIF))").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:DNI|NIF)[\s.:]+(\d{8}[A-Za-z])\b|\b(\d{8}[A-Za-z])\s+(?:DNI|NIF)\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
             validator: Arc::new(es_dni_validate),
             base_score: 0.9,
         },
         IdRule {
             name: "es_nie",
-            re: Regex::new(r"(?xi)\b(?:NIE)[\s.:]+([XYZxyz]\d{7}[A-Za-z])\b|\b([XYZxyz]\d{7}[A-Za-z])(?=\s*NIE)").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:NIE)[\s.:]+([XYZxyz]\d{7}[A-Za-z])\b|\b([XYZxyz]\d{7}[A-Za-z])\s+NIE\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
             validator: Arc::new(es_nie_validate),
             base_score: 0.89,

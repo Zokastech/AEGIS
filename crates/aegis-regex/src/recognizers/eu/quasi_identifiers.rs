@@ -44,7 +44,7 @@ fn date_finder() -> &'static Regex {
             \b(?:né|née|born|geboren|geb\.|DOB|date\s+of\s+birth|date\s+de\s+naissance)\b
             [^\n]{0,24}\b\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}\b
             |
-            \b(?:19|20)\d{2}\b(?=\s*(?:year|ans|Jahr|años)?)
+            \b(?:19|20)\d{2}\b(?:\s*(?:year|ans|Jahr|años))?
             ",
         )
         .expect("date finder")

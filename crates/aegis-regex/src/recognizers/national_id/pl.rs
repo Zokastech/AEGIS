@@ -44,14 +44,14 @@ pub fn pl_national_id_recognizer() -> CompositeNationalRecognizer {
     let rules = vec![
         IdRule {
             name: "pl_pesel",
-            re: Regex::new(r"(?xi)\b(?:PESEL)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*PESEL)").unwrap(),
+            re: Regex::new(r"(?xi)\b(?:PESEL)[\s.:]+(\d{11})\b|\b(\d{11})\s+PESEL\b").unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
             validator: Arc::new(pl_pesel_validate),
             base_score: 0.9,
         },
         IdRule {
             name: "pl_nip",
-            re: Regex::new(r"(?xi)\b(?:NIP)[\s.:]+(\d{10})\b|\b(\d{10})(?=\s*NIP)").unwrap(),
+            re: Regex::new(r"(?xi)\b(?:NIP)[\s.:]+(\d{10})\b|\b(\d{10})\s+NIP\b").unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
             validator: Arc::new(pl_nip_validate),
             base_score: 0.89,

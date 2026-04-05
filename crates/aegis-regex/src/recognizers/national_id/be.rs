@@ -31,7 +31,7 @@ pub fn be_national_id_recognizer() -> CompositeNationalRecognizer {
     let rules = vec![IdRule {
         name: "be_nrn",
         re: Regex::new(
-            r"(?xi)\b(?:rijksregisternummer|numéro\s*national|NN)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*(?:rijksregisternummer|national))",
+            r"(?xi)\b(?:rijksregisternummer|numéro\s*national|NN)[\s.:]+(\d{11})\b|\b(\d{11})\s+(?:rijksregisternummer|national)\b",
         )
         .unwrap(),
         entity: aegis_core::entity::EntityType::NationalId,

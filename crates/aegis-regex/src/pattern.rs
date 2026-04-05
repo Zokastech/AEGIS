@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 type ValidatorFn = Arc<dyn Fn(&str) -> bool + Send + Sync>;
+type ValidatorSpanFn = Arc<dyn Fn(&str, usize, usize) -> bool + Send + Sync>;
 
 fn build_ac(patterns: &[&str]) -> Option<AhoCorasick> {
     if patterns.is_empty() {
@@ -38,6 +39,8 @@ pub struct PatternRecognizer {
     min_score: f64,
     score_cap: f64,
     validator: Option<ValidatorFn>,
+    /// Optional check using full `text` and UTF-8 byte span (e.g. reject `.a@b` when match is `a@b`).
+    validator_span: Option<ValidatorSpanFn>,
     /// Patterns present **in the captured text** → reject.
     deny_in_match_ac: Option<AhoCorasick>,
     /// Patterns in the window → penalty per hit.
@@ -68,6 +71,7 @@ impl PatternRecognizer {
             min_score: 0.5,
             score_cap: 1.0,
             validator: None,
+            validator_span: None,
             deny_in_match_ac: None,
             invalidate_ac: None,
             invalidate_penalty: 0.15,
@@ -80,6 +84,11 @@ impl PatternRecognizer {
 
     pub fn with_validator(mut self, v: ValidatorFn) -> Self {
         self.validator = Some(v);
+        self
+    }
+
+    pub fn with_validator_on_span(mut self, v: ValidatorSpanFn) -> Self {
+        self.validator_span = Some(v);
         self
     }
 
@@ -157,7 +166,7 @@ impl PatternRecognizer {
         }
         if let Some(ref ac) = self.context_penalty_ac {
             for _ in ac.find_iter(ctx_bytes) {
-                score = (score - self.context_penalty).max(self.min_score);
+                score -= self.context_penalty;
             }
         }
         if let Some(ref ac) = self.invalidate_ac {
@@ -187,6 +196,11 @@ impl Recognizer for PatternRecognizer {
         let mut out = Vec::new();
         for m in self.pattern.find_iter(text) {
             let slice = m.as_str();
+            if let Some(ref v) = self.validator_span {
+                if !v(text, m.start(), m.end()) {
+                    continue;
+                }
+            }
             if let Some(ref v) = self.validator {
                 if !v(slice) {
                     continue;

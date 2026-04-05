@@ -15,6 +15,11 @@ pub fn nl_bsn_validate(s: &str) -> bool {
     if d.iter().all(|&x| x == d[0]) {
         return false;
     }
+    // Trivial sequences (e.g. 123456789) pass mod-11 but are not plausible BSNs.
+    let step = d[1] as i32 - d[0] as i32;
+    if step.abs() == 1 && d.windows(2).all(|w| w[1] as i32 - w[0] as i32 == step) {
+        return false;
+    }
     let sum: i32 = d
         .iter()
         .enumerate()
@@ -34,7 +39,10 @@ pub fn nl_national_id_recognizer() -> CompositeNationalRecognizer {
     ];
     let rules = vec![IdRule {
         name: "nl_bsn",
-        re: Regex::new(r"(?xi)\b(?:BSN|Burgerservicenummer)[\s.:]+(\d{9})\b|\b(\d{9})(?=\s*(?:BSN|Burgerservicenummer))").unwrap(),
+        re: Regex::new(
+            r"(?xi)\b(?:BSN|Burgerservicenummer)[\s.:]+(\d{9})\b|\b(\d{9})\s+(?:BSN|Burgerservicenummer)\b",
+        )
+        .unwrap(),
         entity: aegis_core::entity::EntityType::NationalId,
         validator: Arc::new(nl_bsn_validate),
         base_score: 0.9,

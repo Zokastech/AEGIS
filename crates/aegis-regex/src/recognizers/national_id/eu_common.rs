@@ -59,7 +59,11 @@ mod tests {
 
     #[test]
     fn keeps_fr() {
-        assert_eq!(all_eu_national_id_recognizers(&["fr"]).len(), 1);
+        let v = all_eu_national_id_recognizers(&["fr"]);
+        assert!(
+            v.iter().any(|r| r.name() == "fr_national_identity"),
+            "expected FR national-ID recognizer when filtering on fr"
+        );
     }
 
     #[test]

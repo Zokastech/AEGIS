@@ -21,6 +21,9 @@ pub fn email_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.88,
     )
+    .with_validator_on_span(Arc::new(|text, start, _end| {
+        start == 0 || text.as_bytes().get(start.wrapping_sub(1)) != Some(&b'.')
+    }))
     .with_validator(Arc::new(email_rfc5322_pragmatic))
     .with_min_score(0.42)
     .with_deny_substrings(&[

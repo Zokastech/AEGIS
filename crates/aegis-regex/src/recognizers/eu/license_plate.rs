@@ -14,9 +14,14 @@ fn norm_plate(s: &str) -> String {
 }
 
 fn fr(s: &str) -> bool {
+    let n: String = s
+        .chars()
+        .filter(|c| !c.is_whitespace() && *c != '-')
+        .collect::<String>()
+        .to_ascii_uppercase();
     Regex::new(r"^[A-HJ-NP-TV-Z]{2}\d{3}[A-HJ-NP-TV-Z]{2}$")
         .unwrap()
-        .is_match(&norm_plate(s))
+        .is_match(&n)
 }
 
 fn de(s: &str) -> bool {
@@ -405,7 +410,7 @@ pub fn eu_license_plate_recognizer() -> CompositeNationalRecognizer {
         IdRule {
             name: "plate_fr_bare",
             re: Regex::new(
-                r"(?xi)(?<![A-Z0-9])([A-HJ-NP-TV-Z]{2}[\s\-]\d{3}[\s\-][A-HJ-NP-TV-Z]{2})(?![A-Z0-9])",
+                r"(?xi)\b([A-HJ-NP-TV-Z]{2}[\s\-]\d{3}[\s\-][A-HJ-NP-TV-Z]{2})\b",
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::VehiclePlate,

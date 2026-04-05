@@ -118,14 +118,20 @@ pub fn de_national_id_recognizer() -> CompositeNationalRecognizer {
     let rules = vec![
         IdRule {
             name: "de_steuer_id",
-            re: Regex::new(r"(?xi)\b(?:Steuer[- ]?ID|Steueridentifikationsnummer)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*(?:Steuer|tax))").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:Steuer[- ]?ID|Steueridentifikationsnummer)[\s.:]+(\d{11})\b|\b(\d{11})\s+(?:Steuer|tax)\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
             validator: Arc::new(de_steuer_id_validate),
             base_score: 0.91,
         },
         IdRule {
             name: "de_personalausweis",
-            re: Regex::new(r"(?xi)\b(?:Personalausweis|Ausweis)[\s.:]+([A-Za-z0-9]{9})\b|\b([A-Za-z0-9]{9})(?=\s*Ausweis)").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:Personalausweis|Ausweis)[\s.:]+([A-Za-z0-9]{9})\b|\b([A-Za-z0-9]{9})\s+Ausweis\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
             validator: Arc::new(de_personalausweis_validate),
             base_score: 0.88,
@@ -156,8 +162,8 @@ mod tests {
     use super::*;
 
     fn synth_steuer_id() -> String {
-        for base in 10_000_000_00u64..10_000_001_00 {
-            let s = format!("{:011}", base);
+        for base in 10_000_000_000u64..10_000_000_500u64 {
+            let s = format!("{base}");
             if de_steuer_id_validate(&s) {
                 return s;
             }

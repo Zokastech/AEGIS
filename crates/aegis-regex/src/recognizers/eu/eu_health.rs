@@ -58,7 +58,7 @@ pub fn eu_health_recognizer() -> CompositeNationalRecognizer {
         IdRule {
             name: "ehic_iso_token",
             re: Regex::new(
-                r"(?xi)\b(?:EHIC|CEAM|TSE|european\s*health\s*insurance)[\s.:#]+([A-Z]{2}[\dA-Z]{10,20})\b",
+                r"(?i)\b(?:EHIC|CEAM|TSE|european\s*health\s*insurance)[\s.:#]+([A-Z]{2}[\dA-Z]{10,20})\b",
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::MedicalRecord,
@@ -88,8 +88,8 @@ mod tests {
 
     #[test]
     fn vitale_luhn_synthetic() {
-        // 7992739871 is classic Luhn-valid test vector (not real data).
-        assert!(vitale_ten_digits("7992739871"));
-        assert!(!vitale_ten_digits("7992739872"));
+        // 10-digit string passing the same Luhn rule as payment cards (not real data).
+        assert!(vitale_ten_digits("1000000008"));
+        assert!(!vitale_ten_digits("1000000009"));
     }
 }

@@ -136,13 +136,9 @@ impl EuExtendedPhoneRecognizer {
     pub fn new() -> Self {
         let pattern = Regex::new(
             r"(?xi)
-            (?<![\d+])
-            (?:
-              \+\s*\d{1,3}[\s.\-/()]*(?:\d[\s.\-/()]*){5,14}\d
-              |
-              \b0\d(?:[\s.\-/()]*\d){7,12}\d\b
-            )
-            (?!\d)
+            \+\s*\d{1,3}[\s.\-/()]*(?:\d[\s.\-/()]*){5,14}\d
+            |
+            \b0\d(?:[\s.\-/()]*\d){7,12}\d\b
             ",
         )
         .expect("eu phone regex");
@@ -180,6 +176,15 @@ impl Recognizer for EuExtendedPhoneRecognizer {
         let mut out = Vec::new();
         for m in self.pattern.find_iter(text) {
             let slice = m.as_str();
+            if m.start() > 0 {
+                let prev = text.as_bytes()[m.start() - 1];
+                if prev.is_ascii_digit() || prev == b'+' {
+                    continue;
+                }
+            }
+            if m.end() < text.len() && text.as_bytes()[m.end()].is_ascii_digit() {
+                continue;
+            }
             let Some((pn, nt)) = parse_valid_eu_phone(slice) else {
                 continue;
             };

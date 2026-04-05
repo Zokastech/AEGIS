@@ -99,7 +99,7 @@ pub fn it_national_id_recognizer() -> CompositeNationalRecognizer {
         IdRule {
             name: "it_codice_fiscale",
             re: Regex::new(
-                r"(?xi)\b(?:codice\s*fiscale|CF)[\s.:]+([A-Za-z0-9]{16})\b|\b([A-Za-z0-9]{16})(?=\s*codice\s*fiscale)",
+                r"(?xi)\b(?:codice\s*fiscale|CF)[\s.:]+([A-Za-z0-9]{16})\b|\b([A-Za-z0-9]{16})\s+codice\s+fiscale\b",
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
@@ -115,7 +115,10 @@ pub fn it_national_id_recognizer() -> CompositeNationalRecognizer {
         },
         IdRule {
             name: "it_partita_iva",
-            re: Regex::new(r"(?xi)\b(?:Partita\s*IVA|P\.?\s*IVA)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*P\.?\s*IVA)").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:Partita\s*IVA|P\.?\s*IVA)[\s.:]+(\d{11})\b|\b(\d{11})\s+P\.?\s*IVA\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
             validator: Arc::new(it_partita_iva_validate),
             base_score: 0.9,

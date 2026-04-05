@@ -108,7 +108,7 @@ pub fn fr_national_id_recognizer() -> CompositeNationalRecognizer {
                 |
                 \b
                 (\d{12})
-                (?=\s*(?:carte|CNI|identité))
+                \s+(?:carte\s*d'identité|carte\s*nationale|CNI|identité)
                 \b
                 ",
             )
@@ -131,7 +131,7 @@ pub fn fr_national_id_recognizer() -> CompositeNationalRecognizer {
                 |
                 \b
                 ([A-Za-z]{2}\d{7})
-                (?=\s*passeport)
+                \s+passeport
                 \b
                 ",
             )
@@ -154,7 +154,7 @@ pub fn fr_national_id_recognizer() -> CompositeNationalRecognizer {
                 |
                 \b
                 (\d{2}[A-Za-z]{2}\d{6}[A-Za-z]{2}\d{2})
-                (?=\s*permis)
+                \s+permis
                 \b
                 ",
             )

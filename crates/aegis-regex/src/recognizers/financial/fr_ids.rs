@@ -40,7 +40,10 @@ fn siret_luhn_valid_for_siren(siren: &str) -> String {
 /// SIREN: 9 digits, Luhn check digit.
 pub fn siren_luhn_ok(s: &str) -> bool {
     let d = digits_compact(s);
-    d.len() == 9 && luhn_valid(&d)
+    if d.len() != 9 || d.chars().all(|c| c == '0') {
+        return false;
+    }
+    luhn_valid(&d)
 }
 
 /// SIRET: 14 digits (SIREN + NIC), Luhn on the full number.

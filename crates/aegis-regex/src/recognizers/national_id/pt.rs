@@ -38,7 +38,10 @@ pub fn pt_national_id_recognizer() -> CompositeNationalRecognizer {
     let rules = vec![
         IdRule {
             name: "pt_nif",
-            re: Regex::new(r"(?xi)\b(?:NIF|n[uú]mero\s*de\s*identifica[çc][aã]o\s*fiscal)[\s.:]+(\d{9})\b|\b(\d{9})(?=\s*NIF)").unwrap(),
+            re: Regex::new(
+                r"(?xi)\b(?:NIF|n[uú]mero\s*de\s*identifica[çc][aã]o\s*fiscal)[\s.:]+(\d{9})\b|\b(\d{9})\s+NIF\b",
+            )
+            .unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
             validator: Arc::new(pt_nif_validate),
             base_score: 0.9,
@@ -46,7 +49,7 @@ pub fn pt_national_id_recognizer() -> CompositeNationalRecognizer {
         IdRule {
             name: "pt_cartao_cidadao",
             re: Regex::new(
-                r"(?xi)\b(?:Cart[aã]o\s*de\s*Cidad[aã]o|CC)[\s.:]+(\d{9})\b|\b(\d{9})(?=\s*(?:Cart[aã]o\s*de\s*Cidad[aã]o|CC))",
+                r"(?xi)\b(?:Cart[aã]o\s*de\s*Cidad[aã]o|CC)[\s.:]+(\d{9})\b|\b(\d{9})\s+(?:Cart[aã]o\s*de\s*Cidad[aã]o|CC)\b",
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
