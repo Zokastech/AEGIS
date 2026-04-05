@@ -28,7 +28,8 @@ fn build_ac(patterns: &[&str]) -> Option<AhoCorasick> {
 /// Generic recognizer: [`regex::Regex`] pattern, optional validator, Aho–Corasick lists.
 ///
 /// - **Deny-list**: substrings in the **match** → entity rejected.
-/// - **Invalidation**: patterns in the **context window** → penalty (floor [`PatternRecognizer::with_min_score`]).
+/// - **Invalidation**: patterns in the **context window** → penalty (floored at [`PatternRecognizer::with_min_score`]).
+/// - **Negative context**: subtracts per hit; score may end **below** `min_score` and the match is dropped.
 /// - **Positive / negative context**: bonus or penalty when a word appears in the window around the entity.
 pub struct PatternRecognizer {
     name: String,

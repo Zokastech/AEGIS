@@ -22,14 +22,15 @@ fn plausible_phone(s: &str) -> bool {
 
 /// International numbers (simplified E.164) and common EU / US formats.
 pub fn phone_recognizer() -> PatternRecognizer {
-    // Avoid `(?x)` here: `#` in comments would truncate branches; mixed verbose is brittle.
-    let re = compile(
-        r"\+\s*(?:33|49|39|34|31|32|351|48|352|353|44|41|43|45|46|47|358|30|420|36|40|372|371|370|356|386|421|385)\s*(?:[\s.\-/]*\d){7,14}\d|\
-\b(?:\+1[\s.\-]+)?(?:\([0-9]{3}\)|[0-9]{3})[\s.\-]?[0-9]{3}[\s.\-]?[0-9]{4}\b|\
-\b0[1-9](?:[\s.\-/]\d{2}){4}\b|\
-\b0[67](?:[\s.\-/](?:\d{2}|\*{2}|[•xX]{2})){4}\b|\
-\b0\d{2,4}[\s.\-/]?(?:\d{2,4}[\s.\-/]?){2,6}\d{2,4}\b",
-    );
+    // Single line: `(?x)` + `#` comments silently broke alternation branches in the past.
+    let re = compile(concat!(
+        r"\+\s*(?:33|49|39|34|31|32|351|48|352|353|44|41|43|45|46|47|358|30|420|36|40|372|371|370|356|386|421|385)\s*",
+        r"(?:[\s.\-/]*\d){7,14}\d|",
+        r"(?:^|\b)(?:\+1[\s.\-]+)?(?:\([0-9]{3}\)|[0-9]{3})[\s.\-]?[0-9]{3}[\s.\-]?[0-9]{4}\b|",
+        r"\b0[1-9](?:[\s.\-/]\d{2}){4}\b|",
+        r"\b0[67](?:[\s.\-/](?:\d{2}|\*{2}|[•xX]{2})){4}\b|",
+        r"\b0\d{2,4}[\s.\-/]?(?:\d{2,4}[\s.\-/]?){2,6}\d{2,4}\b",
+    ));
     let pos: Vec<&str> = phone_positive_context();
     let neg: Vec<&str> = phone_negative_context();
     PatternRecognizer::new(
