@@ -20,7 +20,8 @@ ort-coreml = ["ort/coreml"]
 aegis-core = { path = "../aegis-core" }
 ndarray = "0.16"
 # Série 2.0.0-rc.5 : MSRV 1.70 (compatible stable CI). Pour ORT 1.24+, passer à rc.12+.
-ort = { version = "=2.0.0-rc.5", default-features = true, features = ["download-binaries", "ndarray"] }
+# load-dynamic : pas de lien statique onnxruntime.lib sous Windows → évite LNK2005 (/MD vs /MT).
+ort = { version = "=2.0.0-rc.5", default-features = true, features = ["load-dynamic"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
