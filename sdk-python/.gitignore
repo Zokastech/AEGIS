@@ -1,0 +1,10 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+/target/
+__pycache__/
+*.py[cod]
+*.so
+*.dylib
+*.egg-info/
+.venv/
+dist/
+.python-version

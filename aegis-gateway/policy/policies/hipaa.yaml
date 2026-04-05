@@ -1,0 +1,83 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# HIPAA — 18 identifiants PHI (synthèse alignée types AEGIS). Réf. 45 CFR 164.514(b).
+
+regulation: HIPAA
+name: hipaa
+version: "1"
+description: >
+  Protection des identifiants PHI : noms, géolocalisation fine, dates liées à l’individu,
+  téléphones, comptes, identifiants véhicules/appareils, photos, biométrie, etc.
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 2555
+  minimized_data_days: 0
+
+entities:
+  - type: PERSON
+    action: anonymize
+    operator: replace
+  - type: ADDRESS
+    action: anonymize
+    operator: replace
+  - type: DATE
+    action: anonymize
+    operator: mask
+  - type: PHONE
+    action: anonymize
+    operator: mask
+  - type: EMAIL
+    action: anonymize
+    operator: mask
+  - type: SSN
+    action: anonymize
+    operator: redact
+  - type: MEDICAL_RECORD
+    action: anonymize
+    operator: redact
+  - type: NATIONAL_ID
+    action: anonymize
+    operator: redact
+  - type: DRIVER_LICENSE
+    action: anonymize
+    operator: redact
+  - type: VEHICLE_PLATE
+    action: anonymize
+    operator: mask
+  - type: IP_ADDRESS
+    action: anonymize
+    operator: mask
+  - type: URL
+    action: anonymize
+    operator: redact
+  - type: CREDIT_CARD
+    action: anonymize
+    operator: redact
+  - type: BANK_ACCOUNT
+    action: anonymize
+    operator: redact
+  - type: TAX_ID
+    action: anonymize
+    operator: redact
+
+automatic_actions:
+  on_detect:
+    - log
+    - audit_retain
+  on_violation:
+    - block
+    - alert
+
+defaults:
+  on_unknown_entity: anonymize
+  block_high_risk_combinations: true
+  strip_response_entity_text: true
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+  strip_control_chars: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

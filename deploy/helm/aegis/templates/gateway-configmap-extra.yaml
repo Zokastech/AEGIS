@@ -1,0 +1,17 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.gateway.enabled .Values.gateway.configFiles }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "aegis.fullname" . }}-gateway-config
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  annotations:
+    {{- include "aegis.brandAnnotations" . | nindent 4 }}
+data:
+  {{- range $path, $content := .Values.gateway.configFiles }}
+  {{ $path }}: |
+{{ $content | nindent 4 }}
+  {{- end }}
+{{- end }}

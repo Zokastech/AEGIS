@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AEGIS | Open Graph 1200x630 | zokastech.fr -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <title>AEGIS Open Graph</title>
+  <defs>
+    <linearGradient id="og-bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a1f3a"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="og-sh" x1="32" y1="4" x2="32" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066ff"/>
+      <stop offset="1" stop-color="#00d9ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#og-bg)"/>
+  <g transform="translate(88 170) scale(5.2)">
+    <path
+      d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
+      stroke="url(#og-sh)"
+      stroke-width="4"
+      stroke-linejoin="miter"
+      fill="none"
+    />
+    <path
+      d="M32 18 20 24.5V40c0 6.2 4.4 12 12 15 7.6-3 12-8.8 12-15V24.5L32 18Z"
+      fill="#0066ff"
+      fill-opacity="0.2"
+      stroke="#00d9ff"
+      stroke-width="2"
+      stroke-linejoin="miter"
+    />
+  </g>
+  <text x="420" y="300" font-family="Inter Tight, Inter, system-ui, sans-serif" font-size="100" font-weight="900" fill="#f8f9fa" letter-spacing="0.06em">AEGIS</text>
+  <text x="420" y="380" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="500" fill="#f8f9fa">Framework cybers&#233;curit&#233; &amp; cloud</text>
+  <text x="420" y="440" font-family="Inter, system-ui, sans-serif" font-size="26" fill="#00d9ff">zokastech.fr - Accessible &amp; tech-forward</text>
+</svg>

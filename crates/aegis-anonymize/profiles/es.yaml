@@ -1,0 +1,78 @@
+# AEGIS — zokastech.fr — Profil synthétique ES
+country_code: ES
+locale: es
+phone_country_prefix: "34"
+phone_national_digits: 9
+phone_mobile_leading_digits: ["6", "7"]
+phone_display_format: "+{cc} {a} {b} {c}"
+phone_group_sizes: [3, 3, 3]
+email_domain: "example.com"
+date_format: "{dd}/{mm}/{yyyy}"
+address_template: "{street}, {num}, {postal} {city}"
+iban_bban_numeric: true
+iban_bban_length: 20
+national_id_kind: es_dni
+
+firstnames_male:
+  - { name: "Carlos", weight: 12 }
+  - { name: "David", weight: 11 }
+  - { name: "Javier", weight: 11 }
+  - { name: "Daniel", weight: 10 }
+  - { name: "Pablo", weight: 10 }
+  - { name: "Alejandro", weight: 9 }
+  - { name: "Miguel", weight: 9 }
+  - { name: "Sergio", weight: 8 }
+  - { name: "Adrián", weight: 8 }
+  - { name: "Álvaro", weight: 12 }
+
+firstnames_female:
+  - { name: "María", weight: 14 }
+  - { name: "Lucía", weight: 12 }
+  - { name: "Paula", weight: 11 }
+  - { name: "Laura", weight: 10 }
+  - { name: "Carmen", weight: 9 }
+  - { name: "Sofía", weight: 9 }
+  - { name: "Elena", weight: 8 }
+  - { name: "Ana", weight: 8 }
+  - { name: "Marta", weight: 9 }
+  - { name: "Andrea", weight: 10 }
+
+lastnames:
+  - { name: "García", weight: 14 }
+  - { name: "González", weight: 11 }
+  - { name: "Rodríguez", weight: 10 }
+  - { name: "Fernández", weight: 10 }
+  - { name: "López", weight: 9 }
+  - { name: "Martínez", weight: 9 }
+  - { name: "Sánchez", weight: 8 }
+  - { name: "Pérez", weight: 8 }
+  - { name: "Gómez", weight: 8 }
+  - { name: "Martín", weight: 8 }
+
+streets:
+  - "Calle Mayor"
+  - "Gran Vía"
+  - "Paseo de la Castellana"
+  - "Calle Alcalá"
+  - "Avenida Diagonal"
+  - "Calle Serrano"
+  - "Rambla de Catalunya"
+  - "Calle Preciados"
+  - "Paseo del Prado"
+  - "Calle Velázquez"
+
+cities:
+  - { name: "Madrid", postal_min: 28001, postal_max: 28055 }
+  - { name: "Barcelona", postal_min: 8001, postal_max: 8042 }
+  - { name: "Valencia", postal_min: 46001, postal_max: 46026 }
+  - { name: "Sevilla", postal_min: 41001, postal_max: 41020 }
+  - { name: "Zaragoza", postal_min: 50001, postal_max: 50022 }
+  - { name: "Málaga", postal_min: 29001, postal_max: 29018 }
+  - { name: "Bilbao", postal_min: 48001, postal_max: 48015 }
+  - { name: "Alicante", postal_min: 3001, postal_max: 30310 }
+
+age_distribution:
+  - { min_age: 18, max_age: 30, weight: 24 }
+  - { min_age: 31, max_age: 45, weight: 34 }
+  - { min_age: 46, max_age: 60, weight: 27 }
+  - { min_age: 61, max_age: 81, weight: 15 }

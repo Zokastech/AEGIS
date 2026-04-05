@@ -1,0 +1,9 @@
+AEGIS
+Copyright 2026 zokastech (https://zokastech.fr) and AEGIS contributors
+
+This distribution contains software developed for the AEGIS project.
+Project license: Apache-2.0 OR MIT (see LICENSE).
+
+Third-party software and container images (dependencies, optional tooling)
+retain their own copyright and license terms. See THIRD_PARTY_LICENSES.md
+for an overview and commands to regenerate detailed attribution lists.

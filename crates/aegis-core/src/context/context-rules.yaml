@@ -1,0 +1,199 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# ---------------------------------------------------------------------------
+# Règles contextuelles par défaut (niveau 2)
+# ---------------------------------------------------------------------------
+# Champs racine :
+#   tokens_before / tokens_after : nombre de tokens autour de l’entité (défaut 5).
+#   rules : liste de ContextRule (entity_type, boost_words, penalty_words, montants).
+#   combinations : quasi-identifiants classiques (types d’entités proches en caractères).
+#   quasi_identifiers : combinaisons étendues (mots-clés + risque document).
+#
+# Exemple 1 — PERSON boostée :
+#   Texte : « Le patient Jean Dupont est admis. »
+#   Entité : Jean Dupont (PERSON) → le mot « patient » dans la fenêtre augmente le score.
+#
+# Exemple 2 — PERSON pénalisée (lieu) :
+#   Texte : « La ville de Paris organise le forum. »
+#   Entité : Paris (PERSON) → la phrase « ville de » réduit le score (Paris plutôt lieu).
+#
+# Exemple 3 — IBAN boostée :
+#   Texte : « Virement IBAN FR7630006000011234567890189 effectué. »
+#   Entité : IBAN → « virement » / « paiement » renforcent la confiance.
+# ---------------------------------------------------------------------------
+
+tokens_before: 5
+tokens_after: 5
+
+rules:
+  - entity_type: PERSON
+    note: |
+      Boost : formules de civilité et rôles (patient, client, employé…).
+      Pénalité : contexte « lieu / organisation » (ville de, pays, société…).
+    boost_words:
+      - "M."
+      - "Mme"
+      - "Dr"
+      - "patient"
+      - "patients"
+      - "client"
+      - "clients"
+      - "employé"
+      - "employés"
+      - "Herr"
+      - "Frau"
+      - "Sig."
+      - "Sr."
+      - "Dhr."
+    penalty_words:
+      - "ville de"
+      - "pays"
+      - "société"
+      - "marque"
+      - "produit"
+      - "Stadt"
+      - "città"
+      - "ciudad de"
+    boost_amount: 0.12
+    penalty_amount: 0.15
+
+  - entity_type: MEDICAL_RECORD
+    note: |
+      Ex. : « diagnostic confirmé, dossier n° … » → renforce MEDICAL_RECORD à proximité.
+    boost_words:
+      - "diagnostic"
+      - "traitement"
+      - "patient"
+      - "patients"
+      - "Diagnose"
+      - "Behandlung"
+    penalty_words: []
+    boost_amount: 0.1
+    penalty_amount: 0.1
+
+  - entity_type: IBAN
+    note: |
+      Ex. : « montant du virement sur IBAN … » → vocabulaire financier multilingue.
+    boost_words:
+      - "montant"
+      - "virement"
+      - "paiement"
+      - "Überweisung"
+      - "pagamento"
+      - "IBAN"
+    penalty_words: []
+    boost_amount: 0.1
+    penalty_amount: 0.08
+
+  - entity_type: BANK_ACCOUNT
+    note: |
+      Identifiants internes (usr_…), logins, mots de passe : renforcer le score L2
+      lorsque le vocabulaire « compte / credential » apparaît dans la fenêtre (ex. dossier client).
+    boost_words:
+      # FR — phrases (sous-chaîne dans la fenêtre tokenisée)
+      - "identifiant interne"
+      - "identifiants internes"
+      - "ancien login"
+      - "ancien mot de passe"
+      - "mot de passe"
+      - "mots de passe"
+      - "nom d'utilisateur"
+      - "nom d’utilisateur"
+      - "code d'accès"
+      - "code d’accès"
+      - "code accès"
+      - "compte utilisateur"
+      - "référence interne"
+      - "référence client"
+      - "identifiant client"
+      - "id client"
+      - "id utilisateur"
+      - "compte client"
+      # EN
+      - "internal id"
+      - "internal identifier"
+      - "user id"
+      - "user account"
+      - "account id"
+      - "client id"
+      - "member id"
+      - "login name"
+      - "sign in"
+      - "sign-in"
+      # DE
+      - "benutzername"
+      - "benutzerkonto"
+      - "zugangsdaten"
+      - "kennung"
+      - "interne kennung"
+      # ES
+      - "nombre de usuario"
+      - "cuenta de usuario"
+      - "identificador interno"
+      - "inicio de sesión"
+      # IT
+      - "nome utente"
+      - "account utente"
+      - "identificativo interno"
+      # NL
+      - "gebruikersnaam"
+      - "gebruikersaccount"
+      - "interne id"
+      # Tokens simples (lemme / mot entier dans la fenêtre)
+      - "login"
+      - "logins"
+      - "identifiant"
+      - "identifiants"
+      - "password"
+      - "passwd"
+      - "credential"
+      - "credentials"
+      - "username"
+      - "mdp"
+      - "passphrase"
+      - "secret"
+      - "Passwort"
+      - "Nutzername"
+      - "Zugang"
+      - "usuario"
+      - "contraseña"
+      - "credenciales"
+      - "utente"
+      - "account"
+      - "gebruiker"
+    penalty_words: []
+    boost_amount: 0.11
+    penalty_amount: 0.08
+
+combinations:
+  - within_chars: 120
+    require_entity_types:
+      - DATE
+      - LOCATION
+    alert_score_boost: 0.15
+    note: "quasi_id_date_location"
+
+quasi_identifiers:
+  base_risk_score: 0.0
+  cap_risk_at: 1.0
+  combinations:
+    - id: postal_dob_gender
+      note: |
+        Risque élevé si DATE + ADDRESS coexistent près dans le texte ET qu’un indice
+        de genre (genre, sexe, M./Mme, etc.) apparaît dans le document.
+      within_chars: 3000
+      require_entity_types:
+        - DATE
+        - ADDRESS
+      require_keywords_any:
+        - "genre"
+        - "sexe"
+        - "masculin"
+        - "féminin"
+        - "homme"
+        - "femme"
+        - "male"
+        - "female"
+        - "M."
+        - "Mme"
+      alert_score_boost: 0.2
+      risk_increment: 0.35

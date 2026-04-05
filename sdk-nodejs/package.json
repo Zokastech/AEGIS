@@ -1,0 +1,45 @@
+{
+  "name": "@aegis-pii/core",
+  "version": "0.1.0",
+  "description": "AEGIS PII engine for Node.js — native NAPI-RS bindings + TypeScript API (zokastech.fr)",
+  "license": "Apache-2.0 OR MIT",
+  "author": "zokastech <https://zokastech.fr>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zokastech/aegis"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "*.node"],
+  "napi": {
+    "name": "aegis_pii_native",
+    "triples": {
+      "defaults": true,
+      "additional": []
+    }
+  },
+  "scripts": {
+    "build:native": "napi build --platform --release",
+    "build:ts": "tsc -p tsconfig.json",
+    "build": "npm run build:native && npm run build:ts",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.0",
+    "express": "^4.19.0",
+    "fastify": "^4.26.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

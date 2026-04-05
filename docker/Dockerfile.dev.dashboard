@@ -1,0 +1,6 @@
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Service dev aegis-dashboard : Vite (dev server écoutant sur toutes les interfaces).
+FROM node:20-bookworm
+WORKDIR /work/aegis-dashboard
+EXPOSE 5173
+CMD ["bash", "-lc", "npm install && npm run dev -- --host 0.0.0.0 --port 5173"]

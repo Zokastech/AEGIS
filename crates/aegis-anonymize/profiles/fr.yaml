@@ -1,0 +1,79 @@
+# AEGIS — zokastech.fr — Profil synthétique FR (échantillons pondérés, pas de données réelles nominatives)
+country_code: FR
+locale: fr
+phone_country_prefix: "33"
+phone_national_digits: 9
+phone_mobile_leading_digits: ["6", "7"]
+phone_display_format: "+{cc} {a} {b} {c} {d} {e}"
+# Segments après indicatif (5 groupes pour le format ci-dessus)
+phone_group_sizes: [1, 2, 2, 2, 2]
+email_domain: "example.com"
+date_format: "{dd}/{mm}/{yyyy}"
+address_template: "{num} {street}, {postal} {city}"
+iban_bban_numeric: true
+iban_bban_length: 23
+national_id_kind: fr_nir
+
+firstnames_male:
+  - { name: "Marc", weight: 14 }
+  - { name: "Thomas", weight: 13 }
+  - { name: "Lucas", weight: 12 }
+  - { name: "Hugo", weight: 11 }
+  - { name: "Louis", weight: 10 }
+  - { name: "Gabriel", weight: 9 }
+  - { name: "Léo", weight: 9 }
+  - { name: "Raphaël", weight: 8 }
+  - { name: "Arthur", weight: 8 }
+  - { name: "Jules", weight: 7 }
+
+firstnames_female:
+  - { name: "Emma", weight: 15 }
+  - { name: "Chloé", weight: 13 }
+  - { name: "Manon", weight: 12 }
+  - { name: "Camille", weight: 11 }
+  - { name: "Sarah", weight: 10 }
+  - { name: "Julie", weight: 9 }
+  - { name: "Laura", weight: 9 }
+  - { name: "Clara", weight: 8 }
+  - { name: "Inès", weight: 8 }
+  - { name: "Zoé", weight: 7 }
+
+lastnames:
+  - { name: "Durand", weight: 12 }
+  - { name: "Bernard", weight: 11 }
+  - { name: "Petit", weight: 10 }
+  - { name: "Robert", weight: 10 }
+  - { name: "Richard", weight: 9 }
+  - { name: "Moreau", weight: 9 }
+  - { name: "Simon", weight: 8 }
+  - { name: "Laurent", weight: 8 }
+  - { name: "Lefebvre", weight: 8 }
+  - { name: "Garcia", weight: 8 }
+
+streets:
+  - "Rue de la République"
+  - "Avenue Victor Hugo"
+  - "Boulevard Haussmann"
+  - "Rue de Rivoli"
+  - "Avenue des Champs-Élysées"
+  - "Rue de Vaugirard"
+  - "Cours Gambetta"
+  - "Rue Nationale"
+  - "Avenue Jean Jaurès"
+  - "Rue d'Alésia"
+
+cities:
+  - { name: "Paris", postal_min: 75001, postal_max: 75020 }
+  - { name: "Lyon", postal_min: 69001, postal_max: 69009 }
+  - { name: "Marseille", postal_min: 13001, postal_max: 13016 }
+  - { name: "Toulouse", postal_min: 31000, postal_max: 31200 }
+  - { name: "Nice", postal_min: 06000, postal_max: 06300 }
+  - { name: "Nantes", postal_min: 44000, postal_max: 44300 }
+  - { name: "Strasbourg", postal_min: 67000, postal_max: 67200 }
+  - { name: "Bordeaux", postal_min: 33000, postal_max: 33800 }
+
+age_distribution:
+  - { min_age: 18, max_age: 28, weight: 22 }
+  - { min_age: 29, max_age: 42, weight: 35 }
+  - { min_age: 43, max_age: 58, weight: 28 }
+  - { min_age: 59, max_age: 82, weight: 15 }

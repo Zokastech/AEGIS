@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AEGIS | zokastech.fr | Apache 2.0 / MIT | Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" aria-label="AEGIS">
+  <title>AEGIS</title>
+  <defs>
+    <linearGradient id="ag-grad" x1="32" y1="4" x2="32" y2="68" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066ff"/>
+      <stop offset="1" stop-color="#0052cc"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
+    stroke="url(#ag-grad)"
+    stroke-width="4"
+    stroke-linejoin="miter"
+    fill="none"
+  />
+  <path
+    d="M32 18 20 24.5V40c0 6.2 4.4 12 12 15 7.6-3 12-8.8 12-15V24.5L32 18Z"
+    fill="#0066ff"
+    fill-opacity="0.15"
+    stroke="#0066ff"
+    stroke-width="2"
+    stroke-linejoin="miter"
+  />
+</svg>

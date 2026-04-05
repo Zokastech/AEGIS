@@ -1,0 +1,14 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "aegis.fullname" . }}-policies
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  annotations:
+    {{- include "aegis.brandAnnotations" . | nindent 4 }}
+data:
+  gdpr-strict.yaml: |
+{{ .Files.Get "files/policies/gdpr-strict.yaml" | indent 4 }}
+{{- end }}

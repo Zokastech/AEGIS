@@ -1,0 +1,31 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Stack : docker compose -f docker-compose.yml -f docker-compose.monitoring.yml (réseau aegis-backend).
+# Scrape TLS vers aegis-gateway:8080 (passerelle prod, AEGIS_INSECURE_HTTP=0 par défaut).
+# Dev HTTP : utiliser docker/monitoring/prometheus.dev.yml via docker-compose.dev.yml.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: aegis-gateway
+    metrics_path: /metrics
+    scheme: https
+    tls_config:
+      insecure_skip_verify: true
+    static_configs:
+      - targets: ["aegis-gateway:8080"]
+        labels:
+          service: gateway

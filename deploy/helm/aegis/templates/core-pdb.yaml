@@ -1,0 +1,16 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.core.enabled .Values.core.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "aegis.fullname" . }}-core
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  minAvailable: {{ .Values.core.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "aegis.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: core
+{{- end }}

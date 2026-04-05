@@ -1,0 +1,163 @@
+# =============================================================================
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Environnement de développement : Rust (cargo-watch), Go (air), Vite, Redis, Postgres
+# Lancer depuis la racine du dépôt :
+#   docker compose -f docker-compose.dev.yml --env-file .env up --build
+#   ou : make dev
+# La gateway dev force AEGIS_INSECURE_HTTP=1 (HTTP sur :8080) : indépendant de AEGIS_INSECURE_HTTP dans .env prod.
+# Compatible Linux, macOS, Windows (Docker Desktop / WSL2).
+#
+# Observabilité (même compose) :
+#   Prometheus : http://localhost:${PROMETHEUS_PORT:-9090} — scrape HTTP de aegis-gateway:8080/metrics
+#   Grafana      : http://localhost:${GRAFANA_DEV_PORT:-3334} (admin / GRAFANA_ADMIN_PASSWORD) — datasource + dashboard AEGIS
+# Stack prod + monitoring avancé : docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# =============================================================================
+name: aegis-dev
+
+services:
+  # ---------------------------------------------------------------------------
+  # Moteur Rust (workspace) — recompile à chaque changement (cargo-watch).
+  # ---------------------------------------------------------------------------
+  aegis-core:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev.rust
+    volumes:
+      - .:/work
+    environment:
+      CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Passerelle Go — moteur Rust réel (aegis-ffi) : entry compile libaegis_ffi.so puis air (CGO, -tags=aegisffi).
+  # Après modification du code Rust uniquement : docker compose exec aegis-gateway bash -c 'cd /work && cargo build --release -p aegis-ffi'
+  # ---------------------------------------------------------------------------
+  aegis-gateway:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev.gateway
+    # CMD de l’image : dev-gateway-entry.sh (cargo release aegis-ffi + air). Ne pas remplacer par « go run » sans FFI.
+    ports:
+      - "${AEGIS_GATEWAY_PORT:-8080}:8080"
+    volumes:
+      - .:/work
+    working_dir: /work/aegis-gateway
+    environment:
+      GOWORK: /work/go.work
+      AEGIS_GATEWAY_FFI: "1"
+      CGO_ENABLED: "1"
+      # Résolution de libaegis_ffi.so à l’exécution du binaire air/tmp/main
+      LD_LIBRARY_PATH: "/work/target/release"
+      PORT: "${PORT:-8080}"
+      # HTTP clair sur :8080 : le dashboard (Vite) et les notebooks utilisent http://127.0.0.1:8080.
+      # Sans cela, TLS reste actif (security.yaml) → « client sent an HTTP request to an HTTPS server ».
+      AEGIS_INSECURE_HTTP: "1"
+      # Sans cela, /v1/* répond 401 (clé API requise). Réservé au compose dev — jamais en prod.
+      AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH: "true"
+      AEGIS_POLICY: "${AEGIS_POLICY:-policies/gdpr-strict.yaml}"
+      GIN_MODE: "${GIN_MODE:-debug}"
+      AEGIS_API_KEY: "${AEGIS_API_KEY:-}"
+      REDIS_URL: "${REDIS_URL:-redis://redis:6379}"
+      DATABASE_URL: "${DATABASE_URL:-postgres://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:-aegis}@postgres:5432/${POSTGRES_DB:-aegis}?sslmode=disable}"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Dashboard React — Vite (écoute 0.0.0.0 pour accès depuis l’hôte).
+  # ---------------------------------------------------------------------------
+  aegis-dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev.dashboard
+    ports:
+      - "${AEGIS_DASHBOARD_PORT:-5173}:5173"
+    volumes:
+      - .:/work
+    working_dir: /work/aegis-dashboard
+    environment:
+      # URL vue par le navigateur sur la machine hôte (pas le nom DNS Docker).
+      VITE_AEGIS_API_URL: "${VITE_AEGIS_API_URL:-http://localhost:8080}"
+      # Proxy Vite (Node dans ce conteneur) : 127.0.0.1:8080 = la gateway n’y est pas → ECONNREFUSED.
+      # Le nom de service Compose joint la passerelle sur le réseau interne.
+      AEGIS_GATEWAY_PROXY_TARGET: "${AEGIS_GATEWAY_PROXY_TARGET:-http://aegis-gateway:8080}"
+      # Case « sans auth » sur /login (aligné avec AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH sur la gateway).
+      VITE_ENABLE_DEV_LOGIN_BYPASS: "${VITE_ENABLE_DEV_LOGIN_BYPASS:-true}"
+      # Liens « Prometheus / Grafana » dans le tableau de bord AEGIS (navigateur sur l’hôte → localhost).
+      # Si vous changez PROMETHEUS_PORT / GRAFANA_DEV_PORT, surcharger aussi ces URL (Compose ne les déduit pas).
+      VITE_PROMETHEUS_UI_URL: ${VITE_PROMETHEUS_UI_URL:-http://localhost:9090}
+      VITE_GRAFANA_UI_URL: ${VITE_GRAFANA_UI_URL:-http://localhost:3334}
+    depends_on:
+      - aegis-gateway
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — scrape les métriques réelles de la passerelle (aegis_* sur /metrics).
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - prometheus_dev_data:/prometheus
+      - ./docker/monitoring/prometheus.dev.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - aegis-gateway
+
+  # ---------------------------------------------------------------------------
+  # Grafana — même provisioning que docker-compose.monitoring (dashboard AEGIS — Gateway).
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:10.4.5
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_DEV_ROOT_URL:-http://localhost:3334}
+    volumes:
+      - grafana_dev_data:/var/lib/grafana
+      - ./docker/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_DEV_PORT:-3334}:3000"
+    depends_on:
+      - prometheus
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - aegis-dev-redis:/data
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-aegis}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-aegis}"
+      POSTGRES_DB: "${POSTGRES_DB:-aegis}"
+    volumes:
+      - aegis-dev-postgres:/var/lib/postgresql/data
+    # Aligné sur POSTGRES_USER / POSTGRES_DB par défaut (aegis) — adapter si vous changez .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  aegis-dev-redis:
+  aegis-dev-postgres:
+  prometheus_dev_data:
+  grafana_dev_data:

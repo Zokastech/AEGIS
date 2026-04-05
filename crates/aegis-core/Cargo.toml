@@ -1,0 +1,41 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+
+[package]
+name = "aegis-core"
+description = "Types, traits et configuration du moteur AEGIS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+metrics.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml = "0.9"
+thiserror.workspace = true
+toml = "0.8"
+tracing.workspace = true
+
+[dev-dependencies]
+aegis-anonymize = { path = "../aegis-anonymize" }
+aegis-regex = { path = "../aegis-regex" }
+criterion = "0.5"
+proptest.workspace = true
+rayon.workspace = true
+regex.workspace = true
+serde_json.workspace = true
+
+[[bench]]
+name = "pipeline"
+harness = false
+
+# Aligné sur les pratiques recommandées (clippy book / rustc lints) : qualité FFI et unsafe.
+[lints.rust]
+unsafe_op_in_unsafe_fn = "warn"
+
+[lints.clippy]
+missing_safety_doc = "warn"
+undocumented_unsafe_blocks = "warn"

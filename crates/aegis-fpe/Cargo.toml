@@ -1,0 +1,12 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+[package]
+name = "aegis-fpe"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Format-preserving encryption (FF3-1) for AEGIS — zokastech.fr"
+
+[dependencies]

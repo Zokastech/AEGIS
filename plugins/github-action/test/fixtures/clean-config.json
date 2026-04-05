@@ -1,0 +1,5 @@
+{
+  "app": "demo",
+  "endpoint": "https://api.example.com/v1",
+  "note": "No PII in this file — safe for scans."
+}

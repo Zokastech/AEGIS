@@ -1,0 +1,180 @@
+# =============================================================================
+# AEGIS — zokastech.fr — https://zokastech.fr
+# CI principal : Rust (fmt + matrice stable/nightly × OS) + Go + SBOM Syft
+# =============================================================================
+# Bonnes pratiques :
+# - permissions: contents: read (principe du moindre privilège)
+# - actions épinglées par SHA (Supply-chain)
+# - caches Cargo (Swatinem/rust-cache) et Go (cache intégré setup-go)
+# =============================================================================
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+# Lecture seule : pas de mutation du dépôt depuis ce workflow.
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # rust-fmt : une seule exécution — rustfmt est déterministe, inutile de
+  # multiplier les jobs (économie de minutes & bruit).
+  # ---------------------------------------------------------------------------
+  rust-fmt:
+    name: Rust fmt
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      # dtolnay/rust-toolchain — pin sur commit maître connu (évite tag mobile).
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+          components: rustfmt
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+  # ---------------------------------------------------------------------------
+  # rust-matrix : stable + nightly × ubuntu / macos / windows
+  # - clippy avec -D warnings uniquement sur stable (nightly peut régresser).
+  # - test + build --release sur toutes les combinaisons.
+  # ---------------------------------------------------------------------------
+  rust-matrix:
+    name: Rust (${{ matrix.rust }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        rust: [stable, nightly]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: clippy
+
+      # Swatinem/rust-cache@v2 — partage des artefacts ~/.cargo entre jobs.
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          shared-key: ci-${{ matrix.os }}-${{ matrix.rust }}
+
+      - name: cargo clippy (stable only)
+        if: matrix.rust == 'stable'
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace
+
+      - name: cargo build --release
+        run: cargo build --workspace --release
+
+      # Artefacts : binaire CLI principal (nom différent sous Windows).
+      - name: Prepare binary artifact
+        shell: bash
+        run: |
+          mkdir -p staging
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cp target/release/aegis.exe staging/aegis-${{ matrix.os }}-${{ matrix.rust }}.exe
+          else
+            cp target/release/aegis staging/aegis-${{ matrix.os }}-${{ matrix.rust }}
+          fi
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aegis-cli-${{ matrix.os }}-${{ matrix.rust }}
+          path: staging/
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # go-matrix : vet / test / build pour aegis-policy et aegis-gateway
+  # ---------------------------------------------------------------------------
+  go-matrix:
+    name: Go (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      # setup-go@v5 — cache modules si go.sum présent (sinon ignoré).
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: "1.22"
+          cache: true
+          cache-dependency-path: |
+            aegis-gateway/go.sum
+            aegis-policy/go.sum
+
+      - name: aegis-policy — tidy, vet, test
+        working-directory: aegis-policy
+        run: |
+          go mod tidy
+          go vet ./...
+          go test ./...
+
+      - name: aegis-gateway — tidy, vet, test, build
+        shell: bash
+        working-directory: aegis-gateway
+        run: |
+          mkdir -p ../target
+          go mod tidy
+          go vet ./...
+          go test ./...
+          ext=""
+          [[ "${{ runner.os }}" == "Windows" ]] && ext=".exe"
+          go build -o "../target/go-aegis-gateway${ext}" .
+
+      - name: Upload Go binaries
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aegis-gateway-bin-${{ matrix.os }}
+          path: target/go-aegis-gateway*
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # sbom : Syft (version pinnée) — SPDX JSON du dépôt pour la chaîne d’appro.
+  # ---------------------------------------------------------------------------
+  sbom:
+    name: SBOM (Syft)
+    runs-on: ubuntu-latest
+    needs: [rust-fmt]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install Syft (pinned version)
+        env:
+          SYFT_VERSION: 1.18.0
+        run: |
+          set -euxo pipefail
+          curl -sSfL "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
+          sudo install -m 0755 /tmp/syft /usr/local/bin/syft
+          syft version
+
+      - name: Generate SBOM (SPDX JSON)
+        run: |
+          syft scan dir:. \
+            -o spdx-json=aegis-sbom.spdx.json \
+            --exclude './target/**' \
+            --exclude './node_modules/**' \
+            --exclude './.git/**'
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sbom-spdx-json
+          path: aegis-sbom.spdx.json

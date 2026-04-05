@@ -1,0 +1,130 @@
+/* AEGIS — zokastech.fr — Apache 2.0 / MIT — identité Zokastech (Plus Jakarta Sans, orange / rose / bleu) */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fond clair slate-50, texte #1a1d24 */
+    --background: 210 40% 98%;
+    --foreground: 220 16% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 16% 12%;
+    /* Primaire orange marque #ff8a00 */
+    --primary: 32 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 340 79% 97%;
+    --accent-foreground: 340 79% 40%;
+    --border: 214 32% 91%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 16% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --radius: 0.5rem;
+    --footer-dark: 220 16% 12%;
+    /* Labels formulaires ~ slate-600 */
+    --label: 215 19% 35%;
+    --placeholder: 215 16% 65%;
+    /* Succès */
+    --success: 152 56% 37%;
+    --success-bg: 152 56% 95%;
+    /* Erreur — lien visuel rose marque */
+    --ring: 32 100% 50%;
+    --ring-offset: 210 40% 98%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    letter-spacing: 0.01em;
+  }
+}
+
+@layer utilities {
+  .shadow-brand {
+    box-shadow: 0 4px 14px rgba(255, 138, 0, 0.22);
+  }
+  .shadow-brand-lg {
+    box-shadow: 0 8px 28px rgba(255, 138, 0, 0.18), 0 2px 8px rgba(229, 46, 113, 0.08);
+  }
+
+  /* Fond type landing (mailles + léger dégradé diagonal, comme la landing) */
+  .bg-mesh-zokastech {
+    background-color: hsl(var(--background));
+    background-image:
+      linear-gradient(
+        135deg,
+        rgba(255, 138, 0, 0.07) 0%,
+        rgba(229, 46, 113, 0.05) 50%,
+        rgba(67, 97, 238, 0.07) 100%
+      ),
+      radial-gradient(ellipse 90% 70% at 50% -30%, rgba(255, 138, 0, 0.14), transparent),
+      radial-gradient(ellipse 55% 50% at 100% 10%, rgba(229, 46, 113, 0.08), transparent),
+      radial-gradient(ellipse 50% 45% at 0% 20%, rgba(67, 97, 238, 0.1), transparent);
+  }
+
+  /** App shell: same idea, slightly subtler for the work area */
+  .bg-app-shell {
+    background-color: hsl(var(--background));
+    background-image:
+      linear-gradient(
+        135deg,
+        rgba(255, 138, 0, 0.06) 0%,
+        rgba(229, 46, 113, 0.04) 50%,
+        rgba(67, 97, 238, 0.06) 100%
+      ),
+      radial-gradient(ellipse 80% 60% at 50% -20%, rgba(255, 138, 0, 0.1), transparent),
+      radial-gradient(ellipse 45% 40% at 100% 0%, rgba(229, 46, 113, 0.06), transparent),
+      radial-gradient(ellipse 40% 35% at 0% 15%, rgba(67, 97, 238, 0.08), transparent);
+  }
+
+  /* Lueur bouclier (landing) — respecte prefers-reduced-motion via media imbriquée */
+  .aegis-shield-glow {
+    filter: drop-shadow(0 0 12px rgba(255, 138, 0, 0.3));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-shield-glow {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes aegis-shield-pulse {
+    0%,
+    100% {
+      filter: drop-shadow(0 0 12px rgba(255, 138, 0, 0.35));
+    }
+    50% {
+      filter:
+        drop-shadow(0 0 20px rgba(229, 46, 113, 0.35)) drop-shadow(0 0 10px rgba(67, 97, 238, 0.25));
+    }
+  }
+  .aegis-shield-glow {
+    animation: aegis-shield-pulse 3.5s ease-in-out infinite;
+  }
+}

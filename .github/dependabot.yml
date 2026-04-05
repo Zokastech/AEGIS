@@ -1,0 +1,48 @@
+# =============================================================================
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Dependabot : complète les scans du workflow security.yml (mises à jour natives).
+# =============================================================================
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "rust"]
+
+  - package-ecosystem: "gomod"
+    directory: "/aegis-gateway"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "go"]
+
+  - package-ecosystem: "gomod"
+    directory: "/aegis-policy"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "go"]
+
+  - package-ecosystem: "npm"
+    directory: "/aegis-dashboard"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "javascript"]
+
+  - package-ecosystem: "npm"
+    directory: "/sdk-nodejs"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "javascript"]
+
+  - package-ecosystem: "pip"
+    directory: "/sdk-python"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "python"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["dependencies", "ci"]

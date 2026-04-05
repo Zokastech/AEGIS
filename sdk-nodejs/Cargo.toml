@@ -1,0 +1,27 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+
+[package]
+name = "aegis-pii-native"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+authors = ["zokastech <https://zokastech.fr>"]
+repository = "https://github.com/zokastech/aegis"
+description = "Addon NAPI-RS pour le SDK Node.js @aegis-pii/core (moteur AEGIS)"
+
+[lib]
+crate-type = ["cdylib"]
+name = "aegis_pii_native"
+
+[dependencies]
+napi = { version = "2.16", default-features = false, features = ["napi8", "serde-json", "tokio_rt", "async"] }
+napi-derive = "2.16"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+aegis-core = { path = "../crates/aegis-core" }
+aegis-anonymize = { path = "../crates/aegis-anonymize" }
+aegis-regex = { path = "../crates/aegis-regex" }
+
+[build-dependencies]
+napi-build = "2.16"

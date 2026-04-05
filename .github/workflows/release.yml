@@ -1,0 +1,382 @@
+# =============================================================================
+# AEGIS — zokastech.fr — https://zokastech.fr
+# Release : tag v* → binaires Rust multi-arch, image GHCR, SBOM, cosign, GitHub Release
+# =============================================================================
+# Prérequis à configurer dans le dépôt GitHub :
+# - Secrets : CARGO_REGISTRY_TOKEN, NPM_TOKEN, PYPI_API_TOKEN (optionnel)
+# - cosign « keyless » : permissions id-token: write (OIDC)
+# - GHCR : packages: write sur GITHUB_TOKEN ; nom d’image en minuscules
+# - Runner arm64 : `ubuntu-24.04-arm` est orienté dépôts publics (preview) ; adapter si privé.
+# =============================================================================
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Binaires aegis-cli : linux/amd64 + linux/arm64 (runners GitHub natifs).
+  # Si ubuntu-24.04-arm est indisponible pour votre org, remplacez par cross-build.
+  # ---------------------------------------------------------------------------
+  rust-release-binaries:
+    name: CLI ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            label: linux-amd64
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            label: linux-arm64
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          shared-key: release-${{ matrix.label }}
+
+      - name: cargo build — aegis-cli
+        run: cargo build -p aegis-cli --release --target ${{ matrix.target }}
+
+      - name: Archive binaire
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p pack
+          bin="aegis"
+          [[ "${{ matrix.target }}" == *windows* ]] && bin="aegis.exe" || true
+          cp "target/${{ matrix.target }}/release/${bin}" "pack/aegis"
+          tar -czvf "aegis-cli-${TAG}-${{ matrix.label }}.tar.gz" -C pack aegis
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+
+      - name: cosign sign-blob (archive CLI)
+        shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          set -euo pipefail
+          for f in aegis-cli-"${TAG}"-${{ matrix.label }}.tar.gz; do
+            cosign sign-blob --yes "$f" --bundle="${f}.cosign.bundle"
+          done
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: aegis-cli-${{ matrix.label }}
+          path: |
+            aegis-cli-*.tar.gz
+            aegis-cli-*.cosign.bundle
+
+  # ---------------------------------------------------------------------------
+  # SBOM release (Syft) — artefact joint à la GitHub Release.
+  # ---------------------------------------------------------------------------
+  sbom-release:
+    name: SBOM (release)
+    runs-on: ubuntu-latest
+    env:
+      AEGIS_SBOM_VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - name: Install Syft
+        env:
+          SYFT_VERSION: 1.18.0
+        run: |
+          curl -sSfL "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" | tar -xz -C /tmp
+          sudo install -m 0755 /tmp/syft /usr/local/bin/syft
+
+      - name: Install cargo-sbom + cyclonedx-cargo (SBOM Rust)
+        continue-on-error: true
+        run: |
+          cargo install cargo-sbom cyclonedx-cargo --locked
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "20"
+
+      - name: Install CycloneDX CLI (fusion)
+        continue-on-error: true
+        run: npm install -g @cyclonedx/cyclonedx-cli
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit + cyclonedx-bom
+        continue-on-error: true
+        run: pip install pip-audit cyclonedx-bom
+
+      - name: Run scripts/generate-sbom.sh
+        continue-on-error: true
+        run: bash scripts/generate-sbom.sh
+
+      - name: SBOM SPDX (Syft — vue dépôt, repli)
+        run: |
+          syft scan dir:. -o spdx-json="aegis-${GITHUB_REF_NAME}-repo.spdx.json" \
+            --exclude './target/**' --exclude './node_modules/**' --exclude './.git/**' \
+            --exclude './dist/**'
+
+      - name: Pack SBOM directory
+        run: tar -czvf "aegis-${GITHUB_REF_NAME}-sbom-all.tar.gz" dist/sbom 2>/dev/null || tar -czvf "aegis-${GITHUB_REF_NAME}-sbom-all.tar.gz" -T /dev/null
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sbom-release
+          path: |
+            aegis-*-repo.spdx.json
+            aegis-*-sbom-all.tar.gz
+
+  # ---------------------------------------------------------------------------
+  # Image Docker multi-plateforme → ghcr.io ; provenance/SBOM BuildKit ; cosign OIDC.
+  # ---------------------------------------------------------------------------
+  docker-ghcr:
+    name: Docker → GHCR + cosign
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Image name (minuscules — exigence GHCR)
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE=ghcr.io/${owner}/aegis-gateway" >> "$GITHUB_ENV"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: build
+        name: Build & push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: docker/Dockerfile.gateway
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ github.ref_name }}
+            ${{ env.IMAGE }}:latest
+          provenance: mode=max
+          sbom: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da
+
+      # Signature keyless (OIDC) — nécessite id-token: write.
+      - name: cosign sign
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: cosign sign --yes "${{ env.IMAGE }}@${DIGEST}"
+
+  # ---------------------------------------------------------------------------
+  # SLSA Level 3 — provenance générique (sujets = archives CLI + SBOM SPDX / tarball).
+  # Voir : https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md
+  # ---------------------------------------------------------------------------
+  collect-slsa-subjects:
+    name: SLSA — sujets (hashes)
+    needs: [rust-release-binaries, sbom-release]
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+    steps:
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc31d191
+        with:
+          path: slsa-assets
+          merge-multiple: true
+
+      - name: Aplatir et SHA256 (format sha256sum pour le générateur SLSA)
+        id: hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p slsa-flat
+          find slsa-assets -type f \( -name '*.tar.gz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp -t slsa-flat {} +
+          cd slsa-flat
+          shopt -s nullglob
+          files=(*)
+          if [[ ${#files[@]} -eq 0 ]]; then
+            echo "Aucun artefact à attester (slsa-flat vide)." >&2
+            exit 1
+          fi
+          echo "hashes=$(sha256sum -- * | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # GitHub Release : notes auto + artefacts (CLI + SBOM + bundles cosign).
+  # Doit précéder l’upload de provenance SLSA (upload-tag-name = release existante).
+  # ---------------------------------------------------------------------------
+  github-release:
+    name: Publish GitHub Release
+    needs: [rust-release-binaries, sbom-release, docker-ghcr]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # actions/download-artifact@v4.1.8
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc31d191
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Flatten artifact tree for upload
+        run: |
+          mkdir -p flat
+          find release-assets -type f \( -name '*.tar.gz' -o -name '*.spdx.json' -o -name '*.cosign.bundle' \) -exec cp {} flat/ \;
+          ls -la flat
+
+      - uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: flat/*
+          generate_release_notes: true
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  slsa-generic-provenance:
+    name: SLSA Level 3 — provenance (generic)
+    needs: [collect-slsa-subjects, github-release]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: "${{ needs.collect-slsa-subjects.outputs.hashes }}"
+      upload-assets: ${{ startsWith(github.ref, 'refs/tags/') }}
+      upload-tag-name: "${{ github.ref_name }}"
+
+  # ---------------------------------------------------------------------------
+  # crates.io — ordre de publication respectant les dépendances inter-crates.
+  # Désactivé si CARGO_REGISTRY_TOKEN est absent (forks / forks de CI).
+  # ---------------------------------------------------------------------------
+  publish-crates:
+    name: Publish crates.io
+    needs: [github-release]
+    if: ${{ secrets.CARGO_REGISTRY_TOKEN != '' }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      # Nécessite des dépendances `version = "x"` sur crates.io (pas seulement `path =`).
+      - name: cargo publish (workspace crates)
+        run: |
+          set -euo pipefail
+          publish() {
+            echo "Publishing $1 ..."
+            cargo publish -p "$1" --token "$CARGO_REGISTRY_TOKEN"
+            sleep 45
+          }
+          publish aegis-core
+          publish aegis-regex
+          publish aegis-anonymize
+          publish aegis-ner
+          publish aegis-fpe
+          publish aegis-ffi
+          publish aegis-cli
+
+  # ---------------------------------------------------------------------------
+  # PyPI — secret PYPI_API_TOKEN (API token) jusqu’à mise en place de maturin + extension Rust.
+  # Remplacer par OIDC (id-token + environnement) quand Trusted Publisher sera configuré.
+  # ---------------------------------------------------------------------------
+  publish-pypi:
+    name: Publish PyPI
+    needs: [github-release]
+    if: ${{ secrets.PYPI_API_TOKEN != '' }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - name: Install maturin
+        run: pip install "maturin>=1.4,<2"
+
+      # Échoue tant que l’extension PyO3 / maturin n’est pas présente sous sdk-python.
+      - name: maturin build
+        working-directory: sdk-python
+        run: maturin build --release
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@76f52bc8e96aaeaebdee8410fbc4de3310570eae
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages-dir: sdk-python/dist
+
+  # ---------------------------------------------------------------------------
+  # npm — package @aegis-pii/core (sdk-nodejs). Nécessite NPM_TOKEN (classic ou granular).
+  # ---------------------------------------------------------------------------
+  publish-npm:
+    name: Publish npm
+    needs: [github-release]
+    if: ${{ secrets.NPM_TOKEN != '' }}
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "20"
+          registry-url: https://registry.npmjs.org
+
+      - name: npm publish
+        working-directory: sdk-nodejs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm install
+          npm run build
+          npm publish --access public

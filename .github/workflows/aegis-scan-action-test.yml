@@ -1,0 +1,44 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Tests de l'action composite plugins/github-action (fixtures PII synthétiques).
+name: aegis-scan action test
+
+on:
+  push:
+    paths:
+      - 'plugins/github-action/**'
+      - 'crates/aegis-cli/**'
+      - '.github/workflows/aegis-scan-action-test.yml'
+  pull_request:
+    paths:
+      - 'plugins/github-action/**'
+      - 'crates/aegis-cli/**'
+      - '.github/workflows/aegis-scan-action-test.yml'
+
+jobs:
+  fixtures:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan synthetic PII fixtures (expect findings, do not fail job)
+        id: scan
+        uses: ./plugins/github-action
+        with:
+          paths: |
+            plugins/github-action/test/fixtures
+          scan_mode: full_repo
+          fail_on_pii: 'false'
+          score_threshold: '0.1'
+          languages: 'fr,en'
+          comment_pr: 'false'
+
+      - name: Assert outputs
+        run: |
+          set -eux
+          test "${{ steps.scan.outputs.pii_found }}" = "true"
+          test "${{ steps.scan.outputs.entity_count }}" -ge 1
+          test -f "${{ github.workspace }}/aegis-scan-report.md"

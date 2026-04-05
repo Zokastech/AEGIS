@@ -1,0 +1,28 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# Image core : pipeline regex + contexte (L1+L2) sans NER ONNX pour démarrage minimal.
+# Monte un volume sur /opt/aegis/models et pointez ner.model_path vers un .onnx + tokenizer.
+
+recognizers:
+  default_regex:
+    enabled: true
+    languages: [en, fr, de, es, it]
+  disabled: []
+
+pipeline_level: 2
+
+pipeline:
+  levels: l1_l2
+  output_score_threshold: 0.48
+  analysis:
+    language: fr
+    score_threshold: 0.4
+
+analysis:
+  language: fr
+  score_threshold: 0.4
+
+ner:
+  model_path: /opt/aegis/models/ner.onnx
+  device: cpu
+  batch_size: 4
+  thread_pool_size: 2

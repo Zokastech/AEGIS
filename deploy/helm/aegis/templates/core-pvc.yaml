@@ -1,0 +1,19 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.core.enabled .Values.core.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "aegis.fullname" . }}-core-models
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  accessModes:
+    {{- toYaml .Values.core.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistence.size | quote }}
+  {{- if .Values.core.persistence.storageClass }}
+  storageClassName: {{ .Values.core.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}

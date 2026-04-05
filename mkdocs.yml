@@ -1,0 +1,160 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# MkDocs + Material + i18n (mkdocs-static-i18n) + Mermaid
+site_name: AEGIS Documentation
+site_description: Advanced European Guardian for Information Security — PII detection & anonymization (zokastech.fr)
+site_author: zokastech.fr
+site_url: https://zokastech.github.io/aegis/
+repo_name: zokastech/aegis
+repo_url: https://github.com/zokastech/aegis
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+exclude_docs: |
+  performance/*
+
+theme:
+  name: material
+  language: en
+  font:
+    text: Plus Jakarta Sans
+    code: Roboto Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search:
+      lang:
+        - en
+        - fr
+        - de
+        - es
+        - it
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: fr
+          name: Français
+          build: true
+        - locale: de
+          name: Deutsch
+          build: true
+        - locale: es
+          name: Español
+          build: true
+        - locale: it
+          name: Italiano
+          build: true
+  - mermaid2:
+      arguments:
+        securityLevel: loose
+        theme: neutral
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid_custom
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+extra_css:
+  - stylesheets/zokastech-home.css
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/zokastech/aegis
+    - icon: fontawesome/solid/envelope
+      link: mailto:info@zokas.tech
+    - icon: fontawesome/solid/globe
+      link: https://zokastech.fr
+
+# Paths are relative to each locale folder (en/, fr/, …) — see mkdocs-static-i18n.
+nav:
+  - Home: index.md
+  - Why AEGIS: why-aegis.md
+  - Getting Started: getting-started.md
+  - Examples: examples.md
+  - Architecture: architecture.md
+  - API Reference: api-reference.md
+  - Configuration: configuration.md
+  - Dashboard (Playground): dashboard-playground.md
+  - Recognizers: recognizers.md
+  - Anonymization: anonymization.md
+  - Custom recognizers: custom-recognizers.md
+  - Multi-language: multilanguage.md
+  - LLM integration: llm-integration.md
+  - CI/CD: cicd.md
+  - Deployment:
+      - Overview: deployment.md
+      - Prometheus & Grafana (existing): monitoring-prometheus-grafana.md
+      - Zokastech platform: zokastech.md
+      - Cloud (AWS, GCP, Azure, OVH): cloud-providers.md
+  - Security:
+      - Overview: security/index.md
+      - Hardening: security/hardening.md
+      - Threat model (STRIDE): security/threat-model.md
+      - GDPR alignment: security/rgpd-compliance.md
+  - FAQ: faq.md
+  - Migration from Presidio: migration-presidio.md
+  - Evaluation: evaluation.md
+  - Brand guidelines: brand-guidelines.md
+  - Contributing: contributing.md

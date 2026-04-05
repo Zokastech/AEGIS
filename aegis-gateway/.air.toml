@@ -1,0 +1,19 @@
+# AEGIS — zokastech.fr — https://zokastech.fr
+# air — https://github.com/air-verse/air
+# Lancer depuis aegis-gateway avec GOWORK pointant vers le go.work du monorepo.
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Docker compose définit AEGIS_GATEWAY_FFI=1 → CGO + -tags=aegisffi ; sinon build sans FFI (MockEngine).
+  cmd = "./scripts/air-build.sh"
+  bin = "tmp/main"
+  entrypoint = ["./tmp/main"]
+  delay = 1000
+  exclude_dir = ["tmp", "vendor", ".git"]
+  include_ext = ["go", "mod", "sum"]
+  log = "air.log"
+
+[misc]
+  clean_on_exit = true

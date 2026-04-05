@@ -1,0 +1,48 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+# CCPA/CPRA — Californie : droit de suppression, limitation vente (mesures techniques d’agrégation).
+
+regulation: CCPA
+name: ccpa
+version: "1"
+description: >
+  Minimisation et pseudonymisation pour réduire les « personal information » traitées ;
+  alignement organisationnel (privacy notice, opt-out vente) hors moteur.
+
+retention:
+  pseudonymization_mapping_days: 0
+  audit_log_days: 365
+  minimized_data_days: 0
+
+entities:
+  - type: EMAIL
+    action: anonymize
+    operator: hash
+  - type: PHONE
+    action: anonymize
+    operator: mask
+  - type: PERSON
+    action: anonymize
+    operator: pseudonymize
+  - type: IP_ADDRESS
+    action: anonymize
+    operator: mask
+
+automatic_actions:
+  on_detect:
+    - log
+  on_violation:
+    - alert
+
+defaults:
+  on_unknown_entity: log
+  block_high_risk_combinations: false
+  strip_response_entity_text: false
+
+data_minimization:
+  enabled: true
+  strip_request_bodies_from_logs: true
+  strip_control_chars: true
+
+rights:
+  erasure_endpoint_enabled: true
+  dpia_auto_report: true

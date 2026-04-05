@@ -1,0 +1,234 @@
+/* AEGIS docs home — Zokastech brand (orange #ff8a00, pink #e52e71, blue #4361ee) */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+.zok-doc-home {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  margin: -0.5rem -0.8rem 0;
+  max-width: none;
+}
+
+@media (min-width: 76.25em) {
+  .zok-doc-home {
+    margin-right: -1.2rem;
+  }
+}
+
+.zok-hero {
+  position: relative;
+  padding: 2.5rem 1.5rem 2.75rem;
+  margin: 0 0 2.5rem;
+  border-radius: 0 0 1.25rem 1.25rem;
+  background: linear-gradient(135deg, #ff8a00 0%, #e52e71 52%, #4361ee 100%);
+  color: #fff;
+  box-shadow: 0 12px 40px rgba(255, 138, 0, 0.22);
+}
+
+.zok-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.zok-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 52rem;
+}
+
+.zok-hero-eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.95;
+}
+
+.zok-hero-title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  border: none;
+}
+
+.zok-hero-tagline {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  opacity: 0.98;
+  line-height:1.35;
+}
+
+.zok-hero-etymology {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  opacity: 0.92;
+  max-width: 42rem;
+}
+
+.zok-hero-etymology em {
+  font-style: italic;
+  opacity: 1;
+}
+
+.zok-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Markdown-generated <p> inside hero actions (md_in_html) */
+.zok-hero-actions > p {
+  margin: 0;
+  display: contents;
+}
+
+.zok-hero-actions a.zok-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zok-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 0.5rem;
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.zok-btn:hover {
+  transform: translateY(-2px);
+}
+
+.zok-btn--light {
+  background: #fff;
+  color: #1a1d24 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.zok-btn--light:hover {
+  box-shadow: 0 6px 20px rgba(229, 46, 113, 0.35);
+}
+
+.zok-btn--ghost {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.zok-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.zok-section-title {
+  margin-top: 2.25rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--md-default-fg-color);
+  border-bottom: 2px solid;
+  border-image: linear-gradient(90deg, #ff8a00, #e52e71, #4361ee) 1;
+}
+
+.zok-doc-home h2 {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+.zok-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.zok-module-card {
+  padding: 1rem 1.1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-default-bg-color);
+  box-shadow: 0 2px 12px rgba(26, 29, 36, 0.06);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+[data-md-color-scheme="slate"] .zok-module-card {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.zok-module-card:hover {
+  border-color: rgba(255, 138, 0, 0.45);
+  box-shadow: 0 6px 24px rgba(255, 138, 0, 0.12);
+}
+
+.zok-module-card strong {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+  color: #e52e71;
+}
+
+[data-md-color-scheme="slate"] .zok-module-card strong {
+  color: #ff9ecd;
+}
+
+.zok-module-card p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--md-default-fg-color--light);
+}
+
+.zok-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.zok-link-grid li {
+  margin: 0;
+}
+
+/* Markdown list inside md_in_html wrapper (MkDocs rewrites links) */
+.zok-link-grid-wrapper > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0.75rem 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.zok-link-grid-wrapper > ul > li {
+  margin: 0;
+}
+
+.zok-footnote {
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+  font-size: 0.8rem;
+  color: var(--md-default-fg-color--light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zok-btn:hover {
+    transform: none;
+  }
+}

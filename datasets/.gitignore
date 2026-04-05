@@ -1,0 +1,3 @@
+# Sorties volumineuses / rapports locaux (régénérables)
+generated/*.jsonl
+reports/

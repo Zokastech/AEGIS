@@ -1,0 +1,38 @@
+# AEGIS — zokastech.fr — Apache 2.0 / MIT
+{{- if and .Values.gateway.enabled .Values.gateway.autoscaling.enabled }}
+{{- if not (or .Values.gateway.autoscaling.cpuMetric .Values.gateway.autoscaling.prometheus.enabled) }}
+{{- fail "gateway.autoscaling : activer au moins gateway.autoscaling.cpuMetric ou gateway.autoscaling.prometheus.enabled" }}
+{{- end }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "aegis.fullname" . }}-gateway
+  labels:
+    {{- include "aegis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "aegis.fullname" . }}-gateway
+  minReplicas: {{ .Values.gateway.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.gateway.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.gateway.autoscaling.cpuMetric }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.gateway.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.gateway.autoscaling.prometheus.enabled }}
+    - type: Pods
+      pods:
+        metric:
+          name: {{ .Values.gateway.autoscaling.prometheus.metricName | quote }}
+        target:
+          type: AverageValue
+          averageValue: {{ .Values.gateway.autoscaling.prometheus.averageValue | quote }}
+    {{- end }}
+{{- end }}

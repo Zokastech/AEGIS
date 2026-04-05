@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "meta": {
+    "project": "AEGIS",
+    "client": "Zokastech",
+    "site": "https://zokastech.fr",
+    "values": ["Innovate", "Connect", "Grow"]
+  },
+  "colors": {
+    "primary": { "hex": "#0066ff", "rgb": [0, 102, 255], "role": "Logo, CTA, éléments clés" },
+    "secondary": { "hex": "#1a1f3a", "rgb": [26, 31, 58], "role": "Backgrounds, sections sombres" },
+    "accentWarm": { "hex": "#ff6b35", "rgb": [255, 107, 53], "role": "Performance, alertes, warnings" },
+    "accentTech": { "hex": "#00d9ff", "rgb": [0, 217, 255], "role": "Réseaux, code, tech" },
+    "success": { "hex": "#10b981", "rgb": [16, 185, 129], "role": "Succès, validation" },
+    "error": { "hex": "#ef4444", "rgb": [239, 68, 68], "role": "Erreurs, danger" },
+    "light": { "hex": "#f8f9fa", "rgb": [248, 249, 250], "role": "Surfaces claires" },
+    "border": { "hex": "#e5e7eb", "rgb": [229, 231, 235], "role": "Bordures, séparateurs" },
+    "textMuted": { "hex": "#374151", "rgb": [55, 65, 81], "role": "Texte secondaire" },
+    "text": { "hex": "#0f172a", "rgb": [15, 23, 42], "role": "Texte principal" }
+  }
+}
