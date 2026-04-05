@@ -13,7 +13,7 @@ dev:
 # Build release local (hors conteneur).
 build:
 	cargo build --release
-	cd aegis-gateway && go build -o ../target/aegis-gateway .
+	cd aegis-gateway && go build -o ../target/aegis-gateway ./cmd/aegis-gateway
 
 test:
 	cargo test --workspace
@@ -69,4 +69,4 @@ clean:
 	$(COMPOSE_DEV) down -v 2>/dev/null || true
 
 gateway:
-	cd aegis-gateway && go run .
+	cd aegis-gateway && go run ./cmd/aegis-gateway

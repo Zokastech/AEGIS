@@ -22,6 +22,8 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: 1
+  # Actions JS encore en Node 20 (ex. rust-toolchain, rust-cache) jusqu’à leurs mises à jour
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -32,8 +34,8 @@ jobs:
     name: Rust fmt
     runs-on: ubuntu-latest
     steps:
-      # actions/checkout@v4.2.2
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      # actions/checkout@v6.0.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       # dtolnay/rust-toolchain — pin sur commit maître connu (évite tag mobile).
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -59,7 +61,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
@@ -92,7 +94,7 @@ jobs:
             cp target/release/aegis staging/aegis-${{ matrix.os }}-${{ matrix.rust }}
           fi
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: aegis-cli-${{ matrix.os }}-${{ matrix.rust }}
           path: staging/
@@ -110,10 +112,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      # setup-go@v5 — cache modules si go.sum présent (sinon ignoré).
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+      # setup-go@v6.4.0 — cache modules si go.sum présent (sinon ignoré).
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version: "1.22"
           cache: true
@@ -138,14 +140,35 @@ jobs:
           go test ./...
           ext=""
           [[ "${{ runner.os }}" == "Windows" ]] && ext=".exe"
-          go build -o "../target/go-aegis-gateway${ext}" .
+          go build -o "../target/go-aegis-gateway${ext}" ./cmd/aegis-gateway
 
       - name: Upload Go binaries
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: aegis-gateway-bin-${{ matrix.os }}
           path: target/go-aegis-gateway*
           if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # python-training : pytest sur le pipeline NER (dataset_builder, labels).
+  # ---------------------------------------------------------------------------
+  python-training:
+    name: Python training (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Install deps + pytest
+        run: |
+          python -m pip install -U pip
+          pip install -r training/requirements.txt pytest
+
+      - name: pytest training/tests
+        run: pytest training/tests -q
 
   # ---------------------------------------------------------------------------
   # sbom : Syft (version pinnée) — SPDX JSON du dépôt pour la chaîne d’appro.
@@ -155,7 +178,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [rust-fmt]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Install Syft (pinned version)
         env:
@@ -174,7 +197,7 @@ jobs:
             --exclude './node_modules/**' \
             --exclude './.git/**'
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: sbom-spdx-json
           path: aegis-sbom.spdx.json

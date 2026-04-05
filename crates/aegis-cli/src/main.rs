@@ -217,7 +217,10 @@ fn print_table(path_label: &str, res: &AnalysisResult, color: bool) {
     }
 }
 
-fn collect_scan_targets(paths: &[PathBuf], cwd: &Path) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
+fn collect_scan_targets(
+    paths: &[PathBuf],
+    cwd: &Path,
+) -> Result<Vec<PathBuf>, Box<dyn std::error::Error>> {
     let mut out = Vec::new();
     if paths.is_empty() {
         return Ok(out);
@@ -280,11 +283,10 @@ fn run() -> Result<i32, Box<dyn std::error::Error>> {
                     }
                     OutputFormat::Table => print_table("- (stdin)", &res, color),
                     OutputFormat::Sarif => {
-                        let doc = sarif::build_document(env!("CARGO_PKG_VERSION"), &[(
-                            "file:///dev/stdin".into(),
-                            text.clone(),
-                            res.clone(),
-                        )]);
+                        let doc = sarif::build_document(
+                            env!("CARGO_PKG_VERSION"),
+                            &[("file:///dev/stdin".into(), text.clone(), res.clone())],
+                        );
                         println!("{}", serde_json::to_string_pretty(&doc)?);
                     }
                 }
@@ -348,11 +350,7 @@ fn run() -> Result<i32, Box<dyn std::error::Error>> {
                 OutputFormat::Sarif => {
                     let doc = sarif::build_document(
                         env!("CARGO_PKG_VERSION"),
-                        &[(
-                            "file:///inline".into(),
-                            text.clone(),
-                            res.clone(),
-                        )],
+                        &[("file:///inline".into(), text.clone(), res.clone())],
                     );
                     println!("{}", serde_json::to_string_pretty(&doc)?);
                 }
@@ -471,5 +469,42 @@ fn main() -> ExitCode {
             let _ = writeln!(io::stderr(), "aegis: {e}");
             ExitCode::from(2)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_languages_splits_trims_and_drops_empty() {
+        assert_eq!(
+            parse_languages("fr, en, de "),
+            vec!["fr".to_string(), "en".to_string(), "de".to_string()]
+        );
+        assert!(parse_languages("  , , ").is_empty());
+        assert_eq!(parse_languages("en"), vec!["en".to_string()]);
+    }
+
+    #[test]
+    fn analysis_config_picks_first_language_and_threshold() {
+        let g = GlobalOpts {
+            language: "fr,en".into(),
+            score_threshold: 0.72,
+            format: OutputFormat::Json,
+            config: None,
+            no_color: true,
+        };
+        let c = analysis_config(&g);
+        assert_eq!(c.language.as_deref(), Some("fr"));
+        assert!((c.score_threshold - 0.72).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn file_uri_for_nonexistent_still_prefixes_file_scheme() {
+        let p = Path::new("no_such_file_for_cli_test.txt");
+        let u = file_uri_for(p);
+        assert!(u.starts_with("file://"));
+        assert!(u.contains("no_such_file_for_cli_test"));
     }
 }

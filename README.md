@@ -76,7 +76,7 @@ cargo build --release
 cd aegis-gateway
 export AEGIS_POLICY=policies/gdpr-strict.yaml
 # optional: export AEGIS_API_KEY=secret
-go run .
+go run ./cmd/aegis-gateway
 curl -s localhost:8080/v1/health
 curl -s localhost:8080/v1/analyze -H "Content-Type: application/json" -d '{"text":"mail test@example.com"}'
 ```
