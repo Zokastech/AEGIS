@@ -98,7 +98,7 @@ pub fn de_sozialversicherung_validate(s: &str) -> bool {
         }
         sum += p;
     }
-    sum % 10 == 0
+    sum.is_multiple_of(10)
 }
 
 pub fn de_national_id_recognizer() -> CompositeNationalRecognizer {
@@ -120,21 +120,21 @@ pub fn de_national_id_recognizer() -> CompositeNationalRecognizer {
             name: "de_steuer_id",
             re: Regex::new(r"(?xi)\b(?:Steuer[- ]?ID|Steueridentifikationsnummer)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*(?:Steuer|tax))").unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
-            validator: Arc::new(|m| de_steuer_id_validate(m)),
+            validator: Arc::new(de_steuer_id_validate),
             base_score: 0.91,
         },
         IdRule {
             name: "de_personalausweis",
             re: Regex::new(r"(?xi)\b(?:Personalausweis|Ausweis)[\s.:]+([A-Za-z0-9]{9})\b|\b([A-Za-z0-9]{9})(?=\s*Ausweis)").unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| de_personalausweis_validate(m)),
+            validator: Arc::new(de_personalausweis_validate),
             base_score: 0.88,
         },
         IdRule {
             name: "de_reisepass",
             re: Regex::new(r"(?xi)\b(?:Reisepass|Pass|Passport)[\s.:]+([CFGHJKLMNPRTVWXYZcfghjklmnprtvwxyz]\d{8})\b").unwrap(),
             entity: aegis_core::entity::EntityType::Passport,
-            validator: Arc::new(|m| de_reisepass_validate(m)),
+            validator: Arc::new(de_reisepass_validate),
             base_score: 0.85,
         },
         IdRule {
@@ -144,7 +144,7 @@ pub fn de_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::Ssn,
-            validator: Arc::new(|m| de_sozialversicherung_validate(m)),
+            validator: Arc::new(de_sozialversicherung_validate),
             base_score: 0.87,
         },
     ];

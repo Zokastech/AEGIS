@@ -36,7 +36,7 @@ pub fn nl_national_id_recognizer() -> CompositeNationalRecognizer {
         name: "nl_bsn",
         re: Regex::new(r"(?xi)\b(?:BSN|Burgerservicenummer)[\s.:]+(\d{9})\b|\b(\d{9})(?=\s*(?:BSN|Burgerservicenummer))").unwrap(),
         entity: aegis_core::entity::EntityType::NationalId,
-        validator: Arc::new(|m| nl_bsn_validate(m)),
+        validator: Arc::new(nl_bsn_validate),
         base_score: 0.9,
     }];
     CompositeNationalRecognizer::new("nl_national_identity", rules, vec!["nl", "en"], &ctx)

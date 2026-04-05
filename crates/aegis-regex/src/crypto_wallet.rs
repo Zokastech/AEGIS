@@ -36,7 +36,7 @@ pub fn crypto_wallet_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.68,
     )
-    .with_validator(Arc::new(|s| validate_crypto_hit(s)))
+    .with_validator(Arc::new(validate_crypto_hit))
     .with_min_score(0.42)
     .with_context_boost_words(&pos, 0.08)
     .with_context_penalty_words(&neg, 0.11)

@@ -16,7 +16,10 @@ fn mask_token(s: &str, prefix: usize, suffix: usize, ch: char) -> String {
     }
     let mut out = String::new();
     out.push_str(&s[..prefix]);
-    out.extend(std::iter::repeat(ch).take(s.len().saturating_sub(prefix + suffix)));
+    out.extend(std::iter::repeat_n(
+        ch,
+        s.len().saturating_sub(prefix + suffix),
+    ));
     out.push_str(&s[s.len() - suffix..]);
     out
 }

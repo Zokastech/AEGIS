@@ -35,7 +35,7 @@ pub fn be_national_id_recognizer() -> CompositeNationalRecognizer {
         )
         .unwrap(),
         entity: aegis_core::entity::EntityType::NationalId,
-        validator: Arc::new(|m| be_national_number_validate(m)),
+        validator: Arc::new(be_national_number_validate),
         base_score: 0.91,
     }];
     CompositeNationalRecognizer::new("be_national_identity", rules, vec!["nl", "fr", "en"], &ctx)

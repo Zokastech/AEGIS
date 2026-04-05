@@ -167,7 +167,7 @@ pub fn siret_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl", "ro", "sv"],
         0.92,
     )
-    .with_validator(Arc::new(|m| siret_luhn_ok(m)))
+    .with_validator(Arc::new(siret_luhn_ok))
     .with_min_score(0.45)
     .with_context_boost_words(&ctx, 0.07)
 }
@@ -196,7 +196,7 @@ pub fn nir_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl", "ro", "sv"],
         0.88,
     )
-    .with_validator(Arc::new(|m| nir_match_validate(m)))
+    .with_validator(Arc::new(nir_match_validate))
     .with_min_score(0.48)
     .with_context_boost_words(&ctx, 0.07)
 }
@@ -574,12 +574,9 @@ mod tests {
         let n: u64 = base.parse().unwrap();
         let k = 97 - (n % 97);
         let num = format!("{base}{k:02}");
-        assert!(
-            nir_recognizer()
-                .analyze(&num, &AnalysisConfig::default())
-                .len()
-                >= 1
-        );
+        assert!(!nir_recognizer()
+            .analyze(&num, &AnalysisConfig::default())
+            .is_empty());
     }
 
     #[test]

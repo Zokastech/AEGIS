@@ -166,7 +166,7 @@ pub fn eu_address_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.62,
     )
-    .with_validator(Arc::new(|m| validate_full_line(m)))
+    .with_validator(Arc::new(validate_full_line))
     .with_min_score(0.35)
     .with_context_boost_words(&ctx, 0.08)
     .with_context_penalty_words(&["example.com", "test", "dummy"], 0.12)

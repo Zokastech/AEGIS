@@ -139,7 +139,7 @@ pub fn ff3_encrypt(
         } else {
             p[..4].copy_from_slice(&tweak8[4..8]);
         }
-        p[3] ^= (i as u8) & 0xff;
+        p[3] ^= i as u8;
 
         let b_src = &out[b_off..b_off + (n - m)];
         let bnum = str2num_rev(b_src, radix);
@@ -205,7 +205,7 @@ pub fn ff3_decrypt(
         } else {
             p[..4].copy_from_slice(&tweak8[4..8]);
         }
-        p[3] ^= (i as u8) & 0xff;
+        p[3] ^= i as u8;
 
         let a_src = &out[a_off..a_off + (n - m)];
         let anum = str2num_rev(a_src, radix);
@@ -240,11 +240,10 @@ pub fn ff3_decrypt(
 
 /// Parse a string into radix digits (e.g. decimal).
 pub fn parse_radix_string(s: &str, radix: u32) -> Result<Vec<u32>, Ff3Error> {
-    let r = u32::from(radix);
     s.chars()
         .map(|c| {
-            let v = c.to_digit(r)?;
-            Some(v as u32)
+            let v = c.to_digit(radix)?;
+            Some(v)
         })
         .collect::<Option<_>>()
         .ok_or(Ff3Error::DigitRange)

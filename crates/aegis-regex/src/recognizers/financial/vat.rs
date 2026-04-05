@@ -493,7 +493,7 @@ mod tests {
     #[test]
     fn es_vat_pattern_len() {
         let r = EuVatRecognizer::new();
-        assert!(r.analyze("ESB1234567B", &cfg()).len() >= 1);
+        assert!(!r.analyze("ESB1234567B", &cfg()).is_empty());
     }
 
     #[test]

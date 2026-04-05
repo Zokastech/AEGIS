@@ -50,7 +50,7 @@ pub fn phone_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.78,
     )
-    .with_validator(Arc::new(|s| plausible_phone(s)))
+    .with_validator(Arc::new(plausible_phone))
     .with_min_score(0.4)
     .with_context_boost_words(&pos, 0.06)
     .with_context_penalty_words(&neg, 0.1)

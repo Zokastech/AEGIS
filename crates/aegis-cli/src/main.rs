@@ -170,13 +170,12 @@ fn scan_engine(
 }
 
 fn analysis_config(global: &GlobalOpts) -> AnalysisConfig {
-    let mut cfg = AnalysisConfig::default();
-    cfg.score_threshold = global.score_threshold;
     let langs = parse_languages(&global.language);
-    if let Some(first) = langs.first() {
-        cfg.language = Some(first.clone());
+    AnalysisConfig {
+        score_threshold: global.score_threshold,
+        language: langs.first().cloned(),
+        ..Default::default()
     }
-    cfg
 }
 
 fn use_color(global: &GlobalOpts) -> bool {
@@ -201,8 +200,8 @@ fn print_table(path_label: &str, res: &AnalysisResult, color: bool) {
     }
     println!("{:-<80}", "");
     println!(
-        "{:<14} {:>6} {:>6} {:>7}  {}",
-        "type", "début", "fin", "score", "extrait"
+        "{:<14} {:>6} {:>6} {:>7}  extrait",
+        "type", "début", "fin", "score"
     );
     for e in &res.entities {
         let snippet: String = e.text.chars().take(48).collect();

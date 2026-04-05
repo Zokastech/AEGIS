@@ -37,5 +37,6 @@ harness = false
 unsafe_op_in_unsafe_fn = "warn"
 
 [lints.clippy]
+field_reassign_with_default = "allow"
 missing_safety_doc = "warn"
 undocumented_unsafe_blocks = "warn"

@@ -5,7 +5,7 @@
 //! and recognizers skip detection.
 
 /// Returns `text[lo..hi]` after shifting `lo` and `hi` to character boundaries.
-pub(crate) fn byte_window_utf8<'a>(text: &'a str, lo: usize, hi: usize) -> &'a str {
+pub(crate) fn byte_window_utf8(text: &str, lo: usize, hi: usize) -> &str {
     let n = text.len();
     let lo = lo.min(n);
     let mut hi = hi.min(n);

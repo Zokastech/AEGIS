@@ -1,4 +1,5 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
+#![allow(clippy::type_complexity)]
 
 //! Anonymisation : un appel par famille d’opérateur (texte + entités fixes).
 
@@ -20,6 +21,7 @@ fn sample_entities() -> Vec<Entity> {
             score: 0.9,
             recognizer_name: "b".into(),
             metadata: HashMap::new(),
+            decision_trace: None,
         },
         Entity {
             entity_type: EntityType::Phone,
@@ -29,6 +31,7 @@ fn sample_entities() -> Vec<Entity> {
             score: 0.85,
             recognizer_name: "b".into(),
             metadata: HashMap::new(),
+            decision_trace: None,
         },
         Entity {
             entity_type: EntityType::CreditCard,
@@ -38,6 +41,7 @@ fn sample_entities() -> Vec<Entity> {
             score: 0.88,
             recognizer_name: "b".into(),
             metadata: HashMap::new(),
+            decision_trace: None,
         },
     ]
 }
@@ -81,7 +85,7 @@ fn bench_operators(c: &mut Criterion) {
     let mut g = c.benchmark_group("anonymize_operator");
     for (label, ot, extra) in cases.iter() {
         let mut cfg = AnonymizationConfig::default();
-        cfg.default_operator = Some(op_config((*ot).clone(), *extra));
+        cfg.default_operator = Some(op_config((*ot).clone(), extra));
         g.bench_with_input(BenchmarkId::new("anonymize", *label), &cfg, |b, cfg| {
             b.iter(|| {
                 black_box(engine.anonymize(

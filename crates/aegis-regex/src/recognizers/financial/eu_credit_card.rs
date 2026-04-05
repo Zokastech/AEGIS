@@ -80,7 +80,7 @@ pub fn eu_credit_card_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl", "ro", "sv"],
         0.78,
     )
-    .with_validator(Arc::new(|m| eu_credit_card_ok(m)))
+    .with_validator(Arc::new(eu_credit_card_ok))
     .with_min_score(0.48)
     .with_context_boost_words(&ctx, 0.08)
     .with_context_penalty_words(&["test card", "fake", "example"], 0.14)

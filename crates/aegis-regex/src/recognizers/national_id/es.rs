@@ -72,14 +72,14 @@ pub fn es_national_id_recognizer() -> CompositeNationalRecognizer {
             name: "es_dni",
             re: Regex::new(r"(?xi)\b(?:DNI|NIF)[\s.:]+(\d{8}[A-Za-z])\b|\b(\d{8}[A-Za-z])(?=\s*(?:DNI|NIF))").unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| es_dni_validate(m)),
+            validator: Arc::new(es_dni_validate),
             base_score: 0.9,
         },
         IdRule {
             name: "es_nie",
             re: Regex::new(r"(?xi)\b(?:NIE)[\s.:]+([XYZxyz]\d{7}[A-Za-z])\b|\b([XYZxyz]\d{7}[A-Za-z])(?=\s*NIE)").unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| es_nie_validate(m)),
+            validator: Arc::new(es_nie_validate),
             base_score: 0.89,
         },
         IdRule {
@@ -89,7 +89,7 @@ pub fn es_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::Ssn,
-            validator: Arc::new(|m| es_seguridad_social_validate(m)),
+            validator: Arc::new(es_seguridad_social_validate),
             base_score: 0.86,
         },
     ];
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn nie_synthetic() {
         let n = 1234567u32;
-        let full = 0u32 * 10_000_000 + n;
+        let full = n;
         let l = dni_letter_from_number(full);
         let s = format!("X{n:07}{l}");
         assert!(es_nie_validate(&s));
@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn ss_synthetic() {
-        for body in 0u64..1_000_000 {
+        if let Some(body) = (0u64..1_000_000).next() {
             let base = format!("{:010}", body);
             let n: u64 = base.parse().unwrap();
             let k = 97 - (n % 97);

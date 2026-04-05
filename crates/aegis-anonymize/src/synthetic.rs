@@ -566,8 +566,8 @@ fn synthetic_nl_bsn(seed: u64) -> String {
     let mut rng = rng_from(sub_seed(seed, 7));
     for _ in 0..512 {
         let mut d = [0u32; 9];
-        for i in 0..8 {
-            d[i] = rng.gen_range(0..10);
+        for slot in d.iter_mut().take(8) {
+            *slot = rng.gen_range(0..10);
         }
         let s: i32 = d
             .iter()
@@ -787,7 +787,7 @@ mod tests {
 
     #[test]
     fn nl_bsn_11_proof() {
-        let p = SyntheticDataGenerator::new().profile("NL").unwrap();
+        let _ = SyntheticDataGenerator::new().profile("NL").unwrap();
         let s = synthetic_nl_bsn(777);
         assert_eq!(s.len(), 9);
         let d: Vec<u32> = s.chars().filter_map(|c| c.to_digit(10)).collect();

@@ -23,7 +23,7 @@ pub fn credit_card_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.72,
     )
-    .with_validator(Arc::new(|s| validate_credit_card_match(s)))
+    .with_validator(Arc::new(validate_credit_card_match))
     .with_min_score(0.45)
     .with_context_boost_words(&pos, 0.08)
     .with_context_penalty_words(&neg, 0.12)
@@ -59,7 +59,7 @@ pub fn masked_credit_card_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.62,
     )
-    .with_validator(Arc::new(|s| valid_brand_masked_last4(s)))
+    .with_validator(Arc::new(valid_brand_masked_last4))
     .with_min_score(0.42)
     .with_context_boost_words(&pos, 0.06)
     .with_context_penalty_words(&neg, 0.1)

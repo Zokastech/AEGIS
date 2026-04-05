@@ -24,7 +24,7 @@ fn bare_host_two_labels_common_tld(host: &str) -> bool {
         "site", "store", "shop", "blog", "news", "email", "mail", "wtf", "xyz", "id", "sh", "vc",
         "ms", "ac", "ngo", "ong",
     ];
-    TLDS.iter().any(|&x| x == tld)
+    TLDS.contains(&tld)
 }
 
 fn plausible_url(s: &str) -> bool {
@@ -72,7 +72,7 @@ pub fn url_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.7,
     )
-    .with_validator(Arc::new(|s| plausible_url(s)))
+    .with_validator(Arc::new(plausible_url))
     .with_min_score(0.38)
     .with_deny_substrings(&["example.com", "example.org", "test.com"])
     .with_context_boost_words(&pos, 0.07)

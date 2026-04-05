@@ -94,7 +94,7 @@ pub fn fr_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| fr_nir_validate(m)),
+            validator: Arc::new(fr_nir_validate),
             base_score: 0.9,
         },
         IdRule {
@@ -160,7 +160,7 @@ pub fn fr_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::DriverLicense,
-            validator: Arc::new(|m| fr_driver_license_validate(m)),
+            validator: Arc::new(fr_driver_license_validate),
             base_score: 0.83,
         },
     ];

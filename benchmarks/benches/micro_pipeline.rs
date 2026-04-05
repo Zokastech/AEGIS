@@ -40,6 +40,7 @@ fn pipeline_l123_mock() -> DetectionPipeline {
             score: 0.82,
             recognizer_name: "mock".into(),
             metadata: Default::default(),
+            decision_trace: None,
         }],
     });
     let mut cfg = PipelineConfig::default();

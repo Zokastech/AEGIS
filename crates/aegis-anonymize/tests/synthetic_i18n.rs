@@ -2,9 +2,7 @@
 
 //! **Synthetic** PII data (FR / DE / ES / IT) — no real individuals.
 
-use aegis_anonymize::{
-    AnonymizationConfig, AnonymizerEngine, HashOperator, MaskOperator, RedactOperator,
-};
+use aegis_anonymize::{AnonymizationConfig, AnonymizerEngine, HashOperator, RedactOperator};
 use aegis_core::anonymizer::{Operator, OperatorConfig, OperatorType};
 use aegis_core::entity::{Entity, EntityType};
 use std::collections::HashMap;
@@ -74,7 +72,6 @@ fn fr_mask_phone_replace_person() {
 
 #[test]
 fn de_hash_email() {
-    let text = "Kontakt: max.mustermann.synth@beispiel.test in Berlin.";
     let e = Entity {
         entity_type: EntityType::Email,
         start: 10,
@@ -100,7 +97,6 @@ fn de_hash_email() {
 
 #[test]
 fn es_redact_national_id_placeholder() {
-    let text = "DNI referencia 99999999R es sintético.";
     let e = Entity {
         entity_type: EntityType::NationalId,
         start: 16,

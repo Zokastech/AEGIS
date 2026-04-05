@@ -48,7 +48,7 @@ pub fn ipv6_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.88,
     )
-    .with_validator(Arc::new(|s| ipv6_ok(s)))
+    .with_validator(Arc::new(ipv6_ok))
     .with_min_score(0.5)
     .with_context_boost_words(&pos, 0.05)
     .with_context_penalty_words(&neg, 0.1)

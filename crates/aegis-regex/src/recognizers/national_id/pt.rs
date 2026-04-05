@@ -40,7 +40,7 @@ pub fn pt_national_id_recognizer() -> CompositeNationalRecognizer {
             name: "pt_nif",
             re: Regex::new(r"(?xi)\b(?:NIF|n[uú]mero\s*de\s*identifica[çc][aã]o\s*fiscal)[\s.:]+(\d{9})\b|\b(\d{9})(?=\s*NIF)").unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
-            validator: Arc::new(|m| pt_nif_validate(m)),
+            validator: Arc::new(pt_nif_validate),
             base_score: 0.9,
         },
         IdRule {
@@ -50,7 +50,7 @@ pub fn pt_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| pt_cartao_cidadao_numeric_validate(m)),
+            validator: Arc::new(pt_cartao_cidadao_numeric_validate),
             base_score: 0.88,
         },
     ];

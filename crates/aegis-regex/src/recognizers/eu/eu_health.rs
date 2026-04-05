@@ -52,7 +52,7 @@ pub fn eu_health_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::MedicalRecord,
-            validator: Arc::new(|m| vitale_ten_digits(m)),
+            validator: Arc::new(vitale_ten_digits),
             base_score: 0.8,
         },
         IdRule {
@@ -62,7 +62,7 @@ pub fn eu_health_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::MedicalRecord,
-            validator: Arc::new(|m| ehic_token(m)),
+            validator: Arc::new(ehic_token),
             base_score: 0.72,
         },
         IdRule {

@@ -14,10 +14,10 @@ fn plausible_calendar_date(s: &str) -> bool {
     if let Some(cap) = iso.captures(t) {
         let m: u32 = cap[2].parse().unwrap_or(0);
         let d: u32 = cap[3].parse().unwrap_or(0);
-        return m >= 1 && m <= 12 && d >= 1 && d <= 31;
+        return (1..=12).contains(&m) && (1..=31).contains(&d);
     }
     let nums: Vec<u32> = t
-        .split(|c: char| c == '/' || c == '.' || c == '-')
+        .split(['/', '.', '-'])
         .filter_map(|p| p.parse().ok())
         .collect();
     if nums.len() >= 3 {
@@ -55,7 +55,7 @@ pub fn date_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.65,
     )
-    .with_validator(Arc::new(|s| plausible_calendar_date(s)))
+    .with_validator(Arc::new(plausible_calendar_date))
     .with_min_score(0.35)
     .with_context_boost_words(&pos, 0.06)
     .with_context_penalty_words(&neg, 0.1)

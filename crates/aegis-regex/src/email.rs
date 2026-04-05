@@ -21,7 +21,7 @@ pub fn email_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.88,
     )
-    .with_validator(Arc::new(|s| email_rfc5322_pragmatic(s)))
+    .with_validator(Arc::new(email_rfc5322_pragmatic))
     .with_min_score(0.42)
     .with_deny_substrings(&[
         "example.com",

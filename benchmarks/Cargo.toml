@@ -46,3 +46,6 @@ harness = false
 [[bin]]
 name = "aegis-memory-rusage"
 path = "src/bin/memory_rusage.rs"
+
+[lints.clippy]
+field_reassign_with_default = "allow"

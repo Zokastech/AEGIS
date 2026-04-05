@@ -1,6 +1,7 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
 //! **AEGIS** C library: `cdylib` / `staticlib` for Python (ctypes / PyO3), Node (N-API), Go (cgo), etc.
+#![allow(clippy::missing_safety_doc)] // C ABI : contrats documentés côté headers / intégrations.
 
 // Dummy reference: without this, the linker may drop `aegis-regex` and the `ctor` that registers
 // default recognizers never runs → “no recognizers registered” at init.
@@ -332,7 +333,7 @@ pub unsafe extern "C" fn aegis_free(handle: *mut AegisHandle) {
 /// Last error as UTF-8 (NUL-terminated), or empty string; do not free.
 #[no_mangle]
 pub extern "C" fn aegis_last_error() -> *const c_char {
-    catch_unwind(AssertUnwindSafe(|| ffi_last_error_ptr())).unwrap_or(ptr::null())
+    catch_unwind(AssertUnwindSafe(ffi_last_error_ptr)).unwrap_or(ptr::null())
 }
 
 /// `aegis-ffi` crate version (semver), static string; do not free.

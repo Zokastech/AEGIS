@@ -21,7 +21,7 @@ pub fn luhn_valid(s: &str) -> bool {
         sum += v;
         alt = !alt;
     }
-    sum % 10 == 0
+    sum.is_multiple_of(10)
 }
 
 /// Pragmatic check (lengths, consecutive dots, common ASCII character set).

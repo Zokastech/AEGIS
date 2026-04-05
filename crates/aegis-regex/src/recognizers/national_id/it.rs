@@ -103,21 +103,21 @@ pub fn it_national_id_recognizer() -> CompositeNationalRecognizer {
             )
             .unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| it_codice_fiscale_validate(m)),
+            validator: Arc::new(it_codice_fiscale_validate),
             base_score: 0.92,
         },
         IdRule {
             name: "it_cie",
             re: Regex::new(r"(?xi)\b(?:CIE|carta\s*d'identit[aà]\s*elettronica)[\s.:]+([A-Za-z]{2}\d{5}[A-Za-z]{2})\b").unwrap(),
             entity: aegis_core::entity::EntityType::NationalId,
-            validator: Arc::new(|m| it_cie_validate(m)),
+            validator: Arc::new(it_cie_validate),
             base_score: 0.85,
         },
         IdRule {
             name: "it_partita_iva",
             re: Regex::new(r"(?xi)\b(?:Partita\s*IVA|P\.?\s*IVA)[\s.:]+(\d{11})\b|\b(\d{11})(?=\s*P\.?\s*IVA)").unwrap(),
             entity: aegis_core::entity::EntityType::TaxId,
-            validator: Arc::new(|m| it_partita_iva_validate(m)),
+            validator: Arc::new(it_partita_iva_validate),
             base_score: 0.9,
         },
     ];

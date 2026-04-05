@@ -16,6 +16,15 @@
 
 #![warn(rust_2018_idioms)]
 #![warn(unused_qualifications)]
+// Clippy 1.94+ : `invalid_regex` n’analyse pas toutes les constructions du crate `regex` ;
+// les autres lints ci-dessous sont stylistiques sur du code reconnaisseurs volumineux.
+#![allow(clippy::invalid_regex)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::if_same_then_else)]
+#![allow(clippy::inconsistent_digit_grouping)]
+#![allow(clippy::field_reassign_with_default)]
 
 use std::sync::Arc;
 
