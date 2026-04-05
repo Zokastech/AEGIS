@@ -1,0 +1,26 @@
+# AEGIS — zokastech.fr — Apache-2.0 / MIT
+#
+# Image pipeline NER L3 (Python) : tests smoke + même layout que training/README.
+# Build : docker build -f docker/Dockerfile.training -t aegis-training-ner .
+#
+ARG PYTHON_VERSION=3.12
+
+FROM python:${PYTHON_VERSION}-slim-bookworm
+
+WORKDIR /work
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Dépendances légères (pas de torch) — CI rapide ; pour entraînement GPU utiliser training/requirements.txt
+COPY training/requirements-ci.txt training/requirements-ci.txt
+RUN pip install --no-cache-dir -r training/requirements-ci.txt
+
+COPY training ./training
+COPY datasets/training ./datasets/training
+
+ENV PYTHONPATH=/work/training
+WORKDIR /work/training
+
+CMD ["pytest", "tests/", "-q"]

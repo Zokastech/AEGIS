@@ -1,0 +1,155 @@
+# =============================================================================
+# AEGIS — Helm chart complet (lint + package versionné) + image smoke training +
+#         pipeline NER niveau 3 automatisé (dataset → train → ONNX).
+# =============================================================================
+# Déclencheurs :
+# - push / pull_request : lint Helm, package .tgz, image Docker pytest, pas d’entraînement L3
+#   (évite des jobs torch lourds sur chaque PR).
+# - push main/master : + pipeline L3 smoke (CPU, petit jeu).
+# - workflow_dispatch : L3 paramétrable (ex. plus d’exemples / steps pour un modèle sérieux).
+# =============================================================================
+name: Helm & NER L3 pipeline
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      num_examples:
+        description: "Exemples synthétiques (dataset_builder)"
+        type: string
+        default: "2000"
+      max_steps:
+        description: "Steps Hugging Face Trainer (prioritaire sur epochs)"
+        type: string
+        default: "400"
+      run_l3:
+        description: "Exécuter entraînement + export ONNX (désactiver pour Helm seul)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  helm-package:
+    name: Helm — lint & package (app complète)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4
+        with:
+          version: v3.16.2
+
+      - name: helm lint
+        run: helm lint deploy/helm/aegis
+
+      - name: helm package (version Chart + métadonnées dépôt)
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_NUMBER: ${{ github.run_number }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist-helm
+          BASE_VER=$(grep -E '^version:' deploy/helm/aegis/Chart.yaml | awk '{print $2}' | tr -d '"' | tr -d "'")
+          SHORT_SHA="${GITHUB_SHA::7}"
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            PKG_VER="${BASE_VER}-pr${PR_NUMBER}.${RUN_NUMBER}"
+            APP_VER="pr${PR_NUMBER}-${SHORT_SHA}"
+          else
+            PKG_VER="${BASE_VER}-g${SHORT_SHA}"
+            APP_VER="${SHORT_SHA}"
+            if [[ -n "${HEAD_REF:-}" ]]; then
+              APP_VER="${HEAD_REF}-${SHORT_SHA}"
+            fi
+          fi
+          helm package deploy/helm/aegis -d dist-helm --version "$PKG_VER" --app-version "$APP_VER"
+
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: aegis-helm-chart
+          path: dist-helm/*.tgz
+          if-no-files-found: error
+
+  training-docker:
+    name: Docker NER training (smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+
+      - name: Build training image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: docker/Dockerfile.training
+          load: true
+          tags: aegis-training-ner:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run pytest in container
+        run: docker run --rm aegis-training-ner:ci
+
+  ner-l3-train-export:
+    name: NER L3 — train + export ONNX
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # PR : pas de torch ; push main/master : smoke ; dispatch : option run_l3 (évite d’évaluer inputs.run_l3 hors dispatch).
+    if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.run_l3) }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      # actions/cache@v4.2.0
+      - uses: actions/cache@6849e8bff9910fcb9ecc6435292800593e56ba2f
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: l3-pip-hf-${{ runner.os }}-${{ hashFiles('training/requirements.txt') }}
+          restore-keys: |
+            l3-pip-hf-${{ runner.os }}-
+
+      - name: Install Python deps (training complet)
+        run: |
+          python -m pip install -U pip
+          pip install -r training/requirements.txt
+
+      - name: Run pipeline L3
+        working-directory: training
+        env:
+          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '120' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '80' }}
+        run: bash scripts/run_l3_pipeline.sh
+
+      - name: Pack artefacts ONNX (déploiement core / PVC)
+        run: |
+          set -euo pipefail
+          cd training/exports/ci_onnx
+          cp tokenizer_hf/tokenizer.json .
+          tar -czvf "${{ github.workspace }}/aegis-ner-l3-onnx.tgz" \
+            model.onnx model_optimized.onnx model_int8.onnx tokenizer.json
+
+      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: aegis-ner-l3-onnx
+          path: aegis-ner-l3-onnx.tgz
+          if-no-files-found: error
