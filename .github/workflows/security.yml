@@ -111,7 +111,15 @@ jobs:
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-      - name: Resolved gateway modules (grpc / jwt)
+      - name: Pin patched gateway deps (GO-2026-4762, GO-2025-3553)
+        working-directory: aegis-gateway
+        run: |
+          go get google.golang.org/grpc@v1.79.3 \
+            github.com/golang-jwt/jwt/v5@v5.2.2 \
+            github.com/labstack/echo/v4@v4.13.4
+          go mod tidy
+
+      - name: Resolved gateway modules (grpc / jwt / echo)
         working-directory: aegis-gateway
         run: go list -m google.golang.org/grpc github.com/golang-jwt/jwt/v5 github.com/labstack/echo/v4
 
