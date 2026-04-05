@@ -2,6 +2,9 @@
 # AEGIS — zokastech.fr — https://zokastech.fr
 # CI principal : Rust (fmt + matrice stable/nightly × OS) + Go + SBOM Syft
 # =============================================================================
+# Analyse sécurité Rust (RustSec + licences / graphe) : workflow « Security »
+# (.github/workflows/security.yml) — cargo audit, cargo deny (deny.toml).
+# =============================================================================
 # Bonnes pratiques :
 # - permissions: contents: read (principe du moindre privilège)
 # - actions épinglées par SHA (Supply-chain)

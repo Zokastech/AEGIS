@@ -1,9 +1,10 @@
 # =============================================================================
 # AEGIS — zokastech.fr — https://zokastech.fr
-# Scans de sécurité : Rust (cargo-audit), Go (govulncheck), conteneurs (Trivy)
+# Scans de sécurité : Rust (cargo-audit, cargo-deny), Go (govulncheck), Trivy
 # =============================================================================
-# La configuration Dependabot (.github/dependabot.yml) complète ce workflow en
-# ouvrant des PR de mise à jour pour Cargo, Go modules, npm, pip et Actions.
+# Rust : RustSec + politique licences / graphe (Embark cargo-deny).
+#   Docs Context7 / Embark : https://embarkstudios.github.io/cargo-deny/
+# Dependabot (.github/dependabot.yml) complète avec des PR de mise à jour.
 # =============================================================================
 name: Security
 
@@ -13,7 +14,6 @@ on:
   pull_request:
     branches: [main, master]
   schedule:
-    # Hebdo : lundi 06:00 UTC — détecte vuln. même sans activité sur la branche.
     - cron: "0 6 * * 1"
 
 permissions:
@@ -21,11 +21,13 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Binaire musl x86_64 (ubuntu-latest) — cargo-deny ≥ 0.19 parse la DB RustSec (CVSS 4.0).
+  CARGO_DENY_VERSION: 0.19.0
+  CARGO_DENY_SHA256: 0e8c2aa59128612c90d9e09c02204e912f29a5b8d9a64671b94608cbe09e064f
 
 jobs:
   # ---------------------------------------------------------------------------
-  # cargo-audit : base de données RustSec (advisory-db).
-  # continue-on-error : ne bloque pas la CI si la DB ou un advisory FP casse le build.
+  # cargo-audit : RustSec advisory-db (vulnérabilités). Échoue si CVE non corrigée.
   # ---------------------------------------------------------------------------
   rust-audit:
     name: cargo audit
@@ -37,15 +39,53 @@ jobs:
         with:
           toolchain: stable
 
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          shared-key: security-audit
+
       - name: Install cargo-audit (locked)
         run: cargo install cargo-audit --locked
 
       - name: cargo audit
-        continue-on-error: true
         run: cargo audit
 
   # ---------------------------------------------------------------------------
-  # govulncheck : analyse statique des appels aux APIs vulnérables (Go team).
+  # cargo-deny : advisories + licences (+ bans/sources en avertissement via deny.toml).
+  # Binaire épinglé (SHA256) plutôt que cargo-deny-action 2.0.13 (cargo-deny 0.18.x)
+  # pour éviter l’erreur de parse CVSS 4.0 sur advisory-db.
+  # ---------------------------------------------------------------------------
+  rust-deny:
+    name: cargo deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          shared-key: security-deny
+
+      - name: Install cargo-deny (pinned binary + checksum)
+        run: |
+          set -euxo pipefail
+          TD="/tmp/cargo-deny-${CARGO_DENY_VERSION}"
+          mkdir -p "$TD"
+          ARCHIVE="cargo-deny-${CARGO_DENY_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          curl -sSfL -o "$TD/$ARCHIVE" \
+            "https://github.com/EmbarkStudios/cargo-deny/releases/download/${CARGO_DENY_VERSION}/${ARCHIVE}"
+          echo "${CARGO_DENY_SHA256}  $TD/$ARCHIVE" | sha256sum -c -
+          tar -xzf "$TD/$ARCHIVE" -C "$TD" --strip-components=1
+          sudo install -m 0755 "$TD/cargo-deny" /usr/local/bin/
+          cargo deny --version
+
+      - name: cargo deny check
+        run: cargo deny check --log-level warn
+
+  # ---------------------------------------------------------------------------
+  # govulncheck (Go)
   # ---------------------------------------------------------------------------
   go-vulncheck:
     name: govulncheck
@@ -73,9 +113,7 @@ jobs:
         run: govulncheck ./...
 
   # ---------------------------------------------------------------------------
-  # Trivy : construction locale de l’image gateway + scan (CVEs, misconfig).
-  # Image Trivy pinnée pour reproductibilité ; exit-code 0 = alerte sans fail PR.
-  # Ajustez exit-code à 1 pour bloquer sur HIGH/CRITICAL en durcissement.
+  # Trivy (image gateway)
   # ---------------------------------------------------------------------------
   trivy-image:
     name: Trivy (Dockerfile.gateway)
