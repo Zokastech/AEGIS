@@ -1,6 +1,6 @@
 # AEGIS — zokastech.fr — https://zokastech.fr
 # Service dev aegis-gateway : Rust (aegis-ffi .so) + Go CGO + air (tag aegisffi).
-# Air récent (ex. v1.64+) exige Go >= 1.25 ; image > go.mod (1.23 / toolchain 1.23.10).
+# Air récent (ex. v1.64+) exige Go >= 1.25 ; aligné avec go.work (1.25 / toolchain 1.25.8).
 FROM golang:1.25-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
