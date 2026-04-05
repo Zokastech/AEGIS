@@ -77,7 +77,7 @@ impl Entity {
         end: usize,
         text: String,
         score: f64,
-        recognizer_name: String,
+        recognizer_name: &str,
         metadata: Option<HashMap<String, String>>,
     ) -> Self {
         Self {
@@ -86,14 +86,14 @@ impl Entity {
             end,
             text,
             score,
-            recognizer_name,
+            recognizer_name: recognizer_name.to_string(),
             metadata: metadata.unwrap_or_default(),
         }
     }
 
     fn __repr__(&self) -> String {
         format!(
-            "Entity(type={!r}, start={}, end={}, score={:.3})",
+            "Entity(type={:?}, start={}, end={}, score={:.3})",
             self.entity_type, self.start, self.end, self.score
         )
     }
@@ -216,7 +216,7 @@ impl AegisEngine {
             let content = fs::read_to_string(path).map_err(|e| {
                 PyIOError::new_err(format!("config_path {p}: {e}"))
             })?;
-            let lower = p.to_string_lossy().to_lowercase();
+            let lower = p.to_lowercase();
             let mut b = AnalyzerEngineBuilder::new().with_default_recognizers(&sl);
             b = if lower.ends_with(".json") {
                 b.with_engine_json_str(&content).map_err(aegis_to_py)?
@@ -384,7 +384,7 @@ fn operators_to_config_json(py: Python<'_>, operators: Option<Py<PyAny>>) -> PyR
         return Ok("{}".to_string());
     };
     let bound = obj.bind(py);
-    let json = py.import_bound("json")?;
+    let json = py.import("json")?;
     let dumps = json.getattr("dumps")?;
     let s: String = dumps.call1((bound,))?.extract()?;
     if s.contains("operators_by_entity") || s.contains("analysis") || s.contains("default_operator") {
