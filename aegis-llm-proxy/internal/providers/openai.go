@@ -146,7 +146,7 @@ func CollectOpenAIChatText(body []byte) string {
 	if err := json.Unmarshal(body, &root); err != nil {
 		return ""
 	}
-	var b stringsBuilder
+	var b strings.Builder
 	msgs, ok := root["messages"].([]interface{})
 	if !ok {
 		return ""
