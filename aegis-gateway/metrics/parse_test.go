@@ -41,7 +41,8 @@ func TestLanguageAndPipeline_InvalidJSON(t *testing.T) {
 func TestCountEntitiesByType_RootEntities(t *testing.T) {
 	raw := []byte(`{"entities":[{"entity_type":"EMAIL"},{"entity_type":"PHONE"},{"entity_type":"EMAIL"}]}`)
 	got := CountEntitiesByType(raw, "")
-	want := map[string]int{"EMAIL": 2, "PHONE": 1}
+	// entity_type keys pass through SanitizeLabel (lowercase, Prometheus-safe).
+	want := map[string]int{"email": 2, "phone": 1}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %#v want %#v", got, want)
 	}
@@ -50,7 +51,7 @@ func TestCountEntitiesByType_RootEntities(t *testing.T) {
 func TestCountEntitiesByType_NestedResult(t *testing.T) {
 	raw := []byte(`{"result":{"entities":[{"entity_type":"PERSON"}]}}`)
 	got := CountEntitiesByType(raw, "")
-	if got["PERSON"] != 1 {
+	if got["person"] != 1 {
 		t.Fatalf("got %#v", got)
 	}
 }
