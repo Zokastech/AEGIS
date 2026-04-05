@@ -21,8 +21,23 @@ pub fn email_recognizer() -> PatternRecognizer {
         vec!["en", "fr", "de", "es", "it", "nl", "pt", "pl"],
         0.88,
     )
-    .with_validator_on_span(Arc::new(|text, start, _end| {
-        start == 0 || text.as_bytes().get(start.wrapping_sub(1)) != Some(&b'.')
+    .with_validator_on_span(Arc::new(|text, start, end| {
+        if start > 0 && text.as_bytes().get(start.wrapping_sub(1)) == Some(&b'.') {
+            return false;
+        }
+        // Regex can end at `\b` before a trailing dot: "x@y.co." → match "x@y.co".
+        if end < text.len() && text.as_bytes()[end] == b'.' {
+            let tail = text[end + 1..].trim_start();
+            if tail.is_empty()
+                || !tail
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_ascii_alphanumeric())
+            {
+                return false;
+            }
+        }
+        true
     }))
     .with_validator(Arc::new(email_rfc5322_pragmatic))
     .with_min_score(0.42)
