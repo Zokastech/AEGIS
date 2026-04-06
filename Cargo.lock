@@ -94,6 +94,7 @@ version = "0.1.0"
 dependencies = [
  "aegis-anonymize",
  "aegis-core",
+ "aegis-ner",
  "aegis-regex",
  "napi",
  "napi-derive",
