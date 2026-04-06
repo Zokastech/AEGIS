@@ -1,0 +1,126 @@
+Corpus de test avancé (niveau expert)
+
+Objet : Dossier composite – client/patient/justiciable (réf : EU-RGPD-TEST-009X)
+
+Bonjour,
+
+Suite à la consolidation des données issues des systèmes CRM, SIH et juridique, voici les éléments concernant la personne identifiée comme :
+
+Identité principale (incertaine) :
+Nom : Ben Salah / Bensaleh / Ben-Saleh
+Prénom : Yacine (ou Yassin ?)
+Date de naissance : 03-11-1991 (parfois enregistrée 11/03/91)
+Lieu : Tourcoing (FR) / mention alternative : “Tunis ?”
+
+Identifiants officiels potentiels :
+
+NIR : 1 91 11 59 987 654 32 (clé possiblement erronée → 31 ?)
+Numéro carte identité : 12AB34567 (ancien format ?)
+Passeport : 98FR76X12345 (non vérifié, scan partiel illisible)
+Permis : BSYAC91110359
+
+Données médicales (hautement sensibles)
+
+Patient suivi sous identifiant hospitalier : CHR-LIL-00239871
+
+Pathologies mentionnées :
+diabète type II (E11 ?)
+suspicion trouble anxieux généralisé
+antécédent : “episode psychotique bref ?” (non confirmé)
+Traitements :
+Metformine 500mg x2/j
+Sertraline (Zoloft?) 50mg
+“traitement arrêté seul en 2023”
+
+Compte rendu (extrait bruité) :
+
+“le patient Y.B.S. présente des signes de… compliance irrégulière… discours parfois incohérent, possible paranoïa légère (?)”
+
+Numéro sécurité sociale parfois masqué dans les comptes rendus :
+→ 1 91 ** ** *** *** **
+Mutuelle :
+Harmonie / H@rmonie? contrat n° HM-778291-AZ
+
+Données juridiques / contentieux
+
+Dossier tribunal : TJ-LILLE-2024/008771
+
+Nature :
+Litige prud’homal + procédure pénale secondaire
+Faits évoqués :
+licenciement contesté (faute grave ?)
+altercation avec supérieur hiérarchique
+dépôt de plainte (classée sans suite ? à confirmer)
+Avocat :
+“Maître D. Caron” / “Delphine Caron ?”
+Cabinet situé : 22 rue Nationale, Lille
+Numéro de dossier avocat :
+CARON-DEF-91-YBS
+
+Extrait mail :
+
+“Mon client conteste formellement les accusations de harcèlement (…) il reconnaît toutefois un ‘incident verbal’ le 14/06/2024”
+
+Données financières / bancaires
+
+Compte principal :
+
+IBAN : FR14 2004 1010 0505 0001 3M02 606
+BIC : PSSTFRPPXXX
+
+Carte (ancienne trace) :
+Mastercard 5326 **** **** 9087
+Exp : 11/26
+CVV : “vu dans un log : 113 (à supprimer)”
+
+Historique suspect :
+
+virement entrant : 4 850€ (origine : “Sarl DataXpert”)
+mention “freelance ? non déclaré ?”
+
+Données numériques / tracking
+Email(s) :
+y.bensalah91@gmail.com
+
+yacine_bs@protonmail.com
+
+contact@ybs-data.io
+Téléphones :
++33 (0)7 44 91 23 88
+0744912388
+0033-744-912-388
+IP logs :
+192.168.1.45 (local)
+51.158.203.112 (France)
+185.220.101.33 (TOR exit node suspecté)
+Identifiants :
+user_ybs91
+yac!ne_dev
+UUID : 550e8400-e29b-41d4-a716-446655440000
+
+Données indirectes / relations
+Contact d’urgence :
+“Nadia B.” (mère ?)
+Tel : 06 ** ** 77 21
+Conjoint(e) mentionné(e) :
+“Leila / Lila ?”
+Enfant :
+“Adam (né 2018?)”
+
+Bruit & anomalies volontairement injectés
+Variantes orthographiques multiples
+Formats incohérents (dates, numéros)
+Données partielles masquées
+Mélange FR / international
+Références croisées difficiles (Y.B.S / Yacine / Ben Salah)
+Faux positifs possibles (“DataXpert”, noms communs, etc.)
+
+Objectif du dataset
+
+Ce corpus teste :
+
+Détection multi-domaines (médical, légal, financier)
+Résistance aux erreurs et ambiguïtés
+Reconnaissance contextuelle (relations, rôles)
+Extraction d’entités imbriquées
+Faux positifs / faux négatifs

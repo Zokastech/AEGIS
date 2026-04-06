@@ -1,0 +1,58 @@
+{"tokens": ["Yacine"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Yassin"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Ben", "Salah"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Bensaleh"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Ben-Saleh"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["03-11-1991"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["11/03/91"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Tourcoing"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Tunis"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["1", "91", "11", "59", "987", "654", "32"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["12AB34567"], "ner_tags": ["B-PASSPORT"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["98FR76X12345"], "ner_tags": ["B-PASSPORT"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["BSYAC91110359"], "ner_tags": ["B-LICENSE_PLATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["CHR-LIL-00239871"], "ner_tags": ["B-MEDICAL_RECORD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Metformine", "500mg", "x2/j"], "ner_tags": ["B-MEDICAL_RECORD", "I-MEDICAL_RECORD", "I-MEDICAL_RECORD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Sertraline", "(Zoloft?)", "50mg"], "ner_tags": ["B-MEDICAL_RECORD", "I-MEDICAL_RECORD", "I-MEDICAL_RECORD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Y.B.S."], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Harmonie"], "ner_tags": ["B-ORGANIZATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["H@rmonie?"], "ner_tags": ["B-ORGANIZATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["HM-778291-AZ"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["TJ-LILLE-2024/008771"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Maître", "D.", "Caron"], "ner_tags": ["B-PERSON", "I-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Delphine", "Caron"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["22", "rue", "Nationale,", "Lille"], "ner_tags": ["B-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["CARON-DEF-91-YBS"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["14/06/2024"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["FR14", "2004", "1010", "0505", "0001", "3M02", "606"], "ner_tags": ["B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["PSSTFRPPXXX"], "ner_tags": ["B-ORGANIZATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Mastercard", "5326", "****", "****", "9087"], "ner_tags": ["O", "B-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["11/26"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["113"], "ner_tags": ["B-CREDIT_CARD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Sarl", "DataXpert"], "ner_tags": ["B-ORGANIZATION", "I-ORGANIZATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["4850€"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["y.bensalah91@gmail.com"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["yacine_bs@protonmail.com"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["contact@ybs-data.io"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["+33", "(0)7", "44", "91", "23", "88"], "ner_tags": ["B-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["0744912388"], "ner_tags": ["B-PHONE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["0033-744-912-388"], "ner_tags": ["B-PHONE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["192.168.1.45"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["51.158.203.112"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["185.220.101.33"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["user_ybs91"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["yac!ne_dev"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["550e8400-e29b-41d4-a716-446655440000"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Nadia", "B."], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Leila"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Lila"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Adam"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["2018"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Yacine"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["FR14", "2004", "1010", "0505", "0001", "3M02", "606"], "ner_tags": ["B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["0744912388"], "ner_tags": ["B-PHONE"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["y.bensalah91@gmail.com"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["CHR-LIL-00239871"], "ner_tags": ["B-MEDICAL_RECORD"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Delphine", "Caron"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["98FR76X12345"], "ner_tags": ["B-PASSPORT"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["EU-RGPD-TEST-009X"], "ner_tags": ["B-TAX_ID"], "lang": "fr", "domain": "l3_expert"}
