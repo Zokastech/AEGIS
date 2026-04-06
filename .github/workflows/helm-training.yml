@@ -136,8 +136,8 @@ jobs:
       - name: Run pipeline L3
         working-directory: training
         env:
-          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '120' }}
-          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '80' }}
+          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '1200' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '800' }}
         run: bash scripts/run_l3_pipeline.sh
 
       - name: Pack artefacts ONNX (déploiement core / PVC)
