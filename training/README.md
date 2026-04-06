@@ -173,7 +173,7 @@ python benchmark_presidio_ner.py --dataset ./data/eu_pii_synthetic --split valid
 | Commande | But |
 |----------|-----|
 | `python -m pytest training/tests -q` | Labels, `dataset_builder`, imports (CI **python-training**) — préférer `-m` si `pytest` n’est pas dans le `PATH` |
-| `python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q` | Après `run_l3_pipeline.sh` : ONNX INT8 vs lettre FR + **corpus expert composite** ; sans export, **ignorés** |
+| `python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q` | Après `run_l3_pipeline.sh` : ONNX INT8 vs lettre FR + **corpus expert composite** ; sans export, **ignorés**. Smoke CI : `tunis` / `samira` peuvent manquer dans les spans ; **`AEGIS_ONNX_STRICT_MARKERS=1`** les exige dans les prédictions (modèle entraîné sérieusement). |
 | `bash scripts/run_l3_pipeline.sh` | Synthétique + fusion **`letter_fr_golden.jsonl` + `corpus_expert_composite_fr_golden.jsonl`** (concat) → train → export |
 | Workflow **Helm & NER L3 pipeline** (GitHub) | Pipeline + test lettre + artefact `aegis-ner-l3-onnx.tgz` |
 
