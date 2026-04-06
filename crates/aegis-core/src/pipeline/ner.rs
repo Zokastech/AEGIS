@@ -10,6 +10,11 @@ use std::sync::Arc;
 pub trait NerBackend: Send + Sync {
     /// Analyzes a batch of documents (amortizes model latency).
     fn analyze_batch(&self, texts: &[&str], language: Option<&str>) -> Result<Vec<Vec<Entity>>>;
+
+    /// True for the production ONNX backend (`aegis-ner`). Used by readiness when `ner.model_path` is set.
+    fn is_onnx_backend(&self) -> bool {
+        false
+    }
 }
 
 /// Mock for tests and benchmarks (negligible latency).

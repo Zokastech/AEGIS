@@ -9,7 +9,17 @@ WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY benchmarks ./benchmarks
-RUN cargo build --release -p aegis-ffi
+# aegis-ner / ort (load-dynamic) : embarquer libonnxruntime.so à côté de libaegis_ffi.so (runtime LD_LIBRARY_PATH=/opt/aegis).
+RUN cargo build --release -p aegis-ffi \
+	&& mkdir -p /src/ort-dylib \
+	&& if [ -e /src/target/release/libonnxruntime.so ]; then \
+		cp -L /src/target/release/libonnxruntime.so /src/ort-dylib/libonnxruntime.so; \
+	fi \
+	&& if [ ! -s /src/ort-dylib/libonnxruntime.so ]; then \
+		_f="$(find /root/.cache/ort.pyke.io -name libonnxruntime.so -type f 2>/dev/null | head -1)"; \
+		if [ -n "$_f" ]; then cp "$_f" /src/ort-dylib/libonnxruntime.so; fi; \
+	fi \
+	&& test -s /src/ort-dylib/libonnxruntime.so
 
 # --- Binaire Go --------------------------------------------------------------
 FROM golang:1.25-bookworm AS gobuild
@@ -55,6 +65,7 @@ COPY aegis-gateway/config/rbac.yaml /etc/aegis/rbac/rbac.yaml
 COPY aegis-gateway/config/api_keys.yaml /etc/aegis/api_keys.yaml
 
 ENV LD_LIBRARY_PATH=/opt/aegis
+ENV ORT_DYLIB_PATH=/opt/aegis/libonnxruntime.so
 
 USER nonroot:nonroot
 EXPOSE 8080 9090

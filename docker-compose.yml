@@ -75,6 +75,8 @@ services:
       AEGIS_INSECURE_HTTP: ${AEGIS_INSECURE_HTTP:-0}
     volumes:
       - aegis_audit:/var/lib/aegis
+      # Même volume que onnx-init / aegis-core : le moteur FFI charge NER depuis ce chemin (voir AEGIS_ENGINE_INIT_JSON).
+      - aegis_models:/opt/aegis/models:ro
     networks:
       frontend: {}
       backend: {}

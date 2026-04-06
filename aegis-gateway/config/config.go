@@ -129,6 +129,7 @@ func (l *Loader) Load(fs *pflag.FlagSet) (Config, error) {
 	c.ConfigFile = l.v.ConfigFileUsed()
 	c.Security = MergeSecurityConfig(DefaultSecurity(), c.Security, l.v)
 	applyExplicitSecurityEnv(&c)
+	applyExplicitEngineInitEnv(&c)
 
 	l.mu.Lock()
 	l.cfg = c
@@ -144,6 +145,7 @@ func (l *Loader) Load(fs *pflag.FlagSet) (Config, error) {
 			nc.ConfigFile = l.v.ConfigFileUsed()
 			nc.Security = MergeSecurityConfig(DefaultSecurity(), nc.Security, l.v)
 			applyExplicitSecurityEnv(&nc)
+			applyExplicitEngineInitEnv(&nc)
 			l.mu.Lock()
 			l.cfg = nc
 			cb := l.onChange
@@ -188,6 +190,7 @@ func (l *Loader) MergeYAML(data []byte) error {
 	nc.ConfigFile = l.v.ConfigFileUsed()
 	nc.Security = MergeSecurityConfig(DefaultSecurity(), nc.Security, l.v)
 	applyExplicitSecurityEnv(&nc)
+	applyExplicitEngineInitEnv(&nc)
 	l.mu.Lock()
 	l.cfg = nc
 	cb := l.onChange
@@ -226,4 +229,15 @@ func applyExplicitSecurityEnv(c *Config) {
 	if strings.EqualFold(s, "yes") || s == "1" {
 		c.Security.Development.DisableAuth = true
 	}
+}
+
+// applyExplicitEngineInitEnv forces engine_init_json from the OS env.
+// Viper BindEnv + JSON values in docker-compose env_file can leave the field empty after Unmarshal;
+// os.Getenv is the reliable path for AEGIS_ENGINE_INIT_JSON (see .env.dev.defaults).
+func applyExplicitEngineInitEnv(c *Config) {
+	s := strings.TrimSpace(os.Getenv("AEGIS_ENGINE_INIT_JSON"))
+	if s == "" {
+		return
+	}
+	c.EngineInitJSON = s
 }

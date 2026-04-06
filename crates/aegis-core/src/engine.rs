@@ -16,13 +16,29 @@ use metrics::{counter, histogram};
 use rayon::ThreadPoolBuilder;
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex, OnceLock, RwLock};
 use std::time::Instant;
 
 /// Function type registered by `aegis-regex` at load time (avoids a dependency cycle).
 pub type DefaultRegexLoaderFn = fn(&[&str]) -> Vec<Arc<dyn Recognizer>>;
 
 static DEFAULT_REGEX_LOADER: RwLock<Option<DefaultRegexLoaderFn>> = RwLock::new(None);
+
+/// Charge un backend NER ONNX (`aegis-ner`), enregistré une fois par `aegis-ffi` au démarrage.
+pub type OnnxNerLoadFn = fn(
+    model_path: &str,
+    tokenizer_path: Option<&str>,
+    hf_config_json_path: Option<&str>,
+    batch_size: usize,
+    device_str: &str,
+) -> Result<Arc<dyn NerBackend>>;
+
+static ONNX_NER_LOADER: OnceLock<OnnxNerLoadFn> = OnceLock::new();
+
+/// Enregistre le chargeur ONNX. Retourne `false` si déjà enregistré (appels suivants ignorés).
+pub fn try_register_onnx_ner_loader(f: OnnxNerLoadFn) -> bool {
+    ONNX_NER_LOADER.set(f).is_ok()
+}
 
 /// Registers the default regex recognizer loader (called from `aegis-regex` via `ctor`).
 pub fn register_default_regex_loader(f: DefaultRegexLoaderFn) {
@@ -63,6 +79,10 @@ pub struct AnalyzerEngine {
     default_analysis: AnalysisConfig,
     aegis: Option<AegisConfig>,
     ner_model_path: Option<String>,
+    ner_tokenizer_path: Option<String>,
+    ner_hf_config_json_path: Option<String>,
+    ner_batch_size: usize,
+    ner_device: String,
     ner_lazy: Mutex<Option<Arc<dyn NerBackend>>>,
     ner_pool: Option<Arc<rayon::ThreadPool>>,
     entity_thresholds: HashMap<EntityType, f64>,
@@ -79,6 +99,10 @@ impl AnalyzerEngine {
             default_analysis: AnalysisConfig::default(),
             aegis: None,
             ner_model_path: None,
+            ner_tokenizer_path: None,
+            ner_hf_config_json_path: None,
+            ner_batch_size: 8,
+            ner_device: "cpu".to_string(),
             ner_lazy: Mutex::new(None),
             ner_pool: None,
             entity_thresholds: HashMap::new(),
@@ -96,6 +120,31 @@ impl AnalyzerEngine {
     pub fn with_analysis_config(mut self, c: AnalysisConfig) -> Self {
         self.default_analysis = c;
         self
+    }
+
+    /// When `ner.model_path` is set, loads NER if needed and checks that the real ONNX backend is active (not the mock).
+    /// If no NER path is configured, returns `Ok(())` immediately.
+    pub fn ensure_ner_onnx_ready(&self) -> Result<()> {
+        if self
+            .ner_model_path
+            .as_deref()
+            .map(str::trim)
+            .map(|s| !s.is_empty())
+            != Some(true)
+        {
+            return Ok(());
+        }
+        let ner = self.ner_backend_for_levels(PipelineLevels::L1L2L3)?;
+        match ner {
+            Some(b) if b.is_onnx_backend() => Ok(()),
+            Some(_) => Err(AegisError::ModelError(
+                "ner.model_path est défini mais le backend NER n'est pas ONNX (mock ou binaire sans feature ner-onnx)"
+                    .to_string(),
+            )),
+            None => Err(AegisError::ModelError(
+                "NER: backend absent malgré model_path et L3 (anomalie interne)".to_string(),
+            )),
+        }
     }
 
     fn filter_recognizers(&self) -> Vec<Arc<dyn Recognizer>> {
@@ -119,7 +168,43 @@ impl AnalyzerEngine {
         };
         let mut g = self.ner_lazy.lock().unwrap_or_else(|e| e.into_inner());
         if g.is_none() {
-            *g = Some(load_ner_lazy(path)?);
+            let span = tracing::info_span!("aegis_ner_model_load", path = %path);
+            let _guard = span.enter();
+            tracing::info!(
+                target: "aegis_core::engine",
+                path = %path,
+                "chargement du backend NER (premier appel pipeline L3)"
+            );
+            let t0 = Instant::now();
+            let backend = match dispatch_ner_load(
+                path,
+                self.ner_tokenizer_path.as_deref(),
+                self.ner_hf_config_json_path.as_deref(),
+                self.ner_batch_size,
+                self.ner_device.as_str(),
+            ) {
+                Ok(b) => b,
+                Err(e) => {
+                    counter!("aegis_ner_model_load_errors_total").increment(1);
+                    tracing::warn!(
+                        target: "aegis_core::engine",
+                        path = %path,
+                        error = %e,
+                        "échec chargement NER"
+                    );
+                    return Err(e);
+                }
+            };
+            let ms = t0.elapsed().as_secs_f64() * 1000.0;
+            histogram!("aegis_ner_model_load_duration_ms").record(ms);
+            counter!("aegis_ner_model_load_ok_total").increment(1);
+            tracing::info!(
+                target: "aegis_core::engine",
+                path = %path,
+                elapsed_ms = ms,
+                "backend NER prêt"
+            );
+            *g = Some(backend);
         }
         Ok(g.clone())
     }
@@ -200,7 +285,12 @@ impl AnalyzerEngine {
                             name: "L3:unavailable".into(),
                             passed: false,
                             detail: Some(
-                                "No NER backend: set ner.model_path in gateway engine_init_json or env AEGIS_ENGINE_INIT_JSON (docker dev: mount ./models and use e.g. {\"ner\":{\"model_path\":\"/work/models/ner.onnx\"}})."
+                                "L3 NER indisponible : aucun ner.model_path transmis au moteur. \
+                                 Passerelle : clé YAML engine_init_json ou variable d’environnement AEGIS_ENGINE_INIT_JSON \
+                                 (JSON même schéma que aegis-config / NerYaml). \
+                                 Docker dev : déclarer env_file (.env.dev.defaults + .env) sur le service aegis-gateway ; \
+                                 monter ./models vers /work/models ; ner.onnx (ex. ./scripts/fetch-zoka-onnx-from-ci.sh). \
+                                 Exemple : {\"ner\":{\"model_path\":\"/work/models/ner.onnx\",\"device\":\"cpu\",\"batch_size\":8}}."
                                     .into(),
                             ),
                         });
@@ -326,14 +416,33 @@ impl AnalyzerEngine {
     }
 }
 
-fn load_ner_lazy(path: &str) -> Result<Arc<dyn NerBackend>> {
-    let p = Path::new(path);
+fn dispatch_ner_load(
+    model_path: &str,
+    tokenizer_path: Option<&str>,
+    hf_config_json_path: Option<&str>,
+    batch_size: usize,
+    device_str: &str,
+) -> Result<Arc<dyn NerBackend>> {
+    let p = Path::new(model_path);
     if !p.exists() {
         return Err(AegisError::ModelError(format!(
-            "chemin modèle NER introuvable: {path}"
+            "chemin modèle NER introuvable: {model_path}"
         )));
     }
-    tracing::info!(target: "aegis_core::engine", path = %path, "chargement NER paresseux (stub ONNX — brancher aegis-ner)");
+    if let Some(f) = ONNX_NER_LOADER.get() {
+        return f(
+            model_path,
+            tokenizer_path,
+            hf_config_json_path,
+            batch_size,
+            device_str,
+        );
+    }
+    tracing::warn!(
+        target: "aegis_core::engine",
+        path = %model_path,
+        "chargeur ONNX non enregistré (liez aegis-ffi avec la feature ner-onnx) — utilisation du mock NER (pas d’inférence réelle)"
+    );
     Ok(Arc::new(MockNerBackend::default()) as Arc<dyn NerBackend>)
 }
 
@@ -345,6 +454,10 @@ pub struct AnalyzerEngineBuilder {
     default_analysis: AnalysisConfig,
     aegis: Option<AegisConfig>,
     ner_model_path: Option<String>,
+    ner_tokenizer_path: Option<String>,
+    ner_hf_config_json_path: Option<String>,
+    ner_batch_size: usize,
+    ner_device: String,
     ner_thread_pool_size: Option<usize>,
     entity_thresholds: HashMap<EntityType, f64>,
     disabled_recognizers: HashSet<String>,
@@ -360,6 +473,10 @@ impl AnalyzerEngineBuilder {
             default_analysis: AnalysisConfig::default(),
             aegis: None,
             ner_model_path: None,
+            ner_tokenizer_path: None,
+            ner_hf_config_json_path: None,
+            ner_batch_size: 8,
+            ner_device: "cpu".to_string(),
             ner_thread_pool_size: None,
             entity_thresholds: HashMap::new(),
             disabled_recognizers: HashSet::new(),
@@ -411,6 +528,10 @@ impl AnalyzerEngineBuilder {
             if let Some(ref p) = n.model_path {
                 self.ner_model_path = Some(p.clone());
             }
+            self.ner_tokenizer_path = n.tokenizer_path.clone();
+            self.ner_hf_config_json_path = n.hf_config_json_path.clone();
+            self.ner_batch_size = n.batch_size;
+            self.ner_device = n.device.clone();
             self.ner_thread_pool_size = n.thread_pool_size;
         }
         if let Some(a) = ec.analysis.clone() {
@@ -476,6 +597,10 @@ impl AnalyzerEngineBuilder {
             default_analysis: self.default_analysis,
             aegis: self.aegis,
             ner_model_path: self.ner_model_path,
+            ner_tokenizer_path: self.ner_tokenizer_path,
+            ner_hf_config_json_path: self.ner_hf_config_json_path,
+            ner_batch_size: self.ner_batch_size,
+            ner_device: self.ner_device,
             ner_lazy: Mutex::new(None),
             ner_pool,
             entity_thresholds: self.entity_thresholds,

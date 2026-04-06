@@ -2,6 +2,9 @@
 /target/
 **/*.rs.bk
 
+# ONNX Runtime copié par docker/scripts/dev-gateway-entry.sh (volume /work)
+.aegis-dev/
+
 # Go / air
 aegis-gateway/aegis-gateway
 aegis-gateway/tmp/

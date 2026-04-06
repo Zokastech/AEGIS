@@ -71,6 +71,16 @@ func main() {
 	}
 	svc.AnalyzeUC = rest.NewAnalyzeUseCase(svc)
 
+	readiness := func(ctx context.Context) error {
+		return svc.Pool.With(ctx, func(ctx context.Context, eng bridge.Engine) error {
+			if strings.TrimSpace(eng.Version()) == "" {
+				return fmt.Errorf("moteur: version vide")
+			}
+			return eng.NerOnnxReady()
+		})
+	}
+	svc.Readiness = readiness
+
 	ld.OnChange(func(nc config.Config) {
 		log.Info().Interface("http_listen", nc.HTTPListen).Msg("config hot-reload")
 	})
@@ -96,16 +106,8 @@ func main() {
 		}
 	})
 
-	pingEngine := func(ctx context.Context) error {
-		return svc.Pool.With(ctx, func(ctx context.Context, eng bridge.Engine) error {
-			if strings.TrimSpace(eng.Version()) == "" {
-				return fmt.Errorf("moteur: version vide")
-			}
-			return nil
-		})
-	}
-	health.Attach(e, health.Opts{PingEngine: pingEngine})
-	go waitStartup(context.Background(), pingEngine)
+	health.Attach(e, health.Opts{PingEngine: readiness})
+	go waitStartup(context.Background(), readiness)
 
 	rest.AttachRoutes(e, svc, cfg)
 

@@ -31,6 +31,8 @@ type Services struct {
 	Loader        *gwconfig.Loader
 	Gateway       *GatewaySecurity // nil → routes legacy (tests / compat)
 	Policy        *policy.PolicyEngine
+	// Readiness runs engine version + NER ONNX checks (Kubernetes /readyz). If nil, /readyz stays 204.
+	Readiness func(context.Context) error
 	// AnalyzeUC is the “analyze a text” use case (application layer).
 	AnalyzeUC *app.Analyze
 }

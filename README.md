@@ -109,7 +109,7 @@ This starts **aegis-core** (cargo-watch), **aegis-gateway** (air), **aegis-dashb
   gh auth login   # once
   ./scripts/fetch-zoka-onnx-from-ci.sh
   ```
-  Then point `ner.model_path` / `AEGIS_ENGINE_INIT_JSON` at `./models/ner.onnx` as in [.env.example](.env.example).
+  Dev Compose injects `AEGIS_ENGINE_INIT_JSON` via `env_file` (`.env.dev.defaults` then `.env`) on `aegis-gateway` → `/work/models/ner.onnx` once `./models` contains the bundle; override in `.env` if needed (see [.env.example](.env.example)).
 - **CLI binaries** — uploaded as workflow artifacts from [`ci.yml`](.github/workflows/ci.yml) (matrix of OS / Rust channel).
 
 ### Kubernetes (Helm)

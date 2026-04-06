@@ -28,6 +28,7 @@
 #![warn(rust_2018_idioms)]
 #![warn(unused_qualifications)]
 
+pub mod backend;
 pub mod config;
 pub mod engine;
 pub mod error;
@@ -37,6 +38,7 @@ pub mod prediction;
 pub mod recognizer_adapter;
 
 pub use aegis_core;
+pub use backend::{onnx_ner_backend_loader, resolve_tokenizer_path, OnnxNerBackend};
 pub use config::{default_id2label_map, NerConfig, NerDevice, ScoreAggregation};
 pub use engine::NerEngine;
 pub use error::{NerError, Result};

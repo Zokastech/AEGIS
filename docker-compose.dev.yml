@@ -4,8 +4,8 @@
 # Lancer depuis la racine du dépôt :
 #   docker compose -f docker-compose.dev.yml --env-file .env up --build
 #   ou : make dev
-# NER L3 (ZOKA-SENTINEL) : placer ner.onnx + tokenizer.json sous ./models (voir .env.example :
-#   AEGIS_ENGINE_INIT_JSON) ou réutiliser le volume/script du docker-compose.yml prod.
+# NER L3 (ZOKA-SENTINEL) : ./models → /work/models ; défaut AEGIS_ENGINE_INIT_JSON dans .env.dev.defaults
+#   (ner.model_path + device cpu + batch_size). Surcharge : variable dans .env (env_file après les defaults).
 # La gateway dev force AEGIS_INSECURE_HTTP=1 (HTTP sur :8080) : indépendant de AEGIS_INSECURE_HTTP dans .env prod.
 # Compatible Linux, macOS, Windows (Docker Desktop / WSL2).
 #
@@ -19,6 +19,7 @@ name: aegis-dev
 services:
   # ---------------------------------------------------------------------------
   # Moteur Rust (workspace) — recompile à chaque changement (cargo-watch).
+  # Pas de Go : n’exécutez pas docker/scripts/dev-gateway-entry.sh ici (réservé à aegis-gateway).
   # ---------------------------------------------------------------------------
   aegis-core:
     build:
@@ -38,6 +39,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.dev.gateway
+    # Injecte AEGIS_ENGINE_INIT_JSON (ner.model_path /work/models/…) : le .env du projet ne suffit pas sans ceci.
+    env_file:
+      - path: .env.dev.defaults
+      - path: .env
+        required: false
     # CMD de l’image : dev-gateway-entry.sh (cargo release aegis-ffi + air). Ne pas remplacer par « go run » sans FFI.
     ports:
       - "${AEGIS_GATEWAY_PORT:-8080}:8080"
@@ -59,8 +65,7 @@ services:
       # Sans cela, /v1/* répond 401 (clé API requise). Réservé au compose dev — jamais en prod.
       AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH: "true"
       AEGIS_POLICY: "${AEGIS_POLICY:-policies/gdpr-strict.yaml}"
-      # Init moteur FFI (JSON) : ex. {"ner":{"model_path":"/work/models/ner.onnx"}} si ./models contient le bundle ZOKA
-      AEGIS_ENGINE_INIT_JSON: "${AEGIS_ENGINE_INIT_JSON:-}"
+      # NER : voir env_file (.env.dev.defaults puis .env) — surcharger AEGIS_ENGINE_INIT_JSON dans .env si besoin
       GIN_MODE: "${GIN_MODE:-debug}"
       AEGIS_API_KEY: "${AEGIS_API_KEY:-}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"

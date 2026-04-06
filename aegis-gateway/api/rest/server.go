@@ -3,11 +3,14 @@
 package rest
 
 import (
+	"context"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	gwconfig "github.com/zokastech/aegis/aegis-gateway/config"
+	"github.com/zokastech/aegis/aegis-gateway/metrics"
 	"github.com/zokastech/aegis/aegis-gateway/rbac"
 )
 
@@ -50,7 +53,7 @@ func attachSecuredRoutes(e *echo.Echo, s *Services, cfg gwconfig.Config) {
 	g := s.Gateway
 
 	e.GET("/livez", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
-	e.GET("/readyz", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	e.GET("/readyz", readyzHandler(s))
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()), g.MetricsAccess())
 
 	v1 := e.Group("/v1", g.AuthMiddleware(), g.AuditMiddleware())
@@ -72,5 +75,21 @@ func attachSecuredRoutes(e *echo.Echo, s *Services, cfg gwconfig.Config) {
 		v1.GET("/policies", ListPolicies(s), g.RequirePermission(rbac.PermPolicyList))
 		v1.GET("/policy/dpia", GetDPIA(s), g.RequirePermission(rbac.PermPolicyDPIA))
 		v1.DELETE("/subjects/:id", DeleteSubject(s), g.RequirePermission(rbac.PermSubjectsErase))
+	}
+}
+
+func readyzHandler(s *Services) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if s.Readiness == nil {
+			return c.NoContent(http.StatusNoContent)
+		}
+		ctx, cancel := context.WithTimeout(c.Request().Context(), 3*time.Second)
+		defer cancel()
+		if err := s.Readiness(ctx); err != nil {
+			metrics.SetComponentReady("ner", false)
+			return c.NoContent(http.StatusServiceUnavailable)
+		}
+		metrics.SetComponentReady("ner", true)
+		return c.NoContent(http.StatusNoContent)
 	}
 }

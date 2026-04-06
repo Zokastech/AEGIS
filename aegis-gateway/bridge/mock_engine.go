@@ -89,3 +89,5 @@ func (m *MockEngine) Deanonymize(_ context.Context, _ string) (string, error) {
 func (m *MockEngine) LastError() string { return "" }
 
 func (m *MockEngine) Version() string { return "mock-0.0.0" }
+
+func (m *MockEngine) NerOnnxReady() error { return nil }

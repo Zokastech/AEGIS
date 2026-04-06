@@ -25,6 +25,28 @@ fn plate_stub() -> PatternRecognizer {
 }
 
 #[test]
+fn ner_onnx_readiness_ok_without_model_path() {
+    let eng = AnalyzerEngineBuilder::new()
+        .with_default_recognizers(&["en", "fr"])
+        .build()
+        .expect("engine");
+    eng.ensure_ner_onnx_ready().expect("sans model_path => prêt");
+}
+
+#[test]
+fn ner_onnx_readiness_err_when_model_path_missing() {
+    let eng = AnalyzerEngineBuilder::new()
+        .with_default_recognizers(&["en", "fr"])
+        .with_ner_model("/nonexistent/aegis/ner.onnx")
+        .build()
+        .expect("engine");
+    assert!(
+        eng.ensure_ner_onnx_ready().is_err(),
+        "fichier .onnx absent => erreur"
+    );
+}
+
+#[test]
 fn engine_detects_many_entity_types() {
     let eng = AnalyzerEngineBuilder::new()
         .with_default_recognizers(&["en", "fr", "de", "es", "it", "nl", "pt", "pl"])

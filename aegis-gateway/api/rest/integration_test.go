@@ -6,8 +6,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,17 +35,21 @@ func testEcho(t *testing.T) (*echo.Echo, *Services, config.Config) {
 		Loader:        ld,
 	}
 	svc.AnalyzeUC = NewAnalyzeUseCase(svc)
+	readiness := func(ctx context.Context) error {
+		return pool.With(ctx, func(ctx context.Context, eng bridge.Engine) error {
+			if strings.TrimSpace(eng.Version()) == "" {
+				return fmt.Errorf("version vide")
+			}
+			return eng.NerOnnxReady()
+		})
+	}
+	svc.Readiness = readiness
 	cfg := config.Config{
 		AdminAPIKeys: []string{"admin-secret"},
 		APIKeyHeader: "X-API-Key",
 	}
 	e := echo.New()
-	health.Attach(e, health.Opts{PingEngine: func(ctx context.Context) error {
-		return pool.With(ctx, func(ctx context.Context, eng bridge.Engine) error {
-			_ = eng.Version()
-			return nil
-		})
-	}})
+	health.Attach(e, health.Opts{PingEngine: readiness})
 	health.MarkStartupOK()
 	AttachRoutes(e, svc, cfg)
 	return e, svc, cfg

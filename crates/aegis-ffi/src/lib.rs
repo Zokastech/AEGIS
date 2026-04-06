@@ -18,7 +18,7 @@ use aegis_core::ffi::{
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+use std::os::raw::{c_char, c_int};
 use std::panic::{catch_unwind, AssertUnwindSafe};
 use std::ptr;
 
@@ -66,6 +66,13 @@ pub unsafe extern "C" fn aegis_init(config_json: *const c_char) -> *mut AegisHan
 
 unsafe fn init_inner(config_json: *const c_char) -> *mut AegisHandle {
     ffi_set_last_error("");
+    #[cfg(feature = "ner-onnx")]
+    {
+        static REGISTER_ONNX_NER: std::sync::Once = std::sync::Once::new();
+        REGISTER_ONNX_NER.call_once(|| {
+            aegis_core::try_register_onnx_ner_loader(aegis_ner::onnx_ner_backend_loader);
+        });
+    }
     let json = if config_json.is_null() {
         ""
     } else {
@@ -343,6 +350,31 @@ pub extern "C" fn aegis_version() -> *const c_char {
         concat!(env!("CARGO_PKG_VERSION"), "\0").as_ptr() as *const c_char
     }))
     .unwrap_or(ptr::null())
+}
+
+/// Returns 1 if NER ONNX is not required or is loaded; 0 on failure (`aegis_last_error()`).
+#[no_mangle]
+pub unsafe extern "C" fn aegis_ner_onnx_ready(handle: *mut AegisHandle) -> c_int {
+    catch_unwind(AssertUnwindSafe(|| ner_onnx_ready_inner(handle))).unwrap_or_else(|_| {
+        panic_to_last_error();
+        0
+    })
+}
+
+fn ner_onnx_ready_inner(handle: *mut AegisHandle) -> c_int {
+    ffi_set_last_error("");
+    if handle.is_null() {
+        ffi_set_last_error("aegis_ner_onnx_ready: handle null");
+        return 0;
+    }
+    let ctx = unsafe { &*(handle as *mut AegisContext) };
+    match ctx.analyzer.ensure_ner_onnx_ready() {
+        Ok(()) => 1,
+        Err(e) => {
+            ffi_set_last_error(&e.to_string());
+            0
+        }
+    }
 }
 
 #[cfg(test)]

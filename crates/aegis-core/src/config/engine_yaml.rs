@@ -73,6 +73,12 @@ pub struct NerYaml {
     pub batch_size: usize,
     #[serde(default)]
     pub thread_pool_size: Option<usize>,
+    /// Chemin explicite vers `tokenizer.json` (sinon : même répertoire que le `.onnx`, puis `tokenizer_hf/tokenizer.json`).
+    #[serde(default)]
+    pub tokenizer_path: Option<String>,
+    /// Optionnel : `config.json` Hugging Face pour `id2label`.
+    #[serde(default)]
+    pub hf_config_json_path: Option<String>,
 }
 
 fn default_device() -> String {
@@ -90,6 +96,8 @@ impl Default for NerYaml {
             device: default_device(),
             batch_size: default_batch(),
             thread_pool_size: None,
+            tokenizer_path: None,
+            hf_config_json_path: None,
         }
     }
 }

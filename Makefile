@@ -6,8 +6,9 @@ COMPOSE_DEV := docker compose -f docker-compose.dev.yml
 .PHONY: dev build test lint bench benchmark docker docker-dev docs clean gateway gateway-ffi
 
 # Démarre Rust (cargo-watch), Go (air), Vite, Redis, Postgres, Prometheus (9090), Grafana (3334).
+# NER L3 dev : .env.dev.defaults → AEGIS_ENGINE_INIT_JSON ; placez ner.onnx sous ./models (fetch-zoka-onnx-from-ci.sh).
 dev:
-	@test -f .env || (echo "Copiez .env.example vers .env (optionnel mais recommandé)." && true)
+	@test -f .env || (echo "Copiez .env.example vers .env (optionnel ; surcharge des secrets / AEGIS_*)." && true)
 	$(COMPOSE_DEV) up --build
 
 # Build release local (hors conteneur).

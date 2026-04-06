@@ -17,6 +17,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -113,4 +114,20 @@ func (r *RustEngine) LastError() string {
 
 func (r *RustEngine) Version() string {
 	return C.GoString(C.aegis_version())
+}
+
+func (r *RustEngine) NerOnnxReady() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.h == nil {
+		return errors.New("moteur: handle fermé")
+	}
+	if C.aegis_ner_onnx_ready(r.h) != 0 {
+		return nil
+	}
+	msg := strings.TrimSpace(C.GoString(C.aegis_last_error()))
+	if msg == "" {
+		return errors.New("NER ONNX: indisponible")
+	}
+	return errors.New(msg)
 }
