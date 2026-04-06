@@ -357,7 +357,10 @@ def main() -> None:
     with open(args.out_report, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"F2 micro (entités) : {f2_micro:.4f}")
+    print(f"F2 micro (entités) — modèle : {f2_micro:.4f}")
+    if f2_pr is not None:
+        print(f"F2 micro (entités) — Presidio (baseline, même gold) : {f2_pr:.4f}")
+        print(f"Écart F2 (modèle − Presidio) : {f2_micro - f2_pr:+.4f}")
     print(f"Rapport : {args.out_report}")
 
 
