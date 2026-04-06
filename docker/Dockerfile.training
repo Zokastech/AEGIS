@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Dépendances légères (pas de torch) — CI rapide ; pour entraînement GPU utiliser training/requirements.txt
+# Dépendances légères (pas de torch / onnxruntime) — CI rapide.
+# Les tests test_l3_*_onnx.py sont ignorés à l’exécution si onnxruntime ou transformers manquent (importorskip).
+# Pour entraînement GPU : training/requirements.txt ; tests ONNX complets : workflow Helm & NER L3.
 COPY training/requirements-ci.txt training/requirements-ci.txt
 RUN pip install --no-cache-dir -r training/requirements-ci.txt
 

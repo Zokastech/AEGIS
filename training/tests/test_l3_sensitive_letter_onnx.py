@@ -17,10 +17,6 @@ import re
 from pathlib import Path
 
 import pytest
-from onnxruntime import InferenceSession
-from transformers import AutoTokenizer
-
-from onnx_ner_infer import collect_entity_texts_onnx_lines
 
 _TRAINING = Path(__file__).resolve().parents[1]
 _REPO = _TRAINING.parent
@@ -35,6 +31,9 @@ def _digits(s: str) -> str:
 
 @pytest.fixture(scope="module")
 def onnx_session():
+    pytest.importorskip("onnxruntime")
+    from onnxruntime import InferenceSession
+
     onnx_p = Path(os.environ.get("AEGIS_ONNX_MODEL", str(_DEFAULT_ONNX)))
     if not onnx_p.is_file():
         pytest.skip(f"Modèle ONNX absent : {onnx_p} (lancer scripts/run_l3_pipeline.sh)")
@@ -43,6 +42,9 @@ def onnx_session():
 
 @pytest.fixture(scope="module")
 def ner_tokenizer():
+    pytest.importorskip("transformers")
+    from transformers import AutoTokenizer
+
     tok_dir = Path(os.environ.get("AEGIS_ONNX_TOKENIZER", str(_DEFAULT_TOK)))
     if not (tok_dir / "tokenizer.json").is_file():
         pytest.skip(f"Tokenizer absent : {tok_dir}")
@@ -57,6 +59,8 @@ def letter_lines():
 
 def test_l3_onnx_covers_sensitive_letter(onnx_session, ner_tokenizer, letter_lines):
     """Chaque marqueur doit apparaître dans le texte prédit (spans) ou via normalisation chiffres."""
+    from onnx_ner_infer import collect_entity_texts_onnx_lines
+
     spans = collect_entity_texts_onnx_lines(
         onnx_session,
         ner_tokenizer,

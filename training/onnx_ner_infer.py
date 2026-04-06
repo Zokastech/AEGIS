@@ -9,11 +9,9 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 import numpy as np
-from onnxruntime import InferenceSession
-from transformers import AutoTokenizer
 
 from dataset_builder import ID2LABEL
-from evaluate import refine_iob, tags_to_spans
+from ner_span_iob import refine_iob, tags_to_spans
 
 
 def predict_tags_per_word_onnx(

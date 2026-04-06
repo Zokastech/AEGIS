@@ -10,7 +10,6 @@ import argparse
 import base64
 import io
 import os
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 import matplotlib
@@ -26,6 +25,7 @@ load_from_disk = load_datasets().load_from_disk
 from transformers import AutoModelForTokenClassification, AutoTokenizer
 
 from dataset_builder import ID2LABEL, LABELS
+from ner_span_iob import Span, refine_iob, tags_to_spans
 
 try:
     from presidio_analyzer import AnalyzerEngine
@@ -34,31 +34,6 @@ except ImportError:  # pragma: no cover
 
 
 BETA_MAIN = 2.0
-
-
-@dataclass(frozen=True)
-class Span:
-    start: int
-    end: int
-    etype: str
-
-
-def tags_to_spans(tags: Sequence[str]) -> List[Span]:
-    spans: List[Span] = []
-    i = 0
-    n = len(tags)
-    while i < n:
-        t = tags[i]
-        if t == "O" or not t.startswith("B-"):
-            i += 1
-            continue
-        etype = t[2:]
-        j = i + 1
-        while j < n and tags[j] == f"I-{etype}":
-            j += 1
-        spans.append(Span(i, j, etype))
-        i = j
-    return spans
 
 
 def f_beta(precision: float, recall: float, beta: float = BETA_MAIN) -> float:
