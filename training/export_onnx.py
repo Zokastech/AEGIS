@@ -7,6 +7,7 @@ Sauvegarde tokenizer au format Hugging Face (tokenizer.json utilisable depuis la
 from __future__ import annotations
 
 import argparse
+import inspect
 import os
 import statistics
 import time
@@ -50,19 +51,28 @@ def export_torch_to_onnx(
 
     wrapped = _Wrap(model).eval()
 
-    torch.onnx.export(
-        wrapped,
-        (input_ids, attention_mask),
-        onnx_path,
-        input_names=["input_ids", "attention_mask"],
-        output_names=["logits"],
-        dynamic_axes={
+    # PyTorch 2.5+ : l’exporteur Dynamo + onnxscript peut appeler le version_converter ONNX
+    # et échouer sur LayerNormalization vers opset 14 (« No Previous Version of LayerNormalization »).
+    # L’export TorchScript classique (`dynamo=False`) produit un graphe compatible opset 14.
+    export_kw: Dict[str, Any] = {
+        "input_names": ["input_ids", "attention_mask"],
+        "output_names": ["logits"],
+        "dynamic_axes": {
             "input_ids": {0: "batch", 1: "sequence"},
             "attention_mask": {0: "batch", 1: "sequence"},
             "logits": {0: "batch", 1: "sequence"},
         },
-        opset_version=opset,
-        do_constant_folding=True,
+        "opset_version": opset,
+        "do_constant_folding": True,
+    }
+    if "dynamo" in inspect.signature(torch.onnx.export).parameters:
+        export_kw["dynamo"] = False
+
+    torch.onnx.export(
+        wrapped,
+        (input_ids, attention_mask),
+        onnx_path,
+        **export_kw,
     )
 
 
