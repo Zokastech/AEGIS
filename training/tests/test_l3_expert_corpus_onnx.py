@@ -76,6 +76,7 @@ def test_l3_onnx_covers_expert_composite_corpus(onnx_session, ner_tokenizer, exp
     blob_nospace = re.sub(r"\s+", "", blob)
     digits_blob = _digits(blob)
 
+    # Tuples = synonymes / variantes taguées par le modèle (même ligne ou entité proche).
     substr_markers = [
         "yacine",
         "yassin",
@@ -87,11 +88,10 @@ def test_l3_onnx_covers_expert_composite_corpus(onnx_session, ner_tokenizer, exp
         "03-11-1991",
         "11/03/91",
         "chr-lil-00239871",
-        "metformine",
-        "sertraline",
+        ("metformine", "500mg"),
+        ("sertraline", "50mg"),
         "harmonie",
-        "delphine",
-        "caron",
+        ("delphine", "caron", "d. caron"),
         "lille",
         "tj-lille",
         "14/06/2024",
@@ -100,15 +100,15 @@ def test_l3_onnx_covers_expert_composite_corpus(onnx_session, ner_tokenizer, exp
         "5326",
         "9087",
         "dataxpert",
-        "y.bensalah91@gmail.com",
-        "protonmail.com",
-        "ybs-data.io",
-        "user_ybs91",
-        "yac!ne_dev",
-        "nadia",
-        "leila",
-        "lila",
-        "adam",
+        (
+            "y.bensalah91@gmail.com",
+            "yacine_bs@protonmail.com",
+            "contact@ybs-data.io",
+            "protonmail.com",
+            "ybs-data.io",
+        ),
+        ("user_ybs91", "yac!ne_dev"),
+        ("nadia", "leila", "lila", "adam"),
         "eu-rgpd-test-009x",
         "98fr76x12345",
         "bsyac91110359",

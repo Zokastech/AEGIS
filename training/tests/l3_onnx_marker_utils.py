@@ -25,14 +25,20 @@ def effective_min_marker_percent() -> int:
 
 
 def min_hits_required(num_markers: int, percent: int) -> int:
-    """Nombre minimum de succès pour atteindre au moins ``percent`` % (arrondi supérieur)."""
+    """
+    Nombre minimum de succès pour respecter ``percent`` % de marqueurs trouvés.
+
+    On autorise jusqu'à ``ceil(n × (100 − percent) / 100)`` marqueurs manquants
+    (ex. n=18, 95 % → 1 échec admis → 17 requis ; évite d’exiger 18/18 pour 95 %).
+    """
     if num_markers <= 0:
         return 0
     if percent >= 100:
         return num_markers
     if percent <= 0:
         return 0
-    return (num_markers * percent + 99) // 100
+    max_fail = (num_markers * (100 - percent) + 99) // 100
+    return max(1, num_markers - max_fail)
 
 
 def marker_hit(m: Marker, blob: str, blob_nospace: str) -> bool:

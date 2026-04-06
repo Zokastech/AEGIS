@@ -173,7 +173,7 @@ python benchmark_presidio_ner.py --dataset ./data/eu_pii_synthetic --split valid
 | Commande | But |
 |----------|-----|
 | `python -m pytest training/tests -q` | Labels, `dataset_builder`, imports (CI **python-training**) — préférer `-m` si `pytest` n’est pas dans le `PATH` |
-| `python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q` | Après `run_l3_pipeline.sh` : ONNX INT8 vs lettre FR + corpus expert. Les **marqueurs texte** doivent être retrouvés dans les spans à **≥ 95 %** (défaut, `AEGIS_ONNX_MIN_MARKER_PERCENT`) ; **`AEGIS_ONNX_STRICT_MARKERS=1`** impose **100 %**. Les chiffres / IBAN / téléphone restent vérifiés strictement. |
+| `python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q` | Après `run_l3_pipeline.sh` : ONNX INT8 vs lettre FR + corpus expert. Les **marqueurs texte** : budget d’échecs selon `AEGIS_ONNX_MIN_MARKER_PERCENT` (défaut **95** : jusqu’à ~5 % de marqueurs manquants autorisés ; le workflow Helm utilise **75** en smoke). **`AEGIS_ONNX_STRICT_MARKERS=1`** impose **100 %**. Chiffres / IBAN / téléphone : strict. |
 | `bash scripts/run_l3_pipeline.sh` | Synthétique + fusion **`letter_fr_golden.jsonl` + `corpus_expert_composite_fr_golden.jsonl`** (concat) → train → export |
 | Workflow **Helm & NER L3 pipeline** (GitHub) | Pipeline + test lettre + artefact `aegis-ner-l3-onnx.tgz` |
 

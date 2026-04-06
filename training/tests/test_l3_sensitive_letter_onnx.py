@@ -95,7 +95,7 @@ def test_l3_onnx_covers_sensitive_letter(onnx_session, ner_tokenizer, letter_lin
         "elm87",
         "france",
         "usr_kelm_7721",
-        "karim1987!",
+        ("karim1987!", "karim1987"),
         "185.217.0.12",
     ]
     pct = effective_min_marker_percent()

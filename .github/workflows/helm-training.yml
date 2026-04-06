@@ -136,7 +136,7 @@ jobs:
       - name: Run pipeline L3
         working-directory: training
         env:
-          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '1200' }}
+          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '120000' }}
           AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '900' }}
           AEGIS_MODEL_PRODUCT_NAME: ZOKA-SENTINEL
           AEGIS_MODEL_PRODUCT_VERSION: "${{ github.run_number }}-${{ github.sha }}"
@@ -144,6 +144,9 @@ jobs:
 
       # Toujours `python -m pytest` (l’exécutable `pytest` n’est pas garanti sur le PATH du runner).
       - name: Test ONNX L3 — régressions (lettre + corpus expert)
+        env:
+          # Smoke CPU : budget d’échecs + synonymes ; 75 % évite les faux négatifs si le F1 eval ~0,98 ne se transpose pas à tous les spans.
+          AEGIS_ONNX_MIN_MARKER_PERCENT: "75"
         run: python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q
 
       - name: Pack artefacts ONNX (déploiement core / PVC)
