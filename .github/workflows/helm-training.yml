@@ -108,7 +108,7 @@ jobs:
   ner-l3-train-export:
     name: NER L3 — train + export ONNX
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 1800
     # PR : pas de torch ; push main/master : smoke ; dispatch : option run_l3 (évite d’évaluer inputs.run_l3 hors dispatch).
     if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.run_l3) }}
     steps:

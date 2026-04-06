@@ -171,3 +171,88 @@ fn per_request_pipeline_level_two_runs_context_trace_not_level_one() {
         steps_l1
     );
 }
+
+/// Sans chemin modèle NER, le pipeline L3 ajoute une ligne explicite sur chaque entité tracée.
+#[test]
+fn l3_decision_trace_shows_unavailable_without_ner_backend() {
+    let eng = AnalyzerEngineBuilder::new()
+        .with_default_recognizers(&["fr"])
+        .with_pipeline_level(PipelineLevel::Three)
+        .build()
+        .expect("engine");
+
+    let text = "Virement IBAN FR7630006000011234567890189 effectué.";
+
+    let mut ac = aegis_core::config::AnalysisConfig::default();
+    ac.pipeline_level = Some(3);
+    ac.return_decision_process = true;
+    ac.score_threshold = 0.2;
+    ac.language = Some("fr".into());
+
+    let iban = eng
+        .analyze(text, Some(ac))
+        .expect("analyze")
+        .entities
+        .into_iter()
+        .find(|e| e.entity_type == EntityType::Iban)
+        .expect("iban");
+
+    let steps = iban
+        .decision_trace
+        .as_ref()
+        .map(|t| t.steps.as_slice())
+        .unwrap_or(&[]);
+    assert!(
+        steps.iter().any(|s| s.name == "L3:unavailable"),
+        "expected L3:unavailable without NER backend, got {:?}",
+        steps
+    );
+    assert_eq!(iban.decision_trace.as_ref().and_then(|t| t.pipeline_level), Some(3));
+}
+
+/// Backend NER présent mais non invoqué (tous les candidats L1 en short-circuit) → `L3:not_invoked`.
+#[test]
+fn l3_decision_trace_shows_not_invoked_when_ner_gate_skips() {
+    let dummy = std::env::temp_dir().join(format!(
+        "aegis_test_ner_dummy_{}.bin",
+        std::process::id()
+    ));
+    std::fs::write(&dummy, b"x").expect("write dummy ner path");
+
+    let eng = AnalyzerEngineBuilder::new()
+        .with_default_recognizers(&["fr"])
+        .with_ner_model(dummy.to_str().expect("utf8 path"))
+        .with_pipeline_level(PipelineLevel::Three)
+        .build()
+        .expect("engine");
+
+    let text = "Virement IBAN FR7630006000011234567890189 effectué.";
+
+    let mut ac = aegis_core::config::AnalysisConfig::default();
+    ac.pipeline_level = Some(3);
+    ac.return_decision_process = true;
+    ac.score_threshold = 0.2;
+    ac.language = Some("fr".into());
+
+    let iban = eng
+        .analyze(text, Some(ac))
+        .expect("analyze")
+        .entities
+        .into_iter()
+        .find(|e| e.entity_type == EntityType::Iban)
+        .expect("iban");
+
+    let _ = std::fs::remove_file(&dummy);
+
+    let steps = iban
+        .decision_trace
+        .as_ref()
+        .map(|t| t.steps.as_slice())
+        .unwrap_or(&[]);
+    assert!(
+        steps.iter().any(|s| s.name == "L3:not_invoked"),
+        "expected L3:not_invoked when NER gate skips (L1 short-circuit), got {:?}",
+        steps
+    );
+    assert_eq!(iban.decision_trace.as_ref().and_then(|t| t.pipeline_level), Some(3));
+}
