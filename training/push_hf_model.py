@@ -7,9 +7,14 @@ Publie sur le Hugging Face Hub un dossier checkpoint produit par train_ner.py
 from __future__ import annotations
 
 import argparse
+import json
 import os
+from datetime import datetime, timezone
 
 from huggingface_hub import HfApi, create_repo
+
+DEFAULT_PRODUCT_NAME = "ZOKA-SENTINEL"
+MANIFEST_FILENAME = "zoka_sentinel_manifest.json"
 
 
 def main() -> None:
@@ -40,6 +45,18 @@ def main() -> None:
         type=str,
         default="Upload AEGIS NER token-classification checkpoint",
     )
+    p.add_argument(
+        "--product_name",
+        type=str,
+        default=os.environ.get("AEGIS_MODEL_PRODUCT_NAME", DEFAULT_PRODUCT_NAME),
+        help="Nom commercial (défaut: ZOKA-SENTINEL ou AEGIS_MODEL_PRODUCT_NAME).",
+    )
+    p.add_argument(
+        "--product_version",
+        type=str,
+        default=os.environ.get("AEGIS_MODEL_PRODUCT_VERSION", "1.0.0"),
+        help="Version publiée sur le Hub (défaut: 1.0.0 ou AEGIS_MODEL_PRODUCT_VERSION).",
+    )
     args = p.parse_args()
 
     model_dir = os.path.abspath(args.model_dir)
@@ -60,15 +77,37 @@ def main() -> None:
         repo_type="model",
         token=token,
     )
-    api.upload_folder(
-        folder_path=model_dir,
-        repo_id=args.repo_id,
-        repo_type="model",
-        commit_message=args.commit_message,
-        token=token,
-        ignore_patterns=[".DS_Store", "__pycache__/**", ".git/**"],
-    )
-    print(f"Publié : https://huggingface.co/{args.repo_id}")
+
+    manifest_path = os.path.join(model_dir, MANIFEST_FILENAME)
+    manifest = {
+        "product_name": args.product_name,
+        "product_version": args.product_version,
+        "registry": "huggingface_hub",
+        "repo_id": args.repo_id,
+        "published_at_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    had_manifest = os.path.isfile(manifest_path)
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    try:
+        api.upload_folder(
+            folder_path=model_dir,
+            repo_id=args.repo_id,
+            repo_type="model",
+            commit_message=args.commit_message,
+            token=token,
+            ignore_patterns=[".DS_Store", "__pycache__/**", ".git/**"],
+        )
+    finally:
+        if not had_manifest:
+            try:
+                os.remove(manifest_path)
+            except OSError:
+                pass
+
+    print(f"Publié : https://huggingface.co/{args.repo_id} ({args.product_name} v{args.product_version})")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ python -m spacy download en_core_web_sm  # si vous utilisez --with_presidio
 
 **CI / image Docker (niveau 3)** : `requirements-ci.txt` couvre les tests légers (sans PyTorch). Image : `docker build -f docker/Dockerfile.training -t aegis-training-ner .` depuis la racine du monorepo. Côté Rust, le crate `crates/aegis-ner-training` documente la chaîne **training → ONNX → `aegis_ner::NerEngine`**.
 
-**Pipeline L3 automatisé (local ou CI)** : après `pip install -r requirements.txt`, depuis `training/` exécuter `bash scripts/run_l3_pipeline.sh` (variables optionnelles `AEGIS_L3_EXAMPLES`, `AEGIS_L3_MAX_STEPS`, `AEGIS_L3_MODEL_NAME`). Sur GitHub : workflow **Helm & NER L3 pipeline** — sur `main`/`master` un smoke CPU produit l’artefact `aegis-ner-l3-onnx.tgz` (ONNX + `tokenizer.json` pour montage PVC `/opt/aegis/models`) ; **workflow_dispatch** permet d’augmenter exemples/steps. Le chart Helm complet est packagé dans le même workflow (artefact `aegis-helm-chart`) et joint aux **Releases** pour les tags `v*`.
+**Pipeline L3 automatisé (local ou CI)** : après `pip install -r requirements.txt`, depuis `training/` exécuter `bash scripts/run_l3_pipeline.sh` (variables optionnelles `AEGIS_L3_EXAMPLES`, `AEGIS_L3_MAX_STEPS`, `AEGIS_L3_MODEL_NAME`, `AEGIS_MODEL_PRODUCT_NAME`, `AEGIS_MODEL_PRODUCT_VERSION`). Le modèle commercial est enregistré sous le nom **ZOKA-SENTINEL** (défaut) avec version explicite dans `zoka_sentinel_manifest.json` et dans les métadonnées ONNX (`metadata_props`). Sur GitHub : workflow **Helm & NER L3 pipeline** — sur `main`/`master` un smoke CPU produit l’artefact `aegis-ner-l3-onnx.tgz` (ONNX + `tokenizer.json` + manifest pour montage PVC `/opt/aegis/models`) ; **workflow_dispatch** permet d’augmenter exemples/steps. Le chart Helm complet est packagé dans le même workflow (artefact `aegis-helm-chart`) et joint aux **Releases** pour les tags `v*`.
 
 ## 1. Jeu de données synthétique
 
@@ -70,11 +70,22 @@ Checkpoints par époque sous `output_dir` ; meilleur modèle (F1 seqeval) recopi
 
 ```bash
 python export_onnx.py --model_dir ./outputs/ner-xlmr-eu-pii/best_hf --out_dir ./exports/onnx_ner
+# Nom / version produit (défaut : ZOKA-SENTINEL, 1.0.0 — ou variables AEGIS_MODEL_PRODUCT_*)
+python export_onnx.py ... --product_name ZOKA-SENTINEL --product_version 1.2.0
 ```
 
 - `model.onnx`, `model_optimized.onnx`, `model_int8.onnx`
+- `zoka_sentinel_manifest.json` : `product_name`, `product_version`, horodatage UTC
+- Métadonnées ONNX (`product_name`, `product_version`, `producer`)
 - `tokenizer_hf/tokenizer.json` chargeable par la crate Rust [**tokenizers**](https://github.com/huggingface/tokenizers)
 - `latency_benchmark.txt` : PyTorch vs ONNX vs quantifié
+
+Publication Hugging Face du checkpoint **`best_hf`** avec le même nom / version :
+
+```bash
+python push_hf_model.py --model_dir ./outputs/ner-xlmr-eu-pii/best_hf --repo_id org/zoka-sentinel-ner \
+  --product_name ZOKA-SENTINEL --product_version 1.2.0
+```
 
 ## 4. Tester les modèles entraînés
 

@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import argparse
 import inspect
+import json
 import os
 import statistics
 import time
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
@@ -21,6 +23,47 @@ from onnxruntime.quantization import QuantType, quantize_dynamic
 from transformers import AutoModelForTokenClassification, AutoTokenizer
 
 from dataset_builder import LABELS
+
+MANIFEST_FILENAME = "zoka_sentinel_manifest.json"
+DEFAULT_PRODUCT_NAME = "ZOKA-SENTINEL"
+
+
+def _set_onnx_metadata(model: onnx.ModelProto, key: str, value: str) -> None:
+    for p in model.metadata_props:
+        if p.key == key:
+            p.value = value
+            return
+    entry = model.metadata_props.add()
+    entry.key = key
+    entry.value = value
+
+
+def write_product_manifest_and_tag_onnx(
+    out_dir: str,
+    onnx_paths: List[str],
+    *,
+    product_name: str,
+    product_version: str,
+) -> None:
+    """Nom commercial ZOKA-SENTINEL + version : fichier manifeste + champs ONNX metadata_props."""
+    manifest = {
+        "product_name": product_name,
+        "product_version": product_version,
+        "exported_at_utc": datetime.now(timezone.utc).isoformat(),
+    }
+    manifest_path = os.path.join(out_dir, MANIFEST_FILENAME)
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    for path in onnx_paths:
+        if not os.path.isfile(path):
+            continue
+        m = onnx.load(path)
+        _set_onnx_metadata(m, "product_name", product_name)
+        _set_onnx_metadata(m, "product_version", product_version)
+        _set_onnx_metadata(m, "producer", "ZokaStech AEGIS")
+        onnx.save(m, path)
 
 
 def export_torch_to_onnx(
@@ -109,6 +152,18 @@ def main() -> None:
         action="store_true",
         help="N’exécute pas le bench latence PyTorch/ONNX (CI plus rapide).",
     )
+    parser.add_argument(
+        "--product_name",
+        type=str,
+        default=os.environ.get("AEGIS_MODEL_PRODUCT_NAME", DEFAULT_PRODUCT_NAME),
+        help="Nom commercial du modèle (défaut: ZOKA-SENTINEL ou AEGIS_MODEL_PRODUCT_NAME).",
+    )
+    parser.add_argument(
+        "--product_version",
+        type=str,
+        default=os.environ.get("AEGIS_MODEL_PRODUCT_VERSION", "1.0.0"),
+        help="Version semver ou build id (défaut: 1.0.0 ou AEGIS_MODEL_PRODUCT_VERSION).",
+    )
     args = parser.parse_args()
 
     model_dir = os.path.abspath(os.path.expanduser(args.model_dir))
@@ -140,6 +195,13 @@ def main() -> None:
     optimize_onnx_graph(onnx_fp32, onnx_opt)
     # Quantifier depuis le graphe ONNX d’origine (l’optimiseur ORT peut casser shape_inference).
     quantize_dynamic(onnx_fp32, onnx_int8, weight_type=QuantType.QUInt8)
+
+    write_product_manifest_and_tag_onnx(
+        args.out_dir,
+        [onnx_fp32, onnx_opt, onnx_int8],
+        product_name=args.product_name,
+        product_version=args.product_version,
+    )
 
     if not args.skip_benchmark:
         text = "Contact: Marie Dupont email m.dupont@acme.eu IBAN FR76 3000 6000 0112 3456 7890 189"
@@ -191,6 +253,7 @@ def main() -> None:
 
     print(f"\nTokenizer (Rust `tokenizers`): {tok_path}/tokenizer.json")
     print(f"ONNX INT8: {onnx_int8}")
+    print(f"Métadonnées produit: {args.product_name} v{args.product_version} → {MANIFEST_FILENAME}")
 
 
 if __name__ == "__main__":

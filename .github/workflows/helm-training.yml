@@ -137,7 +137,9 @@ jobs:
         working-directory: training
         env:
           AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '1200' }}
-          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '800' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '375' }}
+          AEGIS_MODEL_PRODUCT_NAME: ZOKA-SENTINEL
+          AEGIS_MODEL_PRODUCT_VERSION: "${{ github.run_number }}-${{ github.sha }}"
         run: bash scripts/run_l3_pipeline.sh
 
       # Toujours `python -m pytest` (l’exécutable `pytest` n’est pas garanti sur le PATH du runner).
@@ -150,7 +152,7 @@ jobs:
           cd training/exports/ci_onnx
           cp tokenizer_hf/tokenizer.json .
           tar -czvf "${{ github.workspace }}/aegis-ner-l3-onnx.tgz" \
-            model.onnx model_optimized.onnx model_int8.onnx tokenizer.json
+            model.onnx model_optimized.onnx model_int8.onnx tokenizer.json zoka_sentinel_manifest.json
 
       - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:

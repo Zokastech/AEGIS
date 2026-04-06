@@ -2,6 +2,7 @@
 # AEGIS — pipeline NER niveau 3 : jeu synthétique → fine-tune → export ONNX (+ INT8).
 # Variables (optionnelles) :
 #   AEGIS_L3_EXAMPLES, AEGIS_L3_MAX_STEPS, AEGIS_L3_MODEL_NAME
+#   AEGIS_MODEL_PRODUCT_NAME (défaut ZOKA-SENTINEL), AEGIS_MODEL_PRODUCT_VERSION
 #   AEGIS_L3_GOLD_DIR (défaut ../datasets/training/l3_regression) : letter_*.jsonl + corpus_expert_*.jsonl
 #   AEGIS_L3_GOLD_JSONL : un seul fichier JSONL (remplace la concaténation des deux jeux or)
 set -euo pipefail
@@ -68,6 +69,8 @@ python export_onnx.py \
   --model_dir "${OUT_DIR}/best_hf" \
   --out_dir "${EXPORT_DIR}" \
   --seq_len 256 \
-  --skip_benchmark
+  --skip_benchmark \
+  --product_name "${AEGIS_MODEL_PRODUCT_NAME:-ZOKA-SENTINEL}" \
+  --product_version "${AEGIS_MODEL_PRODUCT_VERSION:-1.0.0-ci}"
 
 echo "[run_l3_pipeline] terminé → ${EXPORT_DIR} (model_int8.onnx, tokenizer_hf/tokenizer.json)"
