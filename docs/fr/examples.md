@@ -92,6 +92,8 @@ Le README du paquet `sdk-nodejs/` dans le dépôt décrit le build et les chemin
 | **`train_ner_pii.ipynb`** | **Entraîner un modèle NER PII** : données synthétiques, JSONL sous `datasets/training/`, entraînement Hugging Face, push Hub optionnel, export ONNX (voir `training/README.md`). |
 | **`train_ner_hf_public.ipynb`** | Même pipeline avec **jeux Hugging Face publics** (E3-JSI + Ai4Privacy optionnel), fusion, entraînement, Hub, ONNX. |
 
+**Tester un modèle entraîné** (métriques `evaluate.py`, bench ONNX, smoke ONNX Runtime, tests CI, intégration Rust L3) : section **« 4. Tester les modèles entraînés »** dans [`training/README.md`](https://github.com/zokastech/aegis/blob/main/training/README.md).
+
 Lancer Jupyter depuis la racine du dépôt ou le dossier des notebooks :
 
 ```bash

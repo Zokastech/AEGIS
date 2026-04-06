@@ -76,17 +76,85 @@ python export_onnx.py --model_dir ./outputs/ner-xlmr-eu-pii/best_hf --out_dir ./
 - `tokenizer_hf/tokenizer.json` chargeable par la crate Rust [**tokenizers**](https://github.com/huggingface/tokenizers)
 - `latency_benchmark.txt` : PyTorch vs ONNX vs quantifié
 
-## 5. Évaluation et rapport HTML
+## 4. Tester les modèles entraînés
+
+Après `train_ner.py` vous disposez d’un dossier **`…/best_hf`** (PyTorch + tokenizer Hugging Face). Après `export_onnx.py`, d’artefacts **ONNX** + **`tokenizer_hf/tokenizer.json`** pour la crate Rust **`aegis_ner`**. Les vérifications ci-dessous sont complémentaires.
+
+### 4.1 Métriques sur un jeu annoté (checkpoint PyTorch)
+
+[`evaluate.py`](evaluate.py) charge le **modèle Hugging Face** depuis `model_dir`, parcourt un split du dataset disque (tokens + `ner_tags` IOB2) et produit un **rapport HTML** : F1 / précision / rappel par type, **F2** (β = 2), matrices de confusion, comparaison optionnelle avec Presidio.
 
 ```bash
-python evaluate.py --dataset ./data/eu_pii_synthetic --model_dir ./outputs/ner-xlmr-eu-pii/best_hf --out_report ./reports/ner_eval.html
+# Jeu aligné sur le schéma AEGIS (même `LABELS` que à l’entraînement)
+python evaluate.py \
+  --dataset ./data/eu_pii_synthetic \
+  --model_dir ./outputs/ner-xlmr-eu-pii/best_hf \
+  --split validation \
+  --max_samples 2000 \
+  --out_report ./reports/ner_eval.html
 ```
 
-Avec baseline Presidio (approximative, mappage des types Presidio → schéma AEGIS) :
+Paramètres utiles :
+
+| Option | Rôle |
+|--------|------|
+| `--split` | `train` ou `validation` (défaut : `validation`) |
+| `--max_samples` | Plafonne le nombre de phrases évaluées (défaut : 2000) |
+| `--with_presidio` | Ajoute une baseline Presidio (nécessite `en_core_web_sm` si analyse EN) |
+
+Baseline Presidio (approximative, mappage des types → schéma AEGIS) :
 
 ```bash
 python evaluate.py --with_presidio --out_report ./reports/ner_eval_presidio.html
 ```
+
+**Limite** : ce script évalue le modèle **PyTorch**, pas directement le fichier `.onnx`. Pour valider l’export ONNX, voir §4.2 et §4.4.
+
+### 4.2 Latence et exécution ONNX (Python)
+
+1. **Bench intégré** : relancer l’export **sans** `--skip_benchmark` pour comparer PyTorch FP32, ONNX FP32, graphe optimisé ORT et **INT8** sur une phrase fixe, et générer `latency_benchmark.txt` :
+
+   ```bash
+   python export_onnx.py --model_dir ./outputs/ner-xlmr-eu-pii/best_hf --out_dir ./exports/onnx_ner
+   ```
+
+2. **Contrôle manuel ONNX Runtime** (smoke sur CPU), depuis `training/` après export :
+
+   ```bash
+   python -c "
+   import numpy as np
+   from onnxruntime import InferenceSession
+   from transformers import AutoTokenizer
+   m = 'exports/onnx_ner/model_int8.onnx'
+   tok = AutoTokenizer.from_pretrained('exports/onnx_ner/tokenizer_hf', local_files_only=True)
+   s = 'Contact: Marie Dupont, marie@acme.eu'
+   enc = tok([s], return_tensors='np', padding='max_length', truncation=True, max_length=128)
+   sess = InferenceSession(m, providers=['CPUExecutionProvider'])
+   out = sess.run(None, {'input_ids': enc['input_ids'].astype(np.int64),
+                         'attention_mask': enc['attention_mask'].astype(np.int64)})[0]
+   print('logits shape', out.shape)
+   "
+   ```
+
+   Si la forme est `(1, 128, num_labels)` (ou équivalent selon longueur), le graphe et les entrées sont cohérents.
+
+### 4.3 Tests automatisés du dépôt
+
+| Commande | But |
+|----------|-----|
+| `pytest training/tests -q` | Labels, `dataset_builder`, imports (CI **python-training**) |
+| `bash scripts/run_l3_pipeline.sh` | Bout-en-bout local : petit jeu → train (`max_steps` court) → export ONNX (nécessite `requirements.txt`) |
+| Workflow **Helm & NER L3 pipeline** (GitHub) | Même chaîne smoke + artefact `aegis-ner-l3-onnx.tgz` |
+
+### 4.4 Intégration moteur Rust (niveau 3)
+
+Pour valider le **même** ONNX que en production :
+
+1. Copier **`model_int8.onnx`** (ou `model.onnx`) et **`tokenizer.json`** (depuis `exports/.../tokenizer_hf/tokenizer.json`) dans un répertoire accessible au binaire (ex. volume **`/opt/aegis/models`** en conteneur).
+2. La crate Rust **`aegis_ner`** (`crates/aegis-ner`) expose **`NerEngine::new(chemin_onnx, chemin_tokenizer_json, NerConfig::default())`** puis **`predict`** / **`predict_batch`** — voir `cargo doc -p aegis-ner --open` et le crate **`aegis-ner-training`** pour le lien pipeline Python → ONNX.
+3. Dans **`aegis-config.yaml`**, activer le pipeline niveau **3** et renseigner **`ner.model_path`** vers le fichier `.onnx` (le tokenizer est attendu **à côté** du modèle ou selon la convention de déploiement documentée pour votre image — alignez les deux chemins avec ceux passés à `NerEngine` dans les intégrations qui chargent ONNX explicitement).
+
+Ensuite, tester avec les flux réels (**API**, **CLI**, dashboard) sur des phrases contenant des PII du domaine visé, en plus des métriques offline du §4.1.
 
 ## Schéma d’étiquettes
 
