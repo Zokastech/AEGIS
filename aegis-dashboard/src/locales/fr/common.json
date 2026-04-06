@@ -104,6 +104,10 @@
     "anonymize": "Anonymiser",
     "insertSample": "Insérer un texte d’exemple",
     "insertSampleHint": "Exemple multi-types (personne, téléphone, e-mail, IBAN) pour la langue choisie — puis Analyser.",
+    "zokaSentinel": {
+      "button": "Démo ZOKA-SENTINEL (L3)",
+      "hint": "Passe en pipeline L3, seuil 0,40 et insère un texte riche (PII) pour le NER ONNX ZOKA-SENTINEL — nécessite le moteur avec modèle chargé (ex. docker-compose + volume ONNX)."
+    },
     "mockEngineWarning": "La passerelle tourne avec <mono>MockEngine</mono> (build Go sans FFI Rust). <mono>/v1/analyze</mono> n’exécute pas les recognizers réels — vous verrez <mono>recognizer_name: \"mock\"</mono> et pas d’IBAN/NIR/téléphone. Recompilez avec <mono>-tags=aegisffi</mono> et <mono>libaegis_ffi</mono> (voir <mono>aegis-gateway/README.md</mono> et <mono>scripts/build-gateway-ffi.sh</mono>).",
     "configPreview": {
       "title": "Config des requêtes (JSON)",

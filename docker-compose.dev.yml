@@ -4,6 +4,8 @@
 # Lancer depuis la racine du dépôt :
 #   docker compose -f docker-compose.dev.yml --env-file .env up --build
 #   ou : make dev
+# NER L3 (ZOKA-SENTINEL) : placer ner.onnx + tokenizer.json sous ./models (voir .env.example :
+#   AEGIS_ENGINE_INIT_JSON) ou réutiliser le volume/script du docker-compose.yml prod.
 # La gateway dev force AEGIS_INSECURE_HTTP=1 (HTTP sur :8080) : indépendant de AEGIS_INSECURE_HTTP dans .env prod.
 # Compatible Linux, macOS, Windows (Docker Desktop / WSL2).
 #
@@ -41,6 +43,8 @@ services:
       - "${AEGIS_GATEWAY_PORT:-8080}:8080"
     volumes:
       - .:/work
+      # Modèles ONNX optionnels pour L3 ; chemin côté conteneur = /work/models (voir AEGIS_ENGINE_INIT_JSON).
+      - ./models:/work/models:ro
     working_dir: /work/aegis-gateway
     environment:
       GOWORK: /work/go.work
@@ -55,6 +59,8 @@ services:
       # Sans cela, /v1/* répond 401 (clé API requise). Réservé au compose dev — jamais en prod.
       AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH: "true"
       AEGIS_POLICY: "${AEGIS_POLICY:-policies/gdpr-strict.yaml}"
+      # Init moteur FFI (JSON) : ex. {"ner":{"model_path":"/work/models/ner.onnx"}} si ./models contient le bundle ZOKA
+      AEGIS_ENGINE_INIT_JSON: "${AEGIS_ENGINE_INIT_JSON:-}"
       GIN_MODE: "${GIN_MODE:-debug}"
       AEGIS_API_KEY: "${AEGIS_API_KEY:-}"
       REDIS_URL: "${REDIS_URL:-redis://redis:6379}"

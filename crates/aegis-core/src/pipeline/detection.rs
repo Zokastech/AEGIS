@@ -17,11 +17,25 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
+/// How level 3 (NER) related to this document — used to enrich per-entity JSON traces.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum L3TraceAttachment {
+    /// Pipeline stops at L1 or L2.
+    NotApplicable,
+    /// L3 enabled but no [`NerBackend`] (e.g. missing model path).
+    NoBackend,
+    /// Backend present but `analyze_batch` was not called (invocation gate).
+    SkippedInvocation,
+    /// NER batch ran (may still yield zero spans).
+    Executed,
+}
+
 /// Pipeline analysis result (output + optional trace).
 #[derive(Debug, Clone)]
 pub struct PipelineOutput {
     pub analysis: AnalysisResult,
     pub trace: Option<DecisionTrace>,
+    pub l3_trace_attachment: L3TraceAttachment,
 }
 
 impl PipelineOutput {
@@ -81,6 +95,7 @@ impl DetectionPipeline {
         } else {
             None
         };
+        let mut l3_trace_attachment = L3TraceAttachment::NotApplicable;
         let lang = self.config.analysis.language.as_deref().or(Some("en"));
 
         let weights = [
@@ -217,39 +232,47 @@ impl DetectionPipeline {
         // ——— Niveau 3 ———
         let mut l3_entities: Vec<Entity> = Vec::new();
         if self.config.levels.l3() {
-            if let Some(ref ner) = self.ner {
-                let run = work.iter().any(|w| {
-                    !w.short_circuit
-                        && (is_contextual_entity_type(&w.entity.entity_type)
-                            || w.entity.score < self.config.ner_invocation_score_threshold)
-                });
-                if run {
-                    let t_l3 = Instant::now();
-                    let batch = if let Some(pool) = &self.ner_pool {
-                        pool.install(|| ner.analyze_batch(&[text], lang))?
-                    } else {
-                        ner.analyze_batch(&[text], lang)?
-                    };
-                    l3_entities = batch.into_iter().next().unwrap_or_default();
-                    if let Some(ref mut tr) = trace {
-                        for e in &l3_entities {
-                            tr.push(TraceStep {
-                                level: 3,
-                                action: "ner_hit".into(),
-                                span_start: e.start,
-                                span_end: e.end,
-                                entity_type: e.entity_type.clone(),
-                                scores_by_source: [("l3".into(), e.score)].into_iter().collect(),
-                                context_word_hits: vec![],
-                                short_circuit: false,
-                                note: None,
-                            });
+            match &self.ner {
+                None => {
+                    l3_trace_attachment = L3TraceAttachment::NoBackend;
+                }
+                Some(ner) => {
+                    let run = work.iter().any(|w| {
+                        !w.short_circuit
+                            && (is_contextual_entity_type(&w.entity.entity_type)
+                                || w.entity.score < self.config.ner_invocation_score_threshold)
+                    });
+                    if run {
+                        l3_trace_attachment = L3TraceAttachment::Executed;
+                        let t_l3 = Instant::now();
+                        let batch = if let Some(pool) = &self.ner_pool {
+                            pool.install(|| ner.analyze_batch(&[text], lang))?
+                        } else {
+                            ner.analyze_batch(&[text], lang)?
+                        };
+                        l3_entities = batch.into_iter().next().unwrap_or_default();
+                        if let Some(ref mut tr) = trace {
+                            for e in &l3_entities {
+                                tr.push(TraceStep {
+                                    level: 3,
+                                    action: "ner_hit".into(),
+                                    span_start: e.start,
+                                    span_end: e.end,
+                                    entity_type: e.entity_type.clone(),
+                                    scores_by_source: [("l3".into(), e.score)].into_iter().collect(),
+                                    context_word_hits: vec![],
+                                    short_circuit: false,
+                                    note: None,
+                                });
+                            }
                         }
-                    }
-                    if self.config.timeout_level3_ms > 0
-                        && t_l3.elapsed().as_millis() as u64 > self.config.timeout_level3_ms
-                    {
-                        tracing::warn!(target: "aegis_core::pipeline", "L3 timeout budget exceeded");
+                        if self.config.timeout_level3_ms > 0
+                            && t_l3.elapsed().as_millis() as u64 > self.config.timeout_level3_ms
+                        {
+                            tracing::warn!(target: "aegis_core::pipeline", "L3 timeout budget exceeded");
+                        }
+                    } else {
+                        l3_trace_attachment = L3TraceAttachment::SkippedInvocation;
                     }
                 }
             }
@@ -319,6 +342,7 @@ impl DetectionPipeline {
                 text_length: text.len(),
             },
             trace,
+            l3_trace_attachment,
         })
     }
 

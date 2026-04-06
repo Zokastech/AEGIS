@@ -106,7 +106,8 @@ export function TextHighlighter({
           <TooltipTrigger asChild>
             <mark
               className={cn(
-                "cursor-help rounded border px-0.5 font-mono text-[0.95em] leading-relaxed transition-colors",
+                // Same metrics as plain spans: no padding / smaller font / border (those change line wrap vs API offsets).
+                "cursor-help rounded-sm font-mono text-inherit leading-[inherit] transition-colors [box-decoration-break:clone]",
                 cls
               )}
             >
@@ -128,7 +129,14 @@ export function TextHighlighter({
 
   return (
     <TooltipProvider delayDuration={tooltipDelayMs}>
-      <div className={cn("whitespace-pre-wrap break-words font-mono text-sm leading-relaxed", className)}>{nodes}</div>
+      <div
+        className={cn(
+          "whitespace-pre-wrap break-words font-mono text-sm leading-normal [font-variant-ligatures:none]",
+          className
+        )}
+      >
+        {nodes}
+      </div>
     </TooltipProvider>
   );
 }

@@ -106,6 +106,10 @@
     "policiesUnavailable": "Policy list unavailable ({{message}}).",
     "analyze": "Analyze",
     "anonymize": "Anonymize",
+    "zokaSentinel": {
+      "button": "ZOKA-SENTINEL Demo (L3)",
+      "hint": "Pipeline L3, Schwellenwert 0,40 und umfangreicher PII-Text für ONNX-NER ZOKA-SENTINEL — erfordert geladenes Modell (z. B. docker-compose + ONNX-Volume)."
+    },
     "insertSample": "Beispieltext einfügen",
     "insertSampleHint": "Mehrtypen-Beispiel (Person, Telefon, E-Mail, IBAN) für die gewählte Sprache — dann Analyze.",
     "mockEngineWarning": "Gateway läuft mit <mono>MockEngine</mono> (Go ohne Rust-FFI). <mono>/v1/analyze</mono> führt keine echten Erkenner aus — <mono>recognizer_name: \"mock\"</mono>, kein IBAN/NIR/Telefon. Neu bauen mit <mono>-tags=aegisffi</mono> und <mono>libaegis_ffi</mono> (siehe <mono>aegis-gateway/README.md</mono>, <mono>scripts/build-gateway-ffi.sh</mono>).",

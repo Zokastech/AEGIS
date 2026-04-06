@@ -21,7 +21,7 @@ pub use crate::context::{
     CombinationRule, ContextScorer, ContextScorerConfig, LanguageContextRules,
 };
 pub use config::{PipelineConfig, PipelineLevels};
-pub use detection::{DetectionPipeline, PipelineOutput};
+pub use detection::{DetectionPipeline, L3TraceAttachment, PipelineOutput};
 pub use fusion::{FusedCandidate, ScoreFusion};
 pub use ner::{is_contextual_entity_type, MockNerBackend, NerBackend};
 pub use trace::{DecisionTrace, TraceStep};

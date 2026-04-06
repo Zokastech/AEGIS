@@ -5,7 +5,7 @@
 # Déclencheurs :
 # - push / pull_request : lint Helm, package .tgz, image Docker pytest, pas d’entraînement L3
 #   (évite des jobs torch lourds sur chaque PR).
-# - push main/master : + pipeline L3 smoke (CPU, petit jeu).
+# - push main/master : + pipeline L3 (CPU, 120k ex. × 2800 steps par défaut — ~3 h max).
 # - workflow_dispatch : L3 paramétrable (ex. plus d’exemples / steps pour un modèle sérieux).
 # =============================================================================
 name: Helm & NER L3 pipeline
@@ -18,13 +18,13 @@ on:
   workflow_dispatch:
     inputs:
       num_examples:
-        description: "Exemples synthétiques (dataset_builder)"
+        description: "Exemples synthétiques (dataset_builder) — aligné CI push si omis ailleurs"
         type: string
-        default: "2000"
+        default: "80000"
       max_steps:
-        description: "Steps Hugging Face Trainer (prioritaire sur epochs)"
+        description: "Steps Hugging Face Trainer (prioritaire sur epochs) — ~2k+ pour viser 90 %+ marqueurs ONNX"
         type: string
-        default: "400"
+        default: "2200"
       run_l3:
         description: "Exécuter entraînement + export ONNX (désactiver pour Helm seul)"
         type: boolean
@@ -108,7 +108,7 @@ jobs:
   ner-l3-train-export:
     name: NER L3 — train + export ONNX
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     # PR : pas de torch ; push main/master : smoke ; dispatch : option run_l3 (évite d’évaluer inputs.run_l3 hors dispatch).
     if: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || inputs.run_l3) }}
     steps:
@@ -136,8 +136,9 @@ jobs:
       - name: Run pipeline L3
         working-directory: training
         env:
+          # Push main/master : pas d’inputs → budget large ; workflow_dispatch : valeurs du formulaire (défauts 80k / 2200 steps).
           AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '120000' }}
-          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '900' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '2800' }}
           AEGIS_MODEL_PRODUCT_NAME: ZOKA-SENTINEL
           AEGIS_MODEL_PRODUCT_VERSION: "${{ github.run_number }}-${{ github.sha }}"
         run: bash scripts/run_l3_pipeline.sh

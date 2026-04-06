@@ -26,6 +26,34 @@ export const PLAYGROUND_SAMPLE_TEXT: Record<string, string> = {
   de: "Kontakt: Max Mustermann — Tel. +49 170 1234567 — max@beispiel.de — IBAN DE89370400440532013000",
 };
 
+/**
+ * Texte long multi-entités pour le pipeline L3 (NER ONNX **ZOKA-SENTINEL**).
+ * Aligné sur les jeux de régression internes (personnes, dates, lieux, emails, téléphone, IBAN, org).
+ */
+export const ZOKA_SENTINEL_DEMO_TEXT: Record<string, string> = {
+  fr: [
+    "Objet : Dossier composite — client Yacine Ben Salah / Bensaleh, né le 03-11-1991 (11/03/91) à Tourcoing.",
+    "Coordonnées : y.bensalah91@gmail.com, yacine_bs@protonmail.com, +33 (0)7 44 91 23 88.",
+    "Employeur : Sarl DataXpert — 22 rue Nationale, Lille — TJ-LILLE-2024/008771.",
+    "Paiement : IBAN FR14 2004 1010 0505 0001 3M02 606, BIC PSSTFRPPXXX — carte Mastercard 5326 **** **** 9087.",
+    "Identifiants : passeport 98FR76X12345, permis BSYAC91110359, référence dossier EU-RGPD-TEST-009X.",
+  ].join("\n"),
+  en: [
+    "Subject: Composite file — client Alex Morgan, DOB 14-08-1990 (08/14/90) in Manchester.",
+    "Contact: alex.morgan@protonmail.com, backup alex_m@data-io.example, +44 7700 900555.",
+    "Employer: Northwind Data Ltd — 10 Baker Street, London — ref NW-2024-8891.",
+    "Payment: IBAN GB82WEST12345698765432, BIC NWBKGB2L — Visa 4242 **** **** 4242.",
+    "IDs: passport 123456789, driving license AB12CDE3456789, case ref GDPR-UK-TEST-001A.",
+  ].join("\n"),
+  de: [
+    "Akte: Person Anna Weber / Weber-Schmidt, geb. 22-04-1988 in München.",
+    "Kontakt: anna.weber@firma.de, privat anna_w@posteo.de, +49 176 12345678.",
+    "Arbeitgeber: Daten GmbH — Hauptstraße 5, Berlin — Steuer-ID DE123456789.",
+    "Zahlung: IBAN DE89370400440532013000, BIC COBADEFFXXX.",
+    "Ausweis: Reisepass L01X00T47, Führerschein M-AB 123 456.",
+  ].join("\n"),
+};
+
 type OperatorPayload = { operator_type: string; params: Record<string, string> };
 
 function operatorForWildcard(id: PlaygroundAnonymizeOperatorId): OperatorPayload {

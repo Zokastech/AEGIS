@@ -104,6 +104,10 @@
     "anonymize": "Anonymize",
     "insertSample": "Insert sample text",
     "insertSampleHint": "Multi-type example (person, phone, email, IBAN) for the selected language — then Analyze.",
+    "zokaSentinel": {
+      "button": "ZOKA-SENTINEL demo (L3)",
+      "hint": "Sets pipeline L3, threshold 0.40, and inserts rich PII text for ZOKA-SENTINEL ONNX NER — requires the engine with the model loaded (e.g. docker-compose + ONNX volume)."
+    },
     "mockEngineWarning": "The gateway is running <mono>MockEngine</mono> (Go build without Rust FFI). <mono>/v1/analyze</mono> does not run real detectors — expect <mono>recognizer_name: \"mock\"</mono> and no IBAN/NIR/phone. Rebuild the gateway with <mono>-tags=aegisffi</mono> and <mono>libaegis_ffi</mono> (see <mono>aegis-gateway/README.md</mono> and <mono>scripts/build-gateway-ffi.sh</mono>).",
     "configPreview": {
       "title": "Request config (JSON)",

@@ -13,6 +13,7 @@ import {
   buildPlaygroundAnonymizeConfigJson,
   DEFAULT_PLAYGROUND_ANONYMIZE_OPERATOR,
   PLAYGROUND_SAMPLE_TEXT,
+  ZOKA_SENTINEL_DEMO_TEXT,
   type PlaygroundAnonymizeOperatorId,
 } from "@/lib/playground/anonymizeOperators";
 import { policiesListQueryOptions } from "@/queries/gateway-query-options";
@@ -52,6 +53,19 @@ export function usePlaygroundPage() {
 
   const insertSampleText = useCallback(() => {
     const sample = PLAYGROUND_SAMPLE_TEXT[lang] ?? PLAYGROUND_SAMPLE_TEXT.en;
+    setText(sample);
+    setAnonymizedBlock("");
+    setAnonLinks(null);
+    setEntities([]);
+    setAnalyzeError("");
+    setAnonymError("");
+  }, [lang]);
+
+  /** L3 + texte riche pour exercer le NER ONNX ZOKA-SENTINEL (seuil légèrement abaissé). */
+  const insertZokaSentinelDemo = useCallback(() => {
+    const sample = ZOKA_SENTINEL_DEMO_TEXT[lang] ?? ZOKA_SENTINEL_DEMO_TEXT.en;
+    setPipeline(3);
+    setThreshold(0.4);
     setText(sample);
     setAnonymizedBlock("");
     setAnonLinks(null);
@@ -138,5 +152,6 @@ export function usePlaygroundPage() {
     configJson,
     anonymizeConfigJson,
     insertSampleText,
+    insertZokaSentinelDemo,
   };
 }

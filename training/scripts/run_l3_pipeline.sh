@@ -2,6 +2,8 @@
 # AEGIS — pipeline NER niveau 3 : jeu synthétique → fine-tune → export ONNX (+ INT8).
 # Variables (optionnelles) :
 #   AEGIS_L3_EXAMPLES, AEGIS_L3_MAX_STEPS, AEGIS_L3_MODEL_NAME
+#   Défauts ci-dessous : viser une meilleure couverture des tests ONNX (lettre + corpus expert).
+#   Smoke local rapide : AEGIS_L3_EXAMPLES=4000 AEGIS_L3_MAX_STEPS=400 bash scripts/run_l3_pipeline.sh
 #   AEGIS_MODEL_PRODUCT_NAME (défaut ZOKA-SENTINEL), AEGIS_MODEL_PRODUCT_VERSION
 #   AEGIS_L3_GOLD_DIR (défaut ../datasets/training/l3_regression) : letter_*.jsonl + corpus_expert_*.jsonl
 #   AEGIS_L3_GOLD_JSONL : un seul fichier JSONL (remplace la concaténation des deux jeux or)
@@ -10,8 +12,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-AEGIS_L3_EXAMPLES="${AEGIS_L3_EXAMPLES:-12000}"
-AEGIS_L3_MAX_STEPS="${AEGIS_L3_MAX_STEPS:-800}"
+AEGIS_L3_EXAMPLES="${AEGIS_L3_EXAMPLES:-24000}"
+AEGIS_L3_MAX_STEPS="${AEGIS_L3_MAX_STEPS:-1800}"
 AEGIS_L3_MODEL_NAME="${AEGIS_L3_MODEL_NAME:-xlm-roberta-base}"
 DATA_DIR="${AEGIS_L3_DATA_DIR:-./data/ci_l3}"
 OUT_DIR="${AEGIS_L3_OUT_DIR:-./outputs/ci_l3}"

@@ -16,7 +16,7 @@
 git clone https://github.com/zokastech/aegis.git
 cd aegis
 cp .env.example .env
-# Éditer .env : mots de passe forts et NER_ONNX_URL optionnel
+# Éditer `.env` (depuis `.env.example`) : mots de passe forts ; pour le NER **ZOKA-SENTINEL** en local, voir `ZOKA_SENTINEL_BUNDLE_URL` ou `ZOKA_SENTINEL_FETCH_LATEST` + `ZOKA_SENTINEL_REPO` dans `.env.example`.
 ```
 
 2. Démarrer la stack (passerelle, cœur, Postgres, Redis, dashboard optionnel) :

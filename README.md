@@ -99,6 +99,19 @@ make dev              # or: just dev  |  docker compose -f docker-compose.dev.ym
 
 This starts **aegis-core** (cargo-watch), **aegis-gateway** (air), **aegis-dashboard** (Vite), **Redis**, and **PostgreSQL**. See [.env.example](.env.example).
 
+### CI builds & images ([Zokastech/AEGIS](https://github.com/Zokastech/AEGIS))
+
+- **Gateway container (GHCR)** — published when a git tag `v*` is pushed ([`release.yml`](.github/workflows/release.yml)):
+  - `docker pull ghcr.io/zokastech/aegis-gateway:latest` (or `:v1.2.3`).
+  - For a private package, authenticate: `echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin`.
+- **ZOKA-SENTINEL ONNX bundle** — built by the [**Helm & NER L3 pipeline**](https://github.com/Zokastech/AEGIS/actions/workflows/helm-training.yml) workflow (push to `main`/`master` or manual **Run workflow**). Download the run artifact **`aegis-ner-l3-onnx`** (`aegis-ner-l3-onnx.tgz`), or from the repo root:
+  ```bash
+  gh auth login   # once
+  ./scripts/fetch-zoka-onnx-from-ci.sh
+  ```
+  Then point `ner.model_path` / `AEGIS_ENGINE_INIT_JSON` at `./models/ner.onnx` as in [.env.example](.env.example).
+- **CLI binaries** — uploaded as workflow artifacts from [`ci.yml`](.github/workflows/ci.yml) (matrix of OS / Rust channel).
+
 ### Kubernetes (Helm)
 
 ```bash

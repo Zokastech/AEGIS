@@ -65,6 +65,8 @@ func (l *Loader) Load(fs *pflag.FlagSet) (Config, error) {
 	_ = fs.Parse(os.Args[1:])
 	l.v.SetEnvPrefix("AEGIS")
 	l.v.AutomaticEnv()
+	// Explicit bind: nested env rules vary; docker-compose.dev sets AEGIS_ENGINE_INIT_JSON for NER L3.
+	_ = l.v.BindEnv("engine_init_json", "AEGIS_ENGINE_INIT_JSON")
 
 	if c, _ := fs.GetString("config"); c != "" {
 		l.v.SetConfigFile(c)

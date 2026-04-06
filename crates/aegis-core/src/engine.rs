@@ -7,8 +7,8 @@ use crate::context::ContextScorer;
 use crate::entity::{AnalysisResult, Entity, EntityType, JsonEntityDecisionTrace, JsonTraceStep};
 use crate::error::{AegisError, Result};
 use crate::pipeline::{
-    DecisionTrace, DetectionPipeline, MockNerBackend, NerBackend, PipelineConfig, PipelineLevels,
-    TraceStep,
+    DecisionTrace, DetectionPipeline, L3TraceAttachment, MockNerBackend, NerBackend,
+    PipelineConfig, PipelineLevels, TraceStep,
 };
 use crate::recognizer::Recognizer;
 use crate::registry::RecognizerRegistry;
@@ -165,7 +165,14 @@ impl AnalyzerEngine {
     }
 
     /// Attaches L1/L2/L3 steps to final entities (overlapping spans + same type).
-    fn attach_pipeline_traces(entities: &mut [Entity], trace: &DecisionTrace) {
+    ///
+    /// Regex/fused entities often have no overlapping `ner_hit` step; we append an explicit L3 row
+    /// when L3 was requested so the Playground/API shows why NER did or did not apply to that span.
+    fn attach_pipeline_traces(
+        entities: &mut [Entity],
+        trace: &DecisionTrace,
+        l3_attachment: L3TraceAttachment,
+    ) {
         for ent in entities.iter_mut() {
             let mut steps_out: Vec<JsonTraceStep> = Vec::new();
             let mut max_lvl: u8 = 0;
@@ -184,7 +191,46 @@ impl AnalyzerEngine {
                     detail: Self::trace_step_detail(st),
                 });
             }
+
             if !steps_out.is_empty() {
+                match l3_attachment {
+                    L3TraceAttachment::NotApplicable => {}
+                    L3TraceAttachment::NoBackend => {
+                        steps_out.push(JsonTraceStep {
+                            name: "L3:unavailable".into(),
+                            passed: false,
+                            detail: Some(
+                                "No NER backend: set ner.model_path in gateway engine_init_json or env AEGIS_ENGINE_INIT_JSON (docker dev: mount ./models and use e.g. {\"ner\":{\"model_path\":\"/work/models/ner.onnx\"}})."
+                                    .into(),
+                            ),
+                        });
+                        max_lvl = max_lvl.max(3);
+                    }
+                    L3TraceAttachment::SkippedInvocation => {
+                        steps_out.push(JsonTraceStep {
+                            name: "L3:not_invoked".into(),
+                            passed: true,
+                            detail: Some(
+                                "NER not run: every L1 candidate short-circuited or none matched the NER invocation gate (contextual type / score threshold)."
+                                    .into(),
+                            ),
+                        });
+                        max_lvl = max_lvl.max(3);
+                    }
+                    L3TraceAttachment::Executed => {
+                        if max_lvl < 3 {
+                            steps_out.push(JsonTraceStep {
+                                name: "L3:no_overlapping_ner_span".into(),
+                                passed: true,
+                                detail: Some(
+                                    "NER ran on the document; no NER span overlaps this entity (common for regex-only PII)."
+                                        .into(),
+                                ),
+                            });
+                            max_lvl = 3;
+                        }
+                    }
+                }
                 ent.decision_trace = Some(JsonEntityDecisionTrace {
                     steps: steps_out,
                     pipeline_level: Some(max_lvl),
@@ -218,7 +264,11 @@ impl AnalyzerEngine {
                 Ok(detailed) => {
                     let mut analysis = detailed.analysis;
                     if let Some(tr) = detailed.trace {
-                        Self::attach_pipeline_traces(&mut analysis.entities, &tr);
+                        Self::attach_pipeline_traces(
+                            &mut analysis.entities,
+                            &tr,
+                            detailed.l3_trace_attachment,
+                        );
                     }
                     analysis
                 }

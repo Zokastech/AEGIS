@@ -18,7 +18,7 @@ Services (typical):
 | `aegis-dashboard` | Web UI |
 | `postgres` | Metadata / policy / audit (per integration) |
 | `redis` | Cache / queues |
-| `onnx-init` | Optional model download job |
+| `onnx-init` | Optional job: **ZOKA-SENTINEL** bundle (`.tgz` → `ner.onnx` + `tokenizer.json`) or `NER_ONNX_URL` — see `.env.example` |
 
 Networks **`frontend`** and **`backend`** separate the dashboard from internal services — mirror this with security groups in cloud deployments.
 

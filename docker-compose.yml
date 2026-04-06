@@ -1,5 +1,13 @@
 # AEGIS — zokastech.fr — Apache 2.0 / MIT
 # Production-like stack : `cp .env.example .env` puis `docker compose up -d --build`
+#
+# ZOKA-SENTINEL (NER L3) — bundle ONNX + tokenizer :
+#   • Artefact CI : https://github.com/Zokastech/AEGIS/actions/workflows/helm-training.yml
+#     (job « NER L3 — train + export ONNX », artefact « aegis-ner-l3-onnx ») ou
+#     ./scripts/fetch-zoka-onnx-from-ci.sh depuis le clone (nécessite « gh »).
+#   • docker-compose : dans .env, ZOKA_SENTINEL_BUNDLE_URL=… ou ZOKA_SENTINEL_FETCH_LATEST=1
+#     + ZOKA_SENTINEL_REPO=Zokastech/AEGIS si l’asset est joint à une Release.
+#   • Image passerelle : ghcr.io/zokastech/aegis-gateway (tags v* — voir README).
 # L’image aegis-gateway inclut le moteur Rust (aegis-ffi) — plus de MockEngine dans ce flux.
 #
 # Réseaux : frontend (dashboard ↔ gateway), backend (gateway ↔ core, redis, postgres).
@@ -22,24 +30,16 @@ volumes:
 
 services:
   onnx-init:
-    image: curlimages/curl:8.6.0
+    image: alpine:3.20
     env_file: .env
+    environment:
+      MODELS_DIR: /models
     volumes:
       - aegis_models:/models
+      - ./docker/scripts/onnx-init-model.sh:/onnx-init-model.sh:ro
     networks:
       - backend
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        set -e
-        if [ -z "$$NER_ONNX_URL" ]; then
-          echo "NER_ONNX_URL vide : moteur core en pipeline L1+L2 (regex + contexte)."
-          exit 0
-        fi
-        if [ ! -s /models/ner.onnx ]; then
-          curl -fsSL "$$NER_ONNX_URL" -o /models/ner.onnx
-          echo "ONNX téléchargé dans le volume aegis_models."
-        fi
+    entrypoint: ["/bin/sh", "/onnx-init-model.sh"]
     restart: "no"
 
   aegis-core:

@@ -16,6 +16,7 @@ import {
   AnonymizationOperatorSelect,
   PlaygroundConfigPreview,
 } from "@/components/playground";
+import { ShieldCheck } from "lucide-react";
 import { usePlaygroundPage } from "@/hooks/usePlaygroundPage";
 
 export function PlaygroundPage() {
@@ -49,6 +50,7 @@ export function PlaygroundPage() {
     configJson,
     anonymizeConfigJson,
     insertSampleText,
+    insertZokaSentinelDemo,
   } = usePlaygroundPage();
 
   return (
@@ -133,11 +135,24 @@ export function PlaygroundPage() {
             <CardTitle>{t("playground.textTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={insertSampleText}>
-                {t("playground.insertSample")}
-              </Button>
-              <span className="text-xs text-muted-foreground">{t("playground.insertSampleHint")}</span>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={insertSampleText}>
+                  {t("playground.insertSample")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={insertZokaSentinelDemo}
+                  className="gap-1.5 border border-primary/25 bg-primary/[0.06]"
+                >
+                  <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+                  {t("playground.zokaSentinel.button")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("playground.insertSampleHint")}</p>
+              <p className="text-xs text-muted-foreground">{t("playground.zokaSentinel.hint")}</p>
             </div>
             <Textarea
               value={text}

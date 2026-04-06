@@ -43,7 +43,7 @@ function renderSegmented(
         key={`${keyPrefix}-e-${r.id}`}
         data-aegis-side={side}
         data-aegis-entity={r.id}
-        className={cn("rounded border px-0.5", cls)}
+        className={cn("rounded-sm font-mono text-inherit leading-[inherit] [font-variant-ligatures:none]", cls)}
       >
         {text.slice(r.start, r.end)}
       </span>
@@ -121,7 +121,7 @@ export function AnonymizationPreview({
             {t("playground.anonPreview.original")}
           </div>
           <div
-            className="overflow-auto rounded-md border border-border/60 bg-muted/10 p-3 font-mono text-sm leading-relaxed"
+            className="overflow-auto rounded-md border border-border/60 bg-muted/10 p-3 font-mono text-sm leading-normal [font-variant-ligatures:none]"
             style={{ minHeight }}
           >
             {leftNodes}
@@ -132,7 +132,7 @@ export function AnonymizationPreview({
             {t("playground.anonPreview.anonymized")}
           </div>
           <div
-            className="overflow-auto rounded-md border border-border/60 bg-muted/10 p-3 font-mono text-sm leading-relaxed"
+            className="overflow-auto rounded-md border border-border/60 bg-muted/10 p-3 font-mono text-sm leading-normal [font-variant-ligatures:none]"
             style={{ minHeight }}
           >
             {rightNodes}

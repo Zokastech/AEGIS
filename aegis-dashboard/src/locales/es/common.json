@@ -106,6 +106,10 @@
     "policiesUnavailable": "Policy list unavailable ({{message}}).",
     "analyze": "Analyze",
     "anonymize": "Anonymize",
+    "zokaSentinel": {
+      "button": "Demo ZOKA-SENTINEL (L3)",
+      "hint": "Activa pipeline L3, umbral 0,40 e inserta texto PII rico para NER ONNX ZOKA-SENTINEL — requiere el motor con el modelo cargado (p. ej. docker-compose + volumen ONNX)."
+    },
     "insertSample": "Insertar texto de ejemplo",
     "insertSampleHint": "Ejemplo multitype (persona, teléfono, correo, IBAN) para el idioma elegido — luego Analyze.",
     "mockEngineWarning": "La pasarela usa <mono>MockEngine</mono> (Go sin FFI Rust). <mono>/v1/analyze</mono> no ejecuta detectores reales — verá <mono>recognizer_name: \"mock\"</mono> y no IBAN/NIR/teléfono. Recompile con <mono>-tags=aegisffi</mono> y <mono>libaegis_ffi</mono> (véase <mono>aegis-gateway/README.md</mono>, <mono>scripts/build-gateway-ffi.sh</mono>).",
