@@ -25,3 +25,6 @@ Jinja2>=3.1.0
 # Optionnel : baseline Presidio (evaluate.py)
 presidio-analyzer>=2.2.0
 spacy>=3.7.0
+
+# Tests CI / régressions ONNX (`python -m pytest …`)
+pytest>=8.0

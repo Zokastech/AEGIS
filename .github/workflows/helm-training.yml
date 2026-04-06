@@ -131,7 +131,7 @@ jobs:
       - name: Install Python deps (training complet)
         run: |
           python -m pip install -U pip
-          pip install -r training/requirements.txt
+          python -m pip install -r training/requirements.txt
 
       - name: Run pipeline L3
         working-directory: training
@@ -140,10 +140,9 @@ jobs:
           AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '800' }}
         run: bash scripts/run_l3_pipeline.sh
 
+      # Toujours `python -m pytest` (l’exécutable `pytest` n’est pas garanti sur le PATH du runner).
       - name: Test ONNX L3 — régressions (lettre + corpus expert)
-        run: |
-          pytest training/tests/test_l3_sensitive_letter_onnx.py \
-            training/tests/test_l3_expert_corpus_onnx.py -q
+        run: python -m pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q
 
       - name: Pack artefacts ONNX (déploiement core / PVC)
         run: |

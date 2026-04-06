@@ -25,4 +25,4 @@ COPY datasets/training ./datasets/training
 ENV PYTHONPATH=/work/training
 WORKDIR /work/training
 
-CMD ["pytest", "tests/", "-q"]
+CMD ["python", "-m", "pytest", "tests/", "-q"]
