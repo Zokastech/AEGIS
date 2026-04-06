@@ -20,11 +20,11 @@ on:
       num_examples:
         description: "Exemples synthétiques (dataset_builder) — aligné CI push si omis ailleurs"
         type: string
-        default: "80000"
+        default: "5000"
       max_steps:
         description: "Steps Hugging Face Trainer (prioritaire sur epochs) — ~2k+ pour viser 90 %+ marqueurs ONNX"
         type: string
-        default: "2200"
+        default: "375"
       run_l3:
         description: "Exécuter entraînement + export ONNX (désactiver pour Helm seul)"
         type: boolean
@@ -137,8 +137,8 @@ jobs:
         working-directory: training
         env:
           # Push main/master : pas d’inputs → budget large ; workflow_dispatch : valeurs du formulaire (défauts 80k / 2200 steps).
-          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '120000' }}
-          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '2800' }}
+          AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '5000' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '3750' }}
           AEGIS_MODEL_PRODUCT_NAME: ZOKA-SENTINEL
           AEGIS_MODEL_PRODUCT_VERSION: "${{ github.run_number }}-${{ github.sha }}"
         run: bash scripts/run_l3_pipeline.sh
