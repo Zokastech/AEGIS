@@ -33,6 +33,8 @@ Génère **≥ 50 000** exemples (défaut), IOB2, 11 langues UE, plusieurs domai
 python dataset_builder.py --num_examples 50000 --output ./data/eu_pii_synthetic
 ```
 
+Les **noms de personnes** dans les exemples synthétiques (emails, formulaires, tickets, etc.) suivent **75 % de noms français** et **25 % de noms européens (hors France) ou maghrébins** (écriture latine), voir `PERSON_NAME_FRENCH_FRACTION` et `_pick_person_name` dans `dataset_builder.py`.
+
 **Jeux complémentaires (JSONL)** : placez des fichiers `tokens` + `ner_tags` (labels = `LABELS` dans `dataset_builder.py`) puis :
 
 ```bash
@@ -79,6 +81,7 @@ python export_onnx.py ... --product_name ZOKA-SENTINEL --product_version 1.2.0
 - Métadonnées ONNX (`product_name`, `product_version`, `producer`)
 - `tokenizer_hf/tokenizer.json` chargeable par la crate Rust [**tokenizers**](https://github.com/huggingface/tokenizers)
 - `latency_benchmark.txt` : PyTorch vs ONNX vs quantifié
+- Moins de bruit en CI : `export_onnx.py` fixe par défaut `ORT_LOG_SEVERITY_LEVEL=3` avant d’importer ONNX Runtime (`AEGIS_EXPORT_ONNX_QUIET_ORT=0` pour tout journaliser) ; optimisations graphe en **`ORT_ENABLE_EXTENDED`** pour un modèle optimisé plus portable que `ORT_ENABLE_ALL` ; avertissements PyTorch « legacy export » / trace masqués autour de `torch.onnx.export` (export TorchScript volontaire, voir code).
 
 Publication Hugging Face du checkpoint **`best_hf`** avec le même nom / version :
 

@@ -6,12 +6,19 @@ Sauvegarde tokenizer au format Hugging Face (tokenizer.json utilisable depuis la
 
 from __future__ import annotations
 
+import os
+
+# Avant `import onnxruntime` : moins de bruit PCI / discovery sur runners cloud (ex. GitHub Actions).
+if os.environ.get("AEGIS_EXPORT_ONNX_QUIET_ORT", "1").lower() not in ("0", "false", "no"):
+    os.environ.setdefault("ORT_LOG_SEVERITY_LEVEL", "3")
+
 import argparse
 import inspect
 import json
-import os
+import logging
 import statistics
 import time
+import warnings
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Tuple
 
@@ -20,12 +27,20 @@ import onnx
 import torch
 from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions
 from onnxruntime.quantization import QuantType, quantize_dynamic
-from transformers import AutoModelForTokenClassification, AutoTokenizer
+from transformers import AutoModelForTokenClassification
 
 from dataset_builder import LABELS
+from hf_tokenizer_utils import load_autotokenizer_pretrained
 
 MANIFEST_FILENAME = "zoka_sentinel_manifest.json"
 DEFAULT_PRODUCT_NAME = "ZOKA-SENTINEL"
+
+
+class _SkipQuantPreprocessHint(logging.Filter):
+    """Évite le WARNING:root ORT sur le pré-traitement (non requis pour notre flux INT8)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "pre-processing before quantization" not in record.getMessage()
 
 
 def _set_onnx_metadata(model: onnx.ModelProto, key: str, value: str) -> None:
@@ -111,17 +126,29 @@ def export_torch_to_onnx(
     if "dynamo" in inspect.signature(torch.onnx.export).parameters:
         export_kw["dynamo"] = False
 
-    torch.onnx.export(
-        wrapped,
-        (input_ids, attention_mask),
-        onnx_path,
-        **export_kw,
-    )
+    # Export TorchScript volontaire (évite LayerNormalization / version_converter ONNX sur opset 14).
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=".*legacy TorchScript-based ONNX export.*",
+            category=DeprecationWarning,
+        )
+        _tracer_w = getattr(torch.jit, "TracerWarning", None)
+        if _tracer_w is not None:
+            warnings.filterwarnings("ignore", category=_tracer_w)
+        torch.onnx.export(
+            wrapped,
+            (input_ids, attention_mask),
+            onnx_path,
+            **export_kw,
+        )
 
 
 def optimize_onnx_graph(src: str, dst: str) -> None:
+    # EXTENDED : graphe portable entre machines (ORT_ENABLE_ALL + NCHWC peut déclencher
+    # des optimisations dépendantes du matériel et des avertissements à la sérialisation).
     opts = SessionOptions()
-    opts.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_ALL
+    opts.graph_optimization_level = GraphOptimizationLevel.ORT_ENABLE_EXTENDED
     opts.optimized_model_filepath = dst
     InferenceSession(src, opts, providers=["CPUExecutionProvider"])
 
@@ -181,7 +208,7 @@ def main() -> None:
     onnx_int8 = os.path.join(args.out_dir, "model_int8.onnx")
 
     # local_files_only: prevents HF Hub from treating an absolute path as repo_id (recent transformers/hub).
-    tokenizer = AutoTokenizer.from_pretrained(model_dir, local_files_only=True)
+    tokenizer = load_autotokenizer_pretrained(model_dir, local_files_only=True)
     model = AutoModelForTokenClassification.from_pretrained(model_dir, local_files_only=True)
     model.eval()
     model.cpu()
@@ -194,7 +221,12 @@ def main() -> None:
 
     optimize_onnx_graph(onnx_fp32, onnx_opt)
     # Quantifier depuis le graphe ONNX d’origine (l’optimiseur ORT peut casser shape_inference).
-    quantize_dynamic(onnx_fp32, onnx_int8, weight_type=QuantType.QUInt8)
+    _qfilter = _SkipQuantPreprocessHint()
+    logging.root.addFilter(_qfilter)
+    try:
+        quantize_dynamic(onnx_fp32, onnx_int8, weight_type=QuantType.QUInt8)
+    finally:
+        logging.root.removeFilter(_qfilter)
 
     write_product_manifest_and_tag_onnx(
         args.out_dir,

@@ -137,7 +137,7 @@ jobs:
         working-directory: training
         env:
           AEGIS_L3_EXAMPLES: ${{ github.event.inputs.num_examples || '1200' }}
-          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '375' }}
+          AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '900' }}
           AEGIS_MODEL_PRODUCT_NAME: ZOKA-SENTINEL
           AEGIS_MODEL_PRODUCT_VERSION: "${{ github.run_number }}-${{ github.sha }}"
         run: bash scripts/run_l3_pipeline.sh

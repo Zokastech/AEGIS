@@ -2,6 +2,9 @@
 {"tokens": ["El", "Mahdi"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["K.", "Elmahdy"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["Samira", "(soeur)"], "ner_tags": ["B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Proche", "cité", "sur", "le", "dossier", ":", "Samira", "."], "ner_tags": ["O", "O", "O", "O", "O", "O", "B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["né", "le", "14/02/1987", "à", "Roubaix"], "ner_tags": ["O", "O", "B-DATE", "O", "B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["1", "87", "02", "59", "123", "456", "78"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["12", "bis", "rue", "des", "Fleurs,", "apt", "3B"], "ner_tags": ["B-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
@@ -27,6 +30,9 @@
 {"tokens": ["59100", "Roubaix"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["59000", "Lille"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["Samira", "(soeur)"], "ner_tags": ["B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Proche", "cité", "sur", "le", "dossier", ":", "Samira", "."], "ner_tags": ["O", "O", "O", "O", "O", "O", "B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["né", "le", "14/02/1987", "à", "Roubaix"], "ner_tags": ["O", "O", "B-DATE", "O", "B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["1", "87", "02", "59", "123", "456", "78"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_regression"}
 {"tokens": ["4832"], "ner_tags": ["B-CREDIT_CARD"], "lang": "fr", "domain": "l3_regression"}

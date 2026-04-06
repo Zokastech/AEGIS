@@ -22,9 +22,10 @@ from ensure_hf_datasets import load_datasets
 from sklearn.preprocessing import LabelEncoder
 
 load_from_disk = load_datasets().load_from_disk
-from transformers import AutoModelForTokenClassification, AutoTokenizer
+from transformers import AutoModelForTokenClassification
 
 from dataset_builder import ID2LABEL, LABELS
+from hf_tokenizer_utils import load_autotokenizer_pretrained
 from ner_span_iob import Span, refine_iob, tags_to_spans
 
 try:
@@ -290,7 +291,7 @@ def main() -> None:
     n = min(len(ds), args.max_samples)
     ds = ds.select(range(n))
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_dir, use_fast=True)
+    tokenizer = load_autotokenizer_pretrained(args.model_dir, use_fast=True)
     model = AutoModelForTokenClassification.from_pretrained(args.model_dir)
     model.eval()
 

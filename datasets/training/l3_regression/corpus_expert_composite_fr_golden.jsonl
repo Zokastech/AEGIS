@@ -7,6 +7,9 @@
 {"tokens": ["11/03/91"], "ner_tags": ["B-DATE"], "lang": "fr", "domain": "l3_expert"}
 {"tokens": ["Tourcoing"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
 {"tokens": ["Tunis"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Lieu", "déclaré", "sur", "formulaire", "annexe", ":", "Tunis", "."], "ner_tags": ["O", "O", "O", "O", "O", "O", "B-LOCATION", "O"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["Tunis"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
+{"tokens": ["ville", ":", "Tunis"], "ner_tags": ["O", "O", "B-LOCATION"], "lang": "fr", "domain": "l3_expert"}
 {"tokens": ["1", "91", "11", "59", "987", "654", "32"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_expert"}
 {"tokens": ["12AB34567"], "ner_tags": ["B-PASSPORT"], "lang": "fr", "domain": "l3_expert"}
 {"tokens": ["98FR76X12345"], "ner_tags": ["B-PASSPORT"], "lang": "fr", "domain": "l3_expert"}

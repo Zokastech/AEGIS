@@ -2,6 +2,9 @@
 """
 Build a synthetic multilingual dataset (European PII) in IOB2 format
 compatible with Hugging Face `datasets` (tokens + ner_tags).
+
+Répartition des noms de personnes : 75 % français, 25 % européens (hors France)
+et maghrébins (écriture latine), via `_pick_person_name`.
 """
 
 from __future__ import annotations
@@ -264,26 +267,101 @@ def tokens_tags_from_chunks(chunks: Sequence[Tuple[str, str]]) -> Tuple[List[str
     return tokens, tags
 
 
-def _pick_name(rng: random.Random, lang: str) -> Tuple[str, str]:
-    pools = {
-        "fr": (["Marie", "Jean", "Camille", "Lucas"], ["Dupont", "Martin", "Bernard", "Lefèvre"]),
-        "de": (["Anna", "Felix", "Klara", "Jonas"], ["Müller", "Schmidt", "Weber", "Wagner"]),
-        "it": (["Giulia", "Marco", "Elena", "Luca"], ["Rossi", "Bianchi", "Romano", "Conti"]),
-        "es": (["María", "Carlos", "Lucía", "Javier"], ["García", "López", "Martínez", "Sánchez"]),
-        "nl": (["Emma", "Daan", "Sophie", "Lucas"], ["De Jong", "Jansen", "Visser", "Bakker"]),
-        "pl": (["Katarzyna", "Piotr", "Anna", "Michał"], ["Nowak", "Wiśniewski", "Kowalczyk", "Lewandowski"]),
-        "pt": (["Ana", "João", "Maria", "Pedro"], ["Silva", "Santos", "Oliveira", "Pereira"]),
-        "el": (["Ελένη", "Νίκος", "Μαρία", "Γιώργος"], ["Παπαδόπουλος", "Γεωργίου", "Νικολάου"]),
-        "sv": (["Elin", "Erik", "Anna", "Johan"], ["Andersson", "Johansson", "Karlsson", "Nilsson"]),
-        "fi": (["Sofia", "Matti", "Laura", "Juhani"], ["Virtanen", "Korhonen", "Mäkinen", "Nieminen"]),
-        "ro": (["Maria", "Ion", "Elena", "Andrei"], ["Popescu", "Ionescu", "Dumitru", "Stan"]),
-    }
-    fn, ln = pools.get(lang, pools["fr"])
+# Prénoms / noms pour entités PERSON : 75 % `fr`, 25 % clés `FOREIGN_PERSON_NAME_KEYS` (UE + Maghreb).
+PERSON_NAME_FRENCH_FRACTION = 0.75
+
+_NAME_POOLS: dict[str, Tuple[List[str], List[str]]] = {
+    "fr": (
+        [
+            "Marie",
+            "Jean",
+            "Camille",
+            "Lucas",
+            "Sophie",
+            "Pierre",
+            "Isabelle",
+            "Thomas",
+            "Julie",
+            "Nicolas",
+            "Amélie",
+            "François",
+            "Chloé",
+            "Antoine",
+        ],
+        [
+            "Dupont",
+            "Martin",
+            "Bernard",
+            "Lefèvre",
+            "Dubois",
+            "Moreau",
+            "Laurent",
+            "Simon",
+            "Michel",
+            "Roux",
+            "David",
+            "Girard",
+            "Fontaine",
+        ],
+    ),
+    "de": (["Anna", "Felix", "Klara", "Jonas"], ["Müller", "Schmidt", "Weber", "Wagner"]),
+    "it": (["Giulia", "Marco", "Elena", "Luca"], ["Rossi", "Bianchi", "Romano", "Conti"]),
+    "es": (["María", "Carlos", "Lucía", "Javier"], ["García", "López", "Martínez", "Sánchez"]),
+    "nl": (["Emma", "Daan", "Sophie", "Lucas"], ["De Jong", "Jansen", "Visser", "Bakker"]),
+    "pl": (["Katarzyna", "Piotr", "Anna", "Michał"], ["Nowak", "Wiśniewski", "Kowalczyk", "Lewandowski"]),
+    "pt": (["Ana", "João", "Maria", "Pedro"], ["Silva", "Santos", "Oliveira", "Pereira"]),
+    "el": (["Ελένη", "Νίκος", "Μαρία", "Γιώργος"], ["Παπαδόπουλος", "Γεωργίου", "Νικολάου"]),
+    "sv": (["Elin", "Erik", "Anna", "Johan"], ["Andersson", "Johansson", "Karlsson", "Nilsson"]),
+    "fi": (["Sofia", "Matti", "Laura", "Juhani"], ["Virtanen", "Korhonen", "Mäkinen", "Nieminen"]),
+    "ro": (["Maria", "Ion", "Elena", "Andrei"], ["Popescu", "Ionescu", "Dumitru", "Stan"]),
+    "maghreb": (
+        ["Youssef", "Fatima", "Mehdi", "Salma", "Amine", "Nadia", "Omar", "Sofia", "Karim", "Leila", "Hassan"],
+        [
+            "Benali",
+            "Amrani",
+            "Cherkaoui",
+            "Bensalem",
+            "Tazi",
+            "El Amrani",
+            "Idrissi",
+            "Filali",
+            "Bouazza",
+            "Mansouri",
+            "Benjelloun",
+        ],
+    ),
+}
+
+# Européens (hors France) + Maghreb — utilisé pour les 25 % « étrangers ».
+FOREIGN_PERSON_NAME_KEYS: Tuple[str, ...] = (
+    "de",
+    "it",
+    "es",
+    "nl",
+    "pl",
+    "pt",
+    "el",
+    "sv",
+    "fi",
+    "ro",
+    "maghreb",
+)
+
+
+def _pick_name_from_pool(rng: random.Random, pool_key: str) -> Tuple[str, str]:
+    fn, ln = _NAME_POOLS.get(pool_key, _NAME_POOLS["fr"])
     return rng.choice(fn), rng.choice(ln)
 
 
+def _pick_person_name(rng: random.Random) -> Tuple[str, str]:
+    """75 % noms français, 25 % noms européens ou maghrébins (pools ci-dessus)."""
+    if rng.random() < PERSON_NAME_FRENCH_FRACTION:
+        return _pick_name_from_pool(rng, "fr")
+    return _pick_name_from_pool(rng, rng.choice(FOREIGN_PERSON_NAME_KEYS))
+
+
 def build_email_professional(lang: str, rng: random.Random) -> Tuple[List[str], List[str]]:
-    fn, ln = _pick_name(rng, lang)
+    fn, ln = _pick_person_name(rng)
     dom = rng.choice(["acme.eu", "corp.int", "service.gov", "clinic.med"])
     local = f"{fn.lower()}.{ln.lower().replace(' ', '')}"
     org = rng.choice(["ACME Europe", "Nordic Data AB", "MediCare EU", "Banque Centrale EU"])
@@ -328,7 +406,7 @@ def build_email_professional(lang: str, rng: random.Random) -> Tuple[List[str], 
 
 
 def build_web_form(lang: str, rng: random.Random) -> Tuple[List[str], List[str]]:
-    fn, ln = _pick_name(rng, lang)
+    fn, ln = _pick_person_name(rng)
     phone = synth_phone(lang)
     addr = synth_address(lang)
     nid = synth_national_id(lang)
@@ -371,7 +449,7 @@ def build_system_log(lang: str, rng: random.Random) -> Tuple[List[str], List[str
 
 
 def build_support_ticket(lang: str, rng: random.Random) -> Tuple[List[str], List[str]]:
-    fn, ln = _pick_name(rng, lang)
+    fn, ln = _pick_person_name(rng)
     plate = synth_license_plate(lang)
     mrn = synth_medical(lang)
     chunks = [
@@ -391,7 +469,7 @@ def build_support_ticket(lang: str, rng: random.Random) -> Tuple[List[str], List
 
 
 def build_news_article(lang: str, rng: random.Random) -> Tuple[List[str], List[str]]:
-    fn, ln = _pick_name(rng, lang)
+    fn, ln = _pick_person_name(rng)
     org = rng.choice(["Commission Européenne", "European Central Bank", "Parlamento Europeo"])
     loc = rng.choice(["Strasbourg", "Frankfurt", "Bruxelles", "Luxembourg"])
     chunks = [

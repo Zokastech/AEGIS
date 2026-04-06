@@ -43,12 +43,12 @@ def onnx_session():
 @pytest.fixture(scope="module")
 def ner_tokenizer():
     pytest.importorskip("transformers")
-    from transformers import AutoTokenizer
+    from hf_tokenizer_utils import load_autotokenizer_pretrained
 
     tok_dir = Path(os.environ.get("AEGIS_ONNX_TOKENIZER", str(_DEFAULT_TOK)))
     if not (tok_dir / "tokenizer.json").is_file():
         pytest.skip(f"Tokenizer absent : {tok_dir}")
-    return AutoTokenizer.from_pretrained(str(tok_dir), local_files_only=True)
+    return load_autotokenizer_pretrained(str(tok_dir), local_files_only=True)
 
 
 @pytest.fixture(scope="module")

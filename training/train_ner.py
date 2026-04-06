@@ -27,12 +27,13 @@ load_from_disk = _ds.load_from_disk
 from seqeval.metrics import f1_score, precision_score, recall_score
 from transformers import (
     AutoModelForTokenClassification,
-    AutoTokenizer,
     DataCollatorForTokenClassification,
     EarlyStoppingCallback,
     Trainer,
     TrainingArguments,
 )
+
+from hf_tokenizer_utils import load_autotokenizer_pretrained
 
 from dataset_builder import ID2LABEL, LABEL2ID, LABELS
 
@@ -166,7 +167,7 @@ def main() -> None:
 
     raw: DatasetDict = load_from_disk(args.dataset)
 
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
+    tokenizer = load_autotokenizer_pretrained(args.model_name, use_fast=True)
     model = AutoModelForTokenClassification.from_pretrained(
         args.model_name,
         num_labels=len(LABELS),
