@@ -1,0 +1,41 @@
+Bonjour,
+
+Je te transmets les infos concernant le dossier client n° FR-94X-7721-B.
+
+Le client principal s’appelle Karim El M. (ou peut-être El Mahdi ? orthographe incertaine), né le 14/02/1987 à Roubaix. Son numéro de sécurité sociale serait 1 87 02 59 123 456 78, mais à vérifier car il y a une incohérence sur la clé.
+
+Adresse actuelle déclarée :
+12 bis rue des Fleurs, apt 3B
+59100 Roubaix
+France
+
+Ancienne adresse (peut encore apparaître dans certains fichiers) :
+45 avenue J. Jaurès
+59000 Lille
+
+Contact :
+
+Email perso : karim.elm87(at)gmail.com
+Email pro : k.elmahdi@consulting-eu.org
+Téléphone : +33 6 58 77 12 09 (ou parfois noté 0658771209)
+
+Infos bancaires utilisées pour prélèvement :
+IBAN : FR76 3000 6000 0112 3456 7890 189
+BIC : AGRIFRPPXXX
+
+Carte utilisée lors du dernier paiement :
+Visa **** **** **** 4832 (expiration 09/27, CVV non stocké mais mentionné dans un mail ancien comme “482”)
+
+Le client a également fourni un identifiant interne : usr_kelm_7721
+Et un ancien login : karim1987!
+
+Dans les échanges, il mentionne une société :
+“KM Data Solutions” (SIRET possible : 812 345 678 00017 — non confirmé)
+
+Attention : dans un document scanné, on voit une signature ressemblant à “K. Elmahdy” → possible variation orthographique.
+
+Il y a aussi une référence à un proche :
+“Samira (soeur)” avec numéro partiel : 07 ** ** 45 91
+
+Enfin, note interne :
+Le client utilise parfois un VPN (IP détectée : 185.217.0.12 → localisation supposée Belgique).

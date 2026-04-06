@@ -101,6 +101,35 @@ def per_entity_prf2(
     return per, f2_micro
 
 
+def micro_span_entity_scores(
+    y_true_spans: List[List[Span]],
+    y_pred_spans: List[List[Span]],
+    entity_types: List[str],
+) -> Dict[str, float]:
+    """Métriques **micro** (agrégation globale des spans) : P, R, F1, F2 + comptes."""
+    tp = fp = fn = 0
+    for et in entity_types:
+        for gold, pred in zip(y_true_spans, y_pred_spans):
+            gs = {s for s in gold if s.etype == et}
+            ps = {s for s in pred if s.etype == et}
+            tp += len(gs & ps)
+            fp += len(ps - gs)
+            fn += len(gs - ps)
+    p = tp / (tp + fp) if (tp + fp) else 0.0
+    r = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = (2 * p * r / (p + r)) if (p + r) else 0.0
+    f2 = f_beta(p, r, BETA_MAIN)
+    return {
+        "tp": float(tp),
+        "fp": float(fp),
+        "fn": float(fn),
+        "precision": p,
+        "recall": r,
+        "f1": f1,
+        "f2": f2,
+    }
+
+
 def confusion_entity_level(
     y_true_spans: List[List[Span]],
     y_pred_spans: List[List[Span]],
@@ -170,10 +199,15 @@ def presidio_to_tags(
     text: str,
     words: List[str],
     analyzer: Any,
+    language: str = "en",
+    score_threshold: Optional[float] = None,
 ) -> List[str]:
     if analyzer is None:
         return ["O"] * len(words)
-    results = analyzer.analyze(text=text, language="en", entities=[])
+    kw: Dict[str, Any] = dict(text=text, language=language, entities=[])
+    if score_threshold is not None:
+        kw["score_threshold"] = score_threshold
+    results = analyzer.analyze(**kw)
     char_spans: List[Tuple[int, int, str]] = []
     for r in results:
         char_spans.append((r.start, r.end, map_presidio_entity(r.entity_type)))
@@ -261,6 +295,18 @@ def main() -> None:
     parser.add_argument("--max_samples", type=int, default=2000)
     parser.add_argument("--out_report", type=str, default="./reports/ner_eval.html")
     parser.add_argument("--with_presidio", action="store_true")
+    parser.add_argument(
+        "--presidio_language",
+        type=str,
+        default="en",
+        help="Code langue Presidio / spaCy (ex. en, fr) — installer le modèle spaCy correspondant.",
+    )
+    parser.add_argument(
+        "--presidio_score_threshold",
+        type=float,
+        default=None,
+        help="Seuil optionnel Presidio (score analyzer).",
+    )
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(args.out_report) or ".", exist_ok=True)
@@ -298,7 +344,13 @@ def main() -> None:
         y_pred_spans.append(tags_to_spans(word_tags_pred))
 
         if analyzer is not None:
-            pt = presidio_to_tags(text, tokens, analyzer)
+            pt = presidio_to_tags(
+                text,
+                tokens,
+                analyzer,
+                language=args.presidio_language,
+                score_threshold=args.presidio_score_threshold,
+            )
             pt = refine_iob(pt)
             y_presidio_spans.append(tags_to_spans(pt))
 

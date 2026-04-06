@@ -101,6 +101,8 @@ Paramètres utiles :
 | `--split` | `train` ou `validation` (défaut : `validation`) |
 | `--max_samples` | Plafonne le nombre de phrases évaluées (défaut : 2000) |
 | `--with_presidio` | Ajoute une baseline Presidio (nécessite `en_core_web_sm` si analyse EN) |
+| `--presidio_language` | Langue passée à Presidio (`en`, `fr`, …) |
+| `--presidio_score_threshold` | Seuil de score analyzer Presidio (optionnel) |
 
 Baseline Presidio (approximative, mappage des types → schéma AEGIS) :
 
@@ -108,7 +110,21 @@ Baseline Presidio (approximative, mappage des types → schéma AEGIS) :
 python evaluate.py --with_presidio --out_report ./reports/ner_eval_presidio.html
 ```
 
-**Limite** : ce script évalue le modèle **PyTorch**, pas directement le fichier `.onnx`. Pour valider l’export ONNX, voir §4.2 et §4.4.
+**Benchmark Presidio seul** (précision / rappel / **F1** / **F2**, micro + par type) : [`benchmark_presidio_ner.py`](benchmark_presidio_ner.py) — même alignement token que `evaluate.py`, sortie tableau + JSON pour automatisation.
+
+```bash
+python benchmark_presidio_ner.py --dataset ./data/eu_pii_synthetic --split validation \
+  --max_samples 1000 --language fr --json-out ./reports/presidio_bench.json
+```
+
+| Option (bench) | Rôle |
+|----------------|------|
+| `--language` | Code spaCy / Presidio (`en`, `fr`, …) — installer le modèle correspondant |
+| `--score_threshold` | Seuil analyzer Presidio (optionnel) |
+| `--json-out` | Fichier JSON (métriques + métadonnées) |
+| `--quiet` | Supprime le tableau (utile avec `--json-out`) |
+
+**Limite** : `evaluate.py` évalue le modèle **PyTorch** ; le bench Presidio n’utilise **pas** ONNX AEGIS. Pour ONNX, voir §4.2 et §4.4.
 
 ### 4.2 Latence et exécution ONNX (Python)
 
@@ -143,8 +159,11 @@ python evaluate.py --with_presidio --out_report ./reports/ner_eval_presidio.html
 | Commande | But |
 |----------|-----|
 | `pytest training/tests -q` | Labels, `dataset_builder`, imports (CI **python-training**) |
-| `bash scripts/run_l3_pipeline.sh` | Bout-en-bout local : petit jeu → train (`max_steps` court) → export ONNX (nécessite `requirements.txt`) |
-| Workflow **Helm & NER L3 pipeline** (GitHub) | Même chaîne smoke + artefact `aegis-ner-l3-onnx.tgz` |
+| `pytest training/tests/test_l3_sensitive_letter_onnx.py training/tests/test_l3_expert_corpus_onnx.py -q` | Après `run_l3_pipeline.sh` : ONNX INT8 vs lettre FR + **corpus expert composite** ; sans export, **ignorés** |
+| `bash scripts/run_l3_pipeline.sh` | Synthétique + fusion **`letter_fr_golden.jsonl` + `corpus_expert_composite_fr_golden.jsonl`** (concat) → train → export |
+| Workflow **Helm & NER L3 pipeline** (GitHub) | Pipeline + test lettre + artefact `aegis-ner-l3-onnx.tgz` |
+
+Inférence ONNX réutilisable : module **`onnx_ner_infer.py`** (aligné sur `evaluate.py`).
 
 ### 4.4 Intégration moteur Rust (niveau 3)
 

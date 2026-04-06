@@ -21,6 +21,7 @@ Les labels autorisés sont ceux de `training/dataset_builder.py` (`LABELS`) : `O
 |---------|------|
 | [`ner_custom/`](ner_custom/) | Phrases annotées (`samples.jsonl`) + jeu **synthétique** long `fr_dossier_client_seed.jsonl` (mail FR dossier client, PII variées). |
 | [`ner_financial_seed/`](ner_financial_seed/) | Amorce **finance / conformité** (IBAN, TVA, cartes) pour un second jeu ou un fine-tuning séparé. |
+| [`l3_regression/`](l3_regression/) | **Régressions ONNX** : lettre sensible (`letter_fr_sensitive.txt` + `letter_fr_golden.jsonl`) et **corpus expert composite** (`corpus_expert_composite_fr.txt` + `corpus_expert_composite_fr_golden.jsonl`, multi-domaines CRM/SIH/juridique/finance/numérique). Les deux JSONL sont concaténés par `training/scripts/run_l3_pipeline.sh`. Étiquettes **pédagogiques** possibles (IP → `LOCATION`, montants → `TAX_ID`, etc.) — ne pas les confondre avec une taxonomie légale. |
 
 ### Chaîne outils
 

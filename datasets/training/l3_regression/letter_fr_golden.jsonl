@@ -1,0 +1,39 @@
+{"tokens": ["Karim", "El", "M."], "ner_tags": ["B-PERSON", "I-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["El", "Mahdi"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["K.", "Elmahdy"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira", "(soeur)"], "ner_tags": ["B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["né", "le", "14/02/1987", "à", "Roubaix"], "ner_tags": ["O", "O", "B-DATE", "O", "B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["1", "87", "02", "59", "123", "456", "78"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["12", "bis", "rue", "des", "Fleurs,", "apt", "3B"], "ner_tags": ["B-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["59100", "Roubaix"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["45", "avenue", "J.", "Jaurès"], "ner_tags": ["B-ADDRESS", "I-ADDRESS", "I-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["59000", "Lille"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["France"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["karim.elm87(at)gmail.com"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["k.elmahdi@consulting-eu.org"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["+33", "6", "58", "77", "12", "09"], "ner_tags": ["B-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["0658771209"], "ner_tags": ["B-PHONE"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["FR76", "3000", "6000", "0112", "3456", "7890", "189"], "ner_tags": ["B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["AGRIFRPPXXX"], "ner_tags": ["B-ORGANIZATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Visa", "****", "****", "****", "4832"], "ner_tags": ["O", "B-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD", "I-CREDIT_CARD"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["812", "345", "678", "00017"], "ner_tags": ["B-TAX_ID", "I-TAX_ID", "I-TAX_ID", "I-TAX_ID"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["KM", "Data", "Solutions"], "ner_tags": ["B-ORGANIZATION", "I-ORGANIZATION", "I-ORGANIZATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Karim", "El", "M."], "ner_tags": ["B-PERSON", "I-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["El", "Mahdi"], "ner_tags": ["B-PERSON", "I-PERSON"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["FR76", "3000", "6000", "0112", "3456", "7890", "189"], "ner_tags": ["B-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN", "I-IBAN"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["+33", "6", "58", "77", "12", "09"], "ner_tags": ["B-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE", "I-PHONE"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["k.elmahdi@consulting-eu.org"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["karim.elm87(at)gmail.com"], "ner_tags": ["B-EMAIL"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["59100", "Roubaix"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["59000", "Lille"], "ner_tags": ["B-ADDRESS", "I-ADDRESS"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["Samira", "(soeur)"], "ner_tags": ["B-PERSON", "O"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["né", "le", "14/02/1987", "à", "Roubaix"], "ner_tags": ["O", "O", "B-DATE", "O", "B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["1", "87", "02", "59", "123", "456", "78"], "ner_tags": ["B-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID", "I-NATIONAL_ID"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["4832"], "ner_tags": ["B-CREDIT_CARD"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["812", "345", "678", "00017"], "ner_tags": ["B-TAX_ID", "I-TAX_ID", "I-TAX_ID", "I-TAX_ID"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["482"], "ner_tags": ["B-CREDIT_CARD"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["185.217.0.12"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["482"], "ner_tags": ["B-CREDIT_CARD"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["185.217.0.12"], "ner_tags": ["B-LOCATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["usr_kelm_7721"], "ner_tags": ["B-ORGANIZATION"], "lang": "fr", "domain": "l3_regression"}
+{"tokens": ["karim1987!"], "ner_tags": ["B-PERSON"], "lang": "fr", "domain": "l3_regression"}

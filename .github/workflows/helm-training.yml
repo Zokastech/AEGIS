@@ -140,6 +140,11 @@ jobs:
           AEGIS_L3_MAX_STEPS: ${{ github.event.inputs.max_steps || '800' }}
         run: bash scripts/run_l3_pipeline.sh
 
+      - name: Test ONNX L3 — régressions (lettre + corpus expert)
+        run: |
+          pytest training/tests/test_l3_sensitive_letter_onnx.py \
+            training/tests/test_l3_expert_corpus_onnx.py -q
+
       - name: Pack artefacts ONNX (déploiement core / PVC)
         run: |
           set -euo pipefail
