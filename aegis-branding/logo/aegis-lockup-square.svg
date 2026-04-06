@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AEGIS | zokastech.fr | Apache 2.0 / MIT | Square lockup -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" fill="none" aria-label="AEGIS">
-  <title>AEGIS</title>
+<!-- Zokastech AEGIS | zokastech.fr | Apache 2.0 / MIT | Square lockup -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 158" fill="none" aria-label="Zokastech AEGIS">
+  <title>Zokastech AEGIS</title>
   <defs>
     <linearGradient id="agsq-grad" x1="60" y1="8" x2="60" y2="88" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0066ff"/>
@@ -27,10 +27,20 @@
   </g>
   <text
     x="60"
-    y="122"
+    y="118"
     text-anchor="middle"
     font-family="Inter Tight, Inter, system-ui, -apple-system, sans-serif"
-    font-size="26"
+    font-size="10"
+    font-weight="700"
+    letter-spacing="0.2em"
+    fill="#0066ff"
+  >ZOKASTECH</text>
+  <text
+    x="60"
+    y="146"
+    text-anchor="middle"
+    font-family="Inter Tight, Inter, system-ui, -apple-system, sans-serif"
+    font-size="24"
     font-weight="800"
     letter-spacing="0.12em"
     fill="#0f172a"

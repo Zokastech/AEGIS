@@ -1,6 +1,6 @@
-# AEGIS — Palette de couleurs
+# Zokastech AEGIS — Palette de couleurs
 
-**Zokastech** · *Innovate • Connect • Grow*
+**Marque** : Zokastech AEGIS · **Éditeur** : [Zokastech](https://zokastech.fr) · *Innovate • Connect • Grow*
 
 | Nom | Hex | RGB | Rôle |
 |-----|-----|-----|------|

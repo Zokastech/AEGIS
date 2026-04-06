@@ -1,7 +1,7 @@
 {
   "name": "aegis-branding",
   "version": "1.0.0",
-  "description": "AEGIS visual identity assets (Zokastech)",
+  "description": "Zokastech AEGIS — identité visuelle et assets (zokastech.fr)",
   "private": true,
   "type": "module",
   "scripts": {

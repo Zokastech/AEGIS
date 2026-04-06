@@ -1,7 +1,8 @@
-# AEGIS — Guidelines d’usage (Zokastech)
+# Zokastech AEGIS — Guidelines d’usage
 
+**Marque** : **Zokastech AEGIS** (éditeur [Zokastech](https://zokastech.fr))  
 **Valeurs** : Innovate · Connect · Grow  
-**Ton** : moderne, sécurisé, accessible, tech-forward.
+**Ton** : moderne, sécurisé, accessible, orienté conformité et développeurs.
 
 ## Principes
 
@@ -22,7 +23,7 @@
 
 ## Logo
 
-- **Marges de protection** : zone vide ≥ hauteur du « A » du mot AEGIS autour du lockup.
+- **Marges de protection** : zone vide ≥ hauteur du « A » du mot **AEGIS** autour du lockup (incl. la ligne **Zokastech** si présente).
 - **Ne pas** : étirer, rotation non 90°, changer les couleurs hors palette, ajouter des effets (neon, 3D cheap).
 - **Fond sombre** : utiliser `aegis-inverted.svg` ou équivalent monochrome clair sur charcoal.
 

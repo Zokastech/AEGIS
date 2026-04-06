@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AEGIS | GitHub profile header 1280x640 | zokastech.fr -->
+<!-- Zokastech AEGIS | GitHub profile header 1280x640 | zokastech.fr -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" fill="none">
-  <title>AEGIS GitHub banner</title>
+  <title>Zokastech AEGIS — GitHub banner</title>
   <defs>
     <linearGradient id="gh-bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
       <stop stop-color="#1a1f3a"/>
@@ -31,7 +31,8 @@
       stroke-linejoin="miter"
     />
   </g>
-  <text x="460" y="280" font-family="Inter Tight, Inter, system-ui, sans-serif" font-size="112" font-weight="900" fill="#f8f9fa" letter-spacing="0.06em">AEGIS</text>
-  <text x="460" y="360" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="500" fill="#00d9ff">Framework cybers&#233;curit&#233; &amp; cloud</text>
-  <text x="460" y="430" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="400" fill="#e5e7eb" opacity="0.9">Innovate &#183; Connect &#183; Grow - Zokastech</text>
+  <text x="460" y="248" font-family="Inter, system-ui, sans-serif" font-size="38" font-weight="600" fill="#00d9ff" letter-spacing="0.08em">ZOKASTECH</text>
+  <text x="460" y="330" font-family="Inter Tight, Inter, system-ui, sans-serif" font-size="100" font-weight="900" fill="#f8f9fa" letter-spacing="0.06em">AEGIS</text>
+  <text x="460" y="398" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="500" fill="#e5e7eb">D&#233;tection &amp; anonymisation des donn&#233;es personnelles &#8212; open source</text>
+  <text x="460" y="458" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="400" fill="#00d9ff" opacity="0.95">zokastech.fr &#183; Innovate &#183; Connect &#183; Grow</text>
 </svg>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AEGIS | zokastech.fr | Apache 2.0 / MIT | Icon -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" aria-label="AEGIS">
-  <title>AEGIS</title>
+<!-- Zokastech AEGIS | zokastech.fr | Apache 2.0 / MIT | Icon -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" aria-label="Zokastech AEGIS">
+  <title>Zokastech AEGIS</title>
   <defs>
     <linearGradient id="ag-grad" x1="32" y1="4" x2="32" y2="68" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0066ff"/>

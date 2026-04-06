@@ -1,12 +1,14 @@
-# AEGIS — Brand guide (condensé)
+# Zokastech AEGIS — Brand guide (condensé)
 
-**Projet** : AEGIS Framework · **Client** : Zokastech · **Site** : [zokastech.fr](https://zokastech.fr)
+**Produit** : **Zokastech AEGIS** (moteur open-source de détection et d’anonymisation de PII) · **Éditeur** : [Zokastech](https://zokastech.fr) · **Site projet** : [aegis.zokastech.fr](https://aegis.zokastech.fr) (landing) · **Corporate** : [zokastech.fr](https://zokastech.fr)
+
+**Nom d’usage** : écrire **« Zokastech AEGIS »** (titres, README, slides) ou **« AEGIS »** seul quand le contexte Zokastech est déjà clair (UI compacte, favicon).
 
 ---
 
 ## 1. Positionnement
 
-Framework **cybersécurité & cloud** : accessible, moderne, orienté développeurs et équipes infra. L’identité visuelle traduit **protection** (bouclier géométrique), **clarté** (formes simples) et **innovation** (bleu primaire + cyan tech).
+**Zokastech AEGIS** incarne une alternative européenne orientée **conformité** (RGPD, packs policy) et **performance** (cœur Rust, passerelle durcie). L’identité visuelle traduit **protection** (bouclier géométrique), **clarté** (formes simples) et **innovation** (bleu primaire + cyan tech).
 
 ---
 
@@ -14,8 +16,8 @@ Framework **cybersécurité & cloud** : accessible, moderne, orienté développe
 
 | Fichier | Usage |
 |---------|--------|
-| `logo/aegis-full.svg` | Lockup horizontal (bouclier + AEGIS) |
-| `logo/aegis-lockup-square.svg` | Variante carrée (icône + mot dessous) |
+| `logo/aegis-full.svg` | Lockup horizontal (bouclier + ZOKASTECH + AEGIS) |
+| `logo/aegis-lockup-square.svg` | Variante carrée (icône + Zokastech + AEGIS) |
 | `logo/aegis-icon.svg` | Icône seule (favicon, app, watermark) |
 | `logo/aegis-mono.svg` | Noir / blanc cassé (print, contraintes 1 couleur) |
 | `logo/aegis-inverted.svg` | Fonds sombres (`#1a1f3a`, etc.) |
@@ -52,8 +54,8 @@ Imports CSS : `typography/typography.css`.
 
 ## 5. Badges & social
 
-- **README** : `badges/powered-by.svg` / `.png` ; URL future : `https://aegis.zokastech.fr/badges/powered-by.svg`
-- **Certification recognizers** : `badges/aegis-certified.svg` / `.png`
+- **README** : `badges/powered-by.svg` / `.png` ; URL future : `https://aegis.zokastech.fr/badges/powered-by.svg` (« Powered by Zokastech AEGIS »)
+- **Certification recognizers** : `badges/aegis-certified.svg` / `.png` (Zokastech AEGIS Certified)
 - **Shields.io** : `badges/shields-io.md`
 - **Bannières** : `social-media/*.svg` (+ `.png` après export) — GitHub 1280×640, Twitter 1200×675, LinkedIn 1500×500, OG 1200×630
 
@@ -73,4 +75,4 @@ pandoc brand-guide.md -o aegis-brand-guide.pdf --pdf-engine=wkhtmltopdf
 
 ## Licence
 
-Assets et documentation branding : alignés sur le dépôt AEGIS (Apache 2.0 / MIT selon modules). Crédit : **Zokastech**.
+Assets et documentation branding : dépôt **Zokastech/AEGIS** (Apache 2.0 / MIT selon modules). Crédit : **Zokastech** — produit **Zokastech AEGIS**.

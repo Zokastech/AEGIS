@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AEGIS Certified | Recognizers valides | zokastech.fr -->
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="56" viewBox="0 0 220 56" fill="none" role="img" aria-label="AEGIS Certified">
-  <title>AEGIS Certified</title>
-  <rect width="220" height="56" rx="8" fill="#0f172a"/>
-  <rect x="2" y="2" width="216" height="52" rx="6" fill="none" stroke="#10b981" stroke-width="2"/>
+<!-- Zokastech AEGIS Certified | zokastech.fr -->
+<svg xmlns="http://www.w3.org/2000/svg" width="248" height="56" viewBox="0 0 248 56" fill="none" role="img" aria-label="Zokastech AEGIS Certified">
+  <title>Zokastech AEGIS Certified</title>
+  <rect width="248" height="56" rx="8" fill="#0f172a"/>
+  <rect x="2" y="2" width="244" height="52" rx="6" fill="none" stroke="#10b981" stroke-width="2"/>
   <g transform="translate(12, 10) scale(0.5)">
     <path
       d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
@@ -27,16 +27,16 @@
   </g>
   <text
     x="52"
-    y="28"
+    y="26"
     font-family="Inter Tight, Inter, system-ui, sans-serif"
-    font-size="14"
+    font-size="12"
     font-weight="800"
-    letter-spacing="0.06em"
+    letter-spacing="0.04em"
     fill="#f8f9fa"
-  >AEGIS</text>
+  >Zokastech AEGIS</text>
   <text
     x="52"
-    y="44"
+    y="42"
     font-family="Inter, system-ui, sans-serif"
     font-size="11"
     font-weight="600"

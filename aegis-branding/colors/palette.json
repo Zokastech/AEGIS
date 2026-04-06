@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "meta": {
-    "project": "AEGIS",
-    "client": "Zokastech",
-    "site": "https://zokastech.fr",
+    "product": "Zokastech AEGIS",
+    "publisher": "Zokastech",
+    "sites": ["https://zokastech.fr", "https://aegis.zokastech.fr"],
     "values": ["Innovate", "Connect", "Grow"]
   },
   "colors": {

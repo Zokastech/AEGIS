@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Rasterise les SVG AEGIS (logos, badges, réseaux sociaux) en PNG / ICO / WebP.
+ * Rasterise les SVG Zokastech AEGIS (logos, badges, réseaux sociaux) en PNG / ICO / WebP.
  * Prérequis : npm install (dans aegis-branding/)
  */
 import fs from "node:fs/promises";
@@ -24,8 +24,8 @@ async function main() {
   const sqSvg = await fs.readFile(path.join(logoDir, "aegis-lockup-square.svg"));
 
   const sizes = [16, 32, 64, 128, 256, 512];
-  const ratioFull = 72 / 240;
-  const ratioSq = 140 / 120;
+  const ratioFull = 86 / 280;
+  const ratioSq = 158 / 120;
 
   for (const s of sizes) {
     const dir = path.join(logoDir, "png", `${s}px`);
@@ -65,11 +65,11 @@ async function main() {
 
   const badgeDir = path.join(root, "badges");
   await sharp(await fs.readFile(path.join(badgeDir, "powered-by.svg")))
-    .resize(400, 112)
+    .resize(400, 84)
     .png()
     .toFile(path.join(badgeDir, "powered-by.png"));
   await sharp(await fs.readFile(path.join(badgeDir, "aegis-certified.svg")))
-    .resize(440, 112)
+    .resize(440, 99)
     .png()
     .toFile(path.join(badgeDir, "aegis-certified.png"));
 

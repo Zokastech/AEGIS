@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- AEGIS | zokastech.fr | Monochrome icon (transparent) -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" aria-label="AEGIS">
+<!-- Zokastech AEGIS | zokastech.fr | Monochrome icon (transparent) -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 72" fill="none" aria-label="Zokastech AEGIS">
+  <title>Zokastech AEGIS</title>
   <path
     d="M32 4 8 16v24c0 12.5 8.8 24.2 24 30 15.2-5.8 24-17.5 24-30V16L32 4Z"
     stroke="#0f172a"
