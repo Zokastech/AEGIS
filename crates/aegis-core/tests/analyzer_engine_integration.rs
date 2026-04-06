@@ -207,16 +207,17 @@ fn l3_decision_trace_shows_unavailable_without_ner_backend() {
         "expected L3:unavailable without NER backend, got {:?}",
         steps
     );
-    assert_eq!(iban.decision_trace.as_ref().and_then(|t| t.pipeline_level), Some(3));
+    assert_eq!(
+        iban.decision_trace.as_ref().and_then(|t| t.pipeline_level),
+        Some(3)
+    );
 }
 
 /// Backend NER présent mais non invoqué (tous les candidats L1 en short-circuit) → `L3:not_invoked`.
 #[test]
 fn l3_decision_trace_shows_not_invoked_when_ner_gate_skips() {
-    let dummy = std::env::temp_dir().join(format!(
-        "aegis_test_ner_dummy_{}.bin",
-        std::process::id()
-    ));
+    let dummy =
+        std::env::temp_dir().join(format!("aegis_test_ner_dummy_{}.bin", std::process::id()));
     std::fs::write(&dummy, b"x").expect("write dummy ner path");
 
     let eng = AnalyzerEngineBuilder::new()
@@ -254,5 +255,8 @@ fn l3_decision_trace_shows_not_invoked_when_ner_gate_skips() {
         "expected L3:not_invoked when NER gate skips (L1 short-circuit), got {:?}",
         steps
     );
-    assert_eq!(iban.decision_trace.as_ref().and_then(|t| t.pipeline_level), Some(3));
+    assert_eq!(
+        iban.decision_trace.as_ref().and_then(|t| t.pipeline_level),
+        Some(3)
+    );
 }

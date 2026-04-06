@@ -259,7 +259,9 @@ impl DetectionPipeline {
                                     span_start: e.start,
                                     span_end: e.end,
                                     entity_type: e.entity_type.clone(),
-                                    scores_by_source: [("l3".into(), e.score)].into_iter().collect(),
+                                    scores_by_source: [("l3".into(), e.score)]
+                                        .into_iter()
+                                        .collect(),
                                     context_word_hits: vec![],
                                     short_circuit: false,
                                     note: None,

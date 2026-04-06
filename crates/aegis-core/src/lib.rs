@@ -42,7 +42,8 @@ pub use ffi::{
 };
 pub use pipeline::{
     is_contextual_entity_type, DecisionTrace, DetectionPipeline, FusedCandidate, L3TraceAttachment,
-    MockNerBackend, NerBackend, PipelineConfig, PipelineLevels, PipelineOutput, ScoreFusion, TraceStep,
+    MockNerBackend, NerBackend, PipelineConfig, PipelineLevels, PipelineOutput, ScoreFusion,
+    TraceStep,
 };
 pub use recognizer::Recognizer;
 pub use registry::{RecognizerRegistry, RecognizerRegistryBuilder};
