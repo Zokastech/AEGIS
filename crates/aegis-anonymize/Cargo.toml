@@ -11,7 +11,7 @@ repository.workspace = true
 
 [dependencies]
 aegis-core = { path = "../aegis-core" }
-aes = "0.8"
+aes = "0.9"
 aes-gcm.workspace = true
 blake3 = "1.5"
 hex.workspace = true
