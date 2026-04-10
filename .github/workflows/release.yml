@@ -82,7 +82,7 @@ jobs:
             cosign sign-blob --yes "$f" --bundle="${f}.cosign.bundle"
           done
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: aegis-cli-${{ matrix.label }}
           path: |
@@ -145,7 +145,7 @@ jobs:
       - name: Pack SBOM directory
         run: tar -czvf "aegis-${GITHUB_REF_NAME}-sbom-all.tar.gz" dist/sbom 2>/dev/null || tar -czvf "aegis-${GITHUB_REF_NAME}-sbom-all.tar.gz" -T /dev/null
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: sbom-release
           path: |
@@ -174,7 +174,7 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           helm package deploy/helm/aegis -d dist-helm --version "${BASE_VER}" --app-version "${TAG}"
 
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: helm-aegis-chart
           path: dist-helm/*.tgz
