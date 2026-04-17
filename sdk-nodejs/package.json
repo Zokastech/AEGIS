@@ -32,7 +32,7 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^2.18.0",
+    "@napi-rs/cli": "^3.6.2",
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.0",
     "express": "^4.19.0",
