@@ -13,7 +13,7 @@ repository.workspace = true
 aegis-core = { path = "../aegis-core" }
 aes = "0.8"
 aes-gcm.workspace = true
-blake3 = "1.5"
+blake3 = "1.8"
 hex.workspace = true
 num-bigint = "0.4"
 num-integer = "0.1"
