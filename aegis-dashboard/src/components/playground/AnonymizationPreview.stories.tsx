@@ -1,6 +1,6 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { AnonymizationPreview } from "./AnonymizationPreview";
 
 const originalText = "Mme Jane Doe, email jane@acme.fr, tel +33 6 12 34 56 78";

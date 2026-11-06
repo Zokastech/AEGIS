@@ -10,7 +10,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-aegis-core = { path = "../aegis-core" }
+aegis-core = { version = "0.2.0", path = "../aegis-core" }
 aho-corasick.workspace = true
 ctor.workspace = true
 phonenumber = "0.3"

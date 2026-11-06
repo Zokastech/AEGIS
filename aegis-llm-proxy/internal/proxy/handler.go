@@ -6,7 +6,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -66,9 +68,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Stats.RequestsTotal.Add(1)
-	body, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, h.maxBody()))
 	if err != nil {
 		h.Stats.ErrorsTotal.Add(1)
+		var mbe *http.MaxBytesError
+		if errors.As(err, &mbe) {
+			http.Error(w, "corps de requête trop volumineux", http.StatusRequestEntityTooLarge)
+			return
+		}
 		http.Error(w, "lecture corps", http.StatusBadRequest)
 		return
 	}
@@ -85,10 +92,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if combined != "" && h.Cfg.Engine.Type == config.EngineHTTP {
 		raw, aerr := h.Eng.Analyze(ctx, combined, analysis.AnalysisConfigJSON(h.Cfg))
 		if aerr == nil {
-			ar, _ = analysis.Parse(raw)
-			if ar != nil && analysis.HasProtectedPII(h.Cfg, ar) {
-				h.Stats.PIIDetected.Add(1)
+			ar, aerr = analysis.Parse(raw)
+		}
+		if aerr != nil || ar == nil {
+			// Fail closed: in block mode an engine outage must not let PII through unchecked.
+			if h.Cfg.Mode == config.ModeBlock && !h.Cfg.FailOpen {
+				h.Stats.ErrorsTotal.Add(1)
+				http.Error(w, "analyse PII indisponible", http.StatusServiceUnavailable)
+				return
 			}
+			ar = nil
+		} else if analysis.HasProtectedPII(h.Cfg, ar) {
+			h.Stats.PIIDetected.Add(1)
 		}
 	}
 
@@ -106,19 +121,13 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	if isStream {
-		h.Stats.StreamPassthrough.Add(1)
-		h.forwardStream(w, r, body)
-		return
-	}
-
 	outBody := body
 	var anon *deanon.AnonymizedPayload
 	if h.Cfg.Mode == config.ModeAnonymize && kind != providers.KindUnknown && h.Cfg.Engine.Type == config.EngineHTTP {
 		nb, pl, merr := h.mutatePrompt(ctx, kind, body)
 		if merr != nil {
 			h.Stats.ErrorsTotal.Add(1)
-			http.Error(w, "anonymisation: "+merr.Error(), http.StatusBadGateway)
+			http.Error(w, "anonymisation indisponible", http.StatusBadGateway)
 			return
 		}
 		outBody = nb
@@ -128,15 +137,26 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if isStream {
+		// The prompt is anonymized before streaming (previously streams bypassed anonymization
+		// and leaked PII upstream). Placeholders in the streamed answer are not restored.
+		h.Stats.StreamPassthrough.Add(1)
+		h.forwardStream(w, r, outBody)
+		return
+	}
+
 	respBody, status, hdrs, ferr := h.doUpstream(ctx, r, outBody)
 	if ferr != nil {
 		h.Stats.ErrorsTotal.Add(1)
-		http.Error(w, ferr.Error(), http.StatusBadGateway)
+		http.Error(w, "amont injoignable", http.StatusBadGateway)
 		return
 	}
 	defer respBody.Close()
 
-	respBytes, err := io.ReadAll(respBody)
+	respBytes, err := io.ReadAll(io.LimitReader(respBody, h.maxBody()+1))
+	if err == nil && int64(len(respBytes)) > h.maxBody() {
+		err = errors.New("réponse amont trop volumineuse")
+	}
 	if err != nil {
 		h.Stats.ErrorsTotal.Add(1)
 		http.Error(w, "lecture réponse amont", http.StatusBadGateway)
@@ -161,8 +181,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(respBytes)
 }
 
+func (h *Handler) maxBody() int64 {
+	if h.Cfg.MaxBodyBytes > 0 {
+		return h.Cfg.MaxBodyBytes
+	}
+	return 10 << 20
+}
+
 func (h *Handler) serveDashboardIndex(w http.ResponseWriter, p string) {
+	p = html.EscapeString(p)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `<!DOCTYPE html><html><head><meta charset="utf-8"><title>AEGIS LLM Proxy</title></head><body>
 <h1>AEGIS LLM Proxy</h1>

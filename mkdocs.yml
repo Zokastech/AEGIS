@@ -132,6 +132,8 @@ nav:
   - Home: index.md
   - Why AEGIS: why-aegis.md
   - Getting Started: getting-started.md
+  - Installation (v0.2.0): installation.md
+  - Release notes: release-notes.md
   - Examples: examples.md
   - Architecture: architecture.md
   - API Reference: api-reference.md

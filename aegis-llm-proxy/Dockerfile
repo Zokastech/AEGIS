@@ -1,5 +1,5 @@
 # AEGIS — zokastech.fr — image minimale (< ~50MB)
-FROM golang:1.25-alpine AS build
+FROM golang:1.27-alpine AS build
 RUN apk add --no-cache ca-certificates
 WORKDIR /src
 COPY go.mod go.sum ./
@@ -10,5 +10,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/aegis-l
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/aegis-llm-proxy /aegis-llm-proxy
+# Utilisateur non-root (scratch : UID numérique).
+USER 65532:65532
 ENTRYPOINT ["/aegis-llm-proxy"]
 CMD ["-config", "/etc/aegis/llm-proxy.yaml"]

@@ -15,9 +15,9 @@ type Mode string
 
 const (
 	ModeTransparent Mode = "transparent"
-	ModeAnonymize Mode = "anonymize"
-	ModeBlock     Mode = "block"
-	ModeAlert     Mode = "alert"
+	ModeAnonymize   Mode = "anonymize"
+	ModeBlock       Mode = "block"
+	ModeAlert       Mode = "alert"
 )
 
 // EngineType : moteur AEGIS via HTTP (gateway) ou CLI local.
@@ -58,6 +58,13 @@ type Config struct {
 	InjectAPIKeyEnv string `yaml:"inject_api_key_env"`
 
 	Dashboard DashboardConfig `yaml:"dashboard"`
+
+	// MaxBodyBytes caps request and upstream response bodies (default 10 MiB).
+	MaxBodyBytes int64 `yaml:"max_body_bytes"`
+
+	// FailOpen forwards the request when the AEGIS engine is unreachable in block/alert mode.
+	// Default false: fail closed (HTTP 503) so PII is never sent upstream unchecked.
+	FailOpen bool `yaml:"fail_open"`
 }
 
 // EngineBlock configuration accès moteur.
@@ -68,6 +75,13 @@ type EngineBlock struct {
 	CLIPath string `yaml:"cli_path"`
 	// TimeoutSecond timeout appels moteur.
 	TimeoutSeconds int `yaml:"timeout_seconds"`
+
+	// APIKeyEnv names the env var holding the gateway API key sent as X-API-Key
+	// (default AEGIS_ENGINE_API_KEY). Required since v0.2.0: the gateway enforces authentication.
+	APIKeyEnv string `yaml:"api_key_env"`
+
+	// CAFile optionally trusts a private CA / the gateway self-signed certificate (PEM).
+	CAFile string `yaml:"ca_file"`
 }
 
 // DashboardConfig exposition stats pour le dashboard AEGIS.
@@ -93,11 +107,17 @@ func (c *Config) applyDefaults() {
 	if c.Engine.BaseURL == "" {
 		c.Engine.BaseURL = "http://127.0.0.1:9847"
 	}
+	if c.Engine.APIKeyEnv == "" {
+		c.Engine.APIKeyEnv = "AEGIS_ENGINE_API_KEY"
+	}
 	if c.Engine.TimeoutSeconds == 0 {
 		c.Engine.TimeoutSeconds = 60
 	}
 	if c.AnonymizeConfigJSON == "" {
 		c.AnonymizeConfigJSON = `{"analysis":{"score_threshold":0.5},"operators_by_entity":{"EMAIL":{"operator_type":"mask","params":{"visible_prefix":"2","visible_suffix":"0"}},"PHONE":{"operator_type":"mask","params":{"visible_prefix":"2","visible_suffix":"0"}},"CREDIT_CARD":{"operator_type":"redact","params":{}},"IBAN":{"operator_type":"redact","params":{}}}}`
+	}
+	if c.MaxBodyBytes <= 0 {
+		c.MaxBodyBytes = 10 << 20
 	}
 	if c.Dashboard.Prefix == "" {
 		c.Dashboard.Prefix = "/internal/llm-proxy"
@@ -131,5 +151,21 @@ func Load(path string) (*Config, error) {
 	if c.UpstreamURL == "" {
 		return nil, fmt.Errorf("upstream_url requis (YAML ou AEGIS_UPSTREAM_URL)")
 	}
+	if err := c.Validate(); err != nil {
+		return nil, err
+	}
 	return &c, nil
+}
+
+// Validate checks enumerated values (an unknown mode must not silently behave as transparent).
+func (c *Config) Validate() error {
+	switch c.Mode {
+	case ModeTransparent, ModeAnonymize, ModeBlock, ModeAlert:
+	default:
+		return fmt.Errorf("mode %q inconnu (transparent|anonymize|block|alert)", c.Mode)
+	}
+	if c.Engine.Type != EngineHTTP && c.Engine.Type != EngineCLI {
+		return fmt.Errorf("engine.type %q inconnu", c.Engine.Type)
+	}
+	return nil
 }

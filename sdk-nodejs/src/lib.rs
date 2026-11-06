@@ -156,7 +156,7 @@ impl AegisEngine {
             let content = fs::read_to_string(path).map_err(|e| {
                 napi::Error::from_reason(format!("config_path {p}: {e}"))
             })?;
-            let lower = p.to_string_lossy().to_lowercase();
+            let lower = p.to_lowercase();
             let mut b = AnalyzerEngineBuilder::new().with_default_recognizers(&sl);
             b = if lower.ends_with(".json") {
                 b.with_engine_json_str(&content).map_err(aegis_to_napi)?

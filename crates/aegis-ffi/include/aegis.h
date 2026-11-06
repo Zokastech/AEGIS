@@ -86,7 +86,7 @@ void aegis_free(AegisHandle *handle);
 const char *aegis_last_error(void);
 
 /**
- * @brief Version semver du composant FFI (ex. "0.1.0"). Ne pas libérer.
+ * @brief Version semver du composant FFI (ex. "0.2.0"). Ne pas libérer.
  */
 const char *aegis_version(void);
 

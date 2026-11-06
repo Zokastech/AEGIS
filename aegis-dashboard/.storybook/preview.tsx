@@ -1,6 +1,6 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
-import type { Preview } from "@storybook/react";
+import type { Preview } from "@storybook/react-vite";
 import "../src/index.css";
 
 const preview: Preview = {

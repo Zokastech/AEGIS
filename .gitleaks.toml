@@ -1,0 +1,31 @@
+# AEGIS — zokastech.fr — configuration gitleaks (v0.2.0)
+# Étend les règles par défaut et ignore les jeux de données PII synthétiques,
+# les modèles binaires et les exemples de documentation (faux positifs connus).
+title = "aegis gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Données synthétiques, modèles et exemples documentés"
+paths = [
+  '''(^|/)datasets/''',
+  '''(^|/)training/data/''',
+  '''(^|/)models/''',
+  '''\.onnx$''',
+  '''\.arrow$''',
+  '''crates/aegis-anonymize/data/''',
+  '''crates/aegis-regex/tests/''',
+  '''(^|/)docs/[a-z]{2}/api-reference\.md$''',
+  '''aegis-dashboard/storybook-static/''',
+  '''(^|/)node_modules/''',
+  '''(^|/)target/''',
+  '''_test\.go$''',
+]
+# Commit historique contenant aegis-gateway/data/tls/server.key (certificat auto-signé de dev).
+# Fichier supprimé de l’arbre en v0.2.0 ; la clé est considérée COMPROMISE et ne doit plus être utilisée.
+commits = ["528999e5aa47ff67fc25f6a0926841f1466adeab"]
+regexes = [
+  # Clé de démonstration du playground (documentée, jamais utilisée en production).
+  '''0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef''',
+]

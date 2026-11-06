@@ -5,7 +5,7 @@
 # (voir aegis-docker.yaml). Modèles : volume aegis_models (service onnx-init + NER_ONNX_URL) ou
 # build-arg NER_ONNX_URL pour intégrer un .onnx dans l’image (couche dédiée).
 
-ARG RUST_VERSION=1.80
+ARG RUST_VERSION=1.99
 
 FROM rust:${RUST_VERSION}-slim AS builder
 WORKDIR /src

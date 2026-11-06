@@ -17,11 +17,13 @@ ort-tensorrt = ["ort/tensorrt"]
 ort-coreml = ["ort/coreml"]
 
 [dependencies]
-aegis-core = { path = "../aegis-core" }
+aegis-core = { version = "0.2.0", path = "../aegis-core" }
 ndarray = "0.16"
 # Série 2.0.0-rc.5 : MSRV 1.70 (compatible stable CI). Pour ORT 1.24+, passer à rc.12+.
 # load-dynamic : pas de lien statique onnxruntime.lib sous Windows → évite LNK2005 (/MD vs /MT).
 ort = { version = "=2.0.0-rc.5", default-features = true, features = ["load-dynamic"] }
+# ort 2.0.0-rc.5 requiert ort-sys rc.5 (rc.10 casse la compilation) : épinglé explicitement.
+ort-sys = { version = "=2.0.0-rc.5", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

@@ -4,6 +4,7 @@ package policy
 
 import (
 	"fmt"
+	"html"
 	"sort"
 	"strings"
 	"time"
@@ -19,17 +20,17 @@ const (
 
 // DPIAReport is an automated impact-assessment summary.
 type DPIAReport struct {
-	Title          string              `json:"title"`
-	GeneratedAt    time.Time           `json:"generated_at"`
-	PolicyName     string              `json:"policy_name"`
-	Regulation     string              `json:"regulation"`
-	ProcessingDesc string              `json:"processing_description"`
-	DataCategories []string            `json:"data_categories"`
-	RiskScore      int                 `json:"risk_score"` // 0–100
-	RiskBand       string              `json:"risk_band"`
-	Measures       []string            `json:"measures"`
-	ResidualRisks  []string            `json:"residual_risks"`
-	ByCategory     map[string]int      `json:"risk_by_category"`
+	Title          string         `json:"title"`
+	GeneratedAt    time.Time      `json:"generated_at"`
+	PolicyName     string         `json:"policy_name"`
+	Regulation     string         `json:"regulation"`
+	ProcessingDesc string         `json:"processing_description"`
+	DataCategories []string       `json:"data_categories"`
+	RiskScore      int            `json:"risk_score"` // 0–100
+	RiskBand       string         `json:"risk_band"`
+	Measures       []string       `json:"measures"`
+	ResidualRisks  []string       `json:"residual_risks"`
+	ByCategory     map[string]int `json:"risk_by_category"`
 }
 
 // BuildDPIA builds a DPIA from a policy and the entity types actually processed.
@@ -219,10 +220,7 @@ func (r *DPIAReport) toHTML() string {
 	return out.String()
 }
 
+// htmlEscape escapes <, >, &, ' and " (html.EscapeString).
 func htmlEscape(s string) string {
-	s = strings.ReplaceAll(s, "&", "&amp;")
-	s = strings.ReplaceAll(s, "<", "&lt;")
-	s = strings.ReplaceAll(s, ">", "&gt;")
-	s = strings.ReplaceAll(s, "\"", "&quot;")
-	return s
+	return html.EscapeString(s)
 }

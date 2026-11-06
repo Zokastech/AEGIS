@@ -10,7 +10,7 @@
 
   <groupId>fr.zokastech.aegis</groupId>
   <artifactId>aegis-parent</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0</version>
   <packaging>pom</packaging>
 
   <name>AEGIS Java — parent</name>
@@ -51,8 +51,10 @@
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jackson.version>2.16.2</jackson.version>
-    <spring-boot.version>3.2.5</spring-boot.version>
+    <!-- Aligné sur la BOM Jackson de Spring Boot 3.5.16 (évite un mélange core/databind). -->
+    <jackson.version>2.21.4</jackson.version>
+    <!-- 3.2.x hors support (CVE non corrigées) → 3.5.16. -->
+    <spring-boot.version>3.5.16</spring-boot.version>
   </properties>
 
   <dependencyManagement>

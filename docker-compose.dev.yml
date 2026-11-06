@@ -64,6 +64,8 @@ services:
       AEGIS_INSECURE_HTTP: "1"
       # Sans cela, /v1/* répond 401 (clé API requise). Réservé au compose dev — jamais en prod.
       AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH: "true"
+      # v0.2.0 : disable_auth est refusé si production=true → profil dev explicite.
+      AEGIS_SECURITY_PRODUCTION: "false"
       AEGIS_POLICY: "${AEGIS_POLICY:-policies/gdpr-strict.yaml}"
       # NER : voir env_file (.env.dev.defaults puis .env) — surcharger AEGIS_ENGINE_INIT_JSON dans .env si besoin
       GIN_MODE: "${GIN_MODE:-debug}"

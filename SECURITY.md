@@ -4,6 +4,32 @@
 
 Merci d’aider à protéger les utilisateurs d’**AEGIS** en signalant les vulnérabilités de façon responsable.
 
+### Versions maintenues
+
+| Version | Support sécurité |
+|---------|------------------|
+| 0.2.x   | ✅ correctifs |
+| 0.1.x   | ❌ — vulnérabilités critiques connues, mettre à jour (voir ci-dessous) |
+
+### Avis corrigés en v0.2.0 (2026-11-07)
+
+| ID interne | Gravité | Résumé | Composant |
+|---|---|---|---|
+| AEGIS-2026-001 | Critique | API gRPC sans authentification ni RBAC (Deanonymize / UpdateConfig) | gateway ≤ 0.1.0 |
+| AEGIS-2026-002 | Critique | `security.yaml` / `--security-config` ignorés (mauvais espace de clés) ; image prévue avec `disable_auth: true` | gateway, image ≤ 0.1.0 |
+| AEGIS-2026-003 | Critique | Clé privée TLS embarquée dans l’image et versionnée dans git | image, dépôt |
+| AEGIS-2026-004 | Critique | DoS : récursion infinie sur route inconnue | llm-proxy ≤ 0.1.0 |
+| AEGIS-2026-005 | Élevée | Requêtes streaming transmises sans anonymisation | llm-proxy |
+| AEGIS-2026-006 | Élevée | Mode `block` fail-open si moteur indisponible | llm-proxy |
+| AEGIS-2026-007 | Élevée | Révocation de clé API inopérante ; pepper persisté sur disque | gateway |
+| AEGIS-2026-008 | Élevée | Écritures concurrentes non protégées (crash) + mémoire non bornée du rate limiter | gateway |
+| AEGIS-2026-009 | Élevée | Usurpation d’IP via `X-Forwarded-For` (contournement du rate limiting) | gateway |
+| AEGIS-2026-010 | Moyenne | Validation JWT incomplète (aud tableau, exp facultatif) | gateway |
+| AEGIS-2026-011 | Moyenne | CN mTLS lu sur certificats non vérifiés ; CA client invalide = fail-open | gateway |
+| AEGIS-2026-012 | Moyenne | Config à chaud pouvant modifier `security.*` ; pas de limite de corps / Slowloris | gateway |
+
+Détails, migration et actions recommandées : [RELEASE_NOTES.md](RELEASE_NOTES.md).
+
 ### Divulgation responsable
 
 1. **Ne pas** ouvrir d’issue GitHub publique pour un problème de sécurité non corrigé.
@@ -67,4 +93,4 @@ Le workflow [`.github/workflows/release.yml`](.github/workflows/release.yml) app
 
 ---
 
-*Dernière mise à jour : document modèle — remplacer les placeholders PGP / e-mail par les valeurs officielles zokastech.fr.*
+*Dernière mise à jour : 2026-11-07 (v0.2.0) — remplacer les placeholders PGP / e-mail par les valeurs officielles zokastech.fr.*

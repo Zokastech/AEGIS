@@ -27,6 +27,7 @@ import (
 	"github.com/zokastech/aegis/aegis-gateway/policy"
 	"github.com/zokastech/aegis/aegis-gateway/security"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -40,10 +41,11 @@ func main() {
 		log.Fatal().Err(err).Msg("config")
 	}
 	insecureHTTP := os.Getenv("AEGIS_INSECURE_HTTP") == "1"
-	if cfg.Security.MTLS.Require && cfg.Security.TLS.Enabled && !cfg.Security.Development.DisableAuth && !insecureHTTP {
-		if cfg.Security.TLS.ClientCAFile == "" {
-			log.Fatal().Msg("security: mtls.require=true impose tls.client_ca_file (ou development.disable_auth / AEGIS_INSECURE_HTTP=1 en local)")
-		}
+	if err := cfg.Security.Validate(insecureHTTP); err != nil {
+		log.Fatal().Err(err).Msg("configuration sécurité refusée")
+	}
+	if cfg.Security.Development.DisableAuth {
+		log.Warn().Msg("security: development.disable_auth=true — AUCUNE authentification (dev uniquement)")
 	}
 
 	factory := newEngineFactory(cfg)
@@ -87,6 +89,12 @@ func main() {
 
 	e := echo.New()
 	e.HideBanner = true
+	ipx, err := middleware.TrustedProxyIPExtractor(cfg.Security.TrustedProxies)
+	if err != nil {
+		log.Fatal().Err(err).Msg("security.trusted_proxies")
+	}
+	e.IPExtractor = ipx
+	e.Use(middleware.BodyLimit(cfg.Security.MaxBodyBytes))
 	e.Use(middleware.RequestID())
 	e.Use(middleware.ZerologLogger())
 	e.Use(middleware.RecoverPanic())
@@ -111,16 +119,66 @@ func main() {
 
 	rest.AttachRoutes(e, svc, cfg)
 
-	grpcS := grpc.NewServer()
+	useTLSListener := useTLS
+	var tlsCfg *tls.Config
+	if useTLSListener {
+		cert, err := security.EnsureServerCertificate(
+			cfg.Security.TLS.CertFile,
+			cfg.Security.TLS.KeyFile,
+			cfg.Security.TLS.AutoGenCertDir,
+			cfg.Security.TLS.AutoGenerateSelfSigned,
+			tlsSANs(cfg.HTTPListen),
+		)
+		if err != nil {
+			log.Fatal().Err(err).Msg("tls certificat serveur")
+		}
+		tlsCfg = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			MinVersion:   tls.VersionTLS12,
+		}
+		mtlsRequire := cfg.Security.MTLS.Require && !cfg.Security.Development.DisableAuth
+		clientPart, err := auth.BuildTLSClientAuth(cfg.Security.TLS.ClientCAFile, mtlsRequire)
+		if err != nil {
+			// Fail closed: never start without the client verification the operator asked for.
+			log.Fatal().Err(err).Msg("mTLS client CA")
+		}
+		if clientPart != nil {
+			tlsCfg.ClientAuth = clientPart.ClientAuth
+			tlsCfg.ClientCAs = clientPart.ClientCAs
+		}
+	}
+
+	authn := &grpcapi.Authenticator{
+		Gateway:         gw,
+		APIKeyHeader:    cfg.APIKeyHeader,
+		AllowReflection: cfg.Security.GRPC.Reflection,
+	}
+	maxRecv := cfg.Security.GRPC.MaxRecvMsgBytes
+	if maxRecv <= 0 {
+		maxRecv = 10 << 20
+	}
+	grpcOpts := []grpc.ServerOption{
+		grpc.ChainUnaryInterceptor(authn.Unary()),
+		grpc.ChainStreamInterceptor(authn.Stream()),
+		grpc.MaxRecvMsgSize(maxRecv),
+	}
+	if tlsCfg != nil {
+		grpcOpts = append(grpcOpts, grpc.Creds(credentials.NewTLS(tlsCfg.Clone())))
+	} else {
+		log.Warn().Msg("grpc: listener en clair (TLS désactivé) — réservé au développement local")
+	}
+	grpcS := grpc.NewServer(grpcOpts...)
 	grpcapi.RegisterAegisGatewayServer(grpcS, &grpcapi.Server{Services: svc})
-	reflection.Register(grpcS)
+	if cfg.Security.GRPC.Reflection {
+		reflection.Register(grpcS)
+	}
 
 	glis, err := net.Listen("tcp", cfg.GRPCListen)
 	if err != nil {
 		log.Fatal().Err(err).Str("addr", cfg.GRPCListen).Msg("grpc listen")
 	}
 	go func() {
-		log.Info().Str("addr", cfg.GRPCListen).Msg("grpc")
+		log.Info().Str("addr", cfg.GRPCListen).Bool("tls", tlsCfg != nil).Bool("reflection", cfg.Security.GRPC.Reflection).Msg("grpc")
 		if err := grpcS.Serve(glis); err != nil {
 			log.Error().Err(err).Msg("grpc serve")
 		}
@@ -129,34 +187,16 @@ func main() {
 	go func() {
 		e.Server.ReadTimeout = cfg.ReadTimeout
 		e.Server.WriteTimeout = cfg.WriteTimeout
-		if useTLS {
-			cert, err := security.EnsureServerCertificate(
-				cfg.Security.TLS.CertFile,
-				cfg.Security.TLS.KeyFile,
-				cfg.Security.TLS.AutoGenCertDir,
-				cfg.Security.TLS.AutoGenerateSelfSigned,
-				tlsSANs(cfg.HTTPListen),
-			)
-			if err != nil {
-				log.Fatal().Err(err).Msg("tls certificat serveur")
-			}
-			tlsCfg := &tls.Config{
-				Certificates: []tls.Certificate{cert},
-				MinVersion:   tls.VersionTLS12,
-			}
-			mtlsRequire := cfg.Security.MTLS.Require && !cfg.Security.Development.DisableAuth
-			if clientPart, err := auth.BuildTLSClientAuth(cfg.Security.TLS.ClientCAFile, mtlsRequire); err != nil {
-				log.Warn().Err(err).Msg("mTLS client CA")
-			} else if clientPart != nil {
-				tlsCfg.ClientAuth = clientPart.ClientAuth
-				tlsCfg.ClientCAs = clientPart.ClientCAs
-			}
+		e.Server.ReadHeaderTimeout = 10 * time.Second
+		e.Server.IdleTimeout = 120 * time.Second
+		e.Server.MaxHeaderBytes = 64 << 10
+		if tlsCfg != nil {
 			ln, err := tls.Listen("tcp", cfg.HTTPListen, tlsCfg)
 			if err != nil {
 				log.Fatal().Err(err).Str("addr", cfg.HTTPListen).Msg("tls listen")
 			}
 			e.Listener = ln
-			log.Info().Str("addr", cfg.HTTPListen).Bool("tls", true).Bool("mtls", mtlsRequire).Msg("https")
+			log.Info().Str("addr", cfg.HTTPListen).Bool("tls", true).Bool("mtls", tlsCfg.ClientAuth == tls.RequireAndVerifyClientCert).Msg("https")
 			if err := e.Start(""); err != nil {
 				log.Error().Err(err).Msg("https")
 			}
@@ -205,13 +245,19 @@ func waitStartup(ctx context.Context, ping func(context.Context) error) {
 	}
 }
 
+// tlsSANs returns SANs for the self-signed certificate: listen host (or localhost)
+// plus AEGIS_TLS_EXTRA_SANS (comma-separated, e.g. "aegis-gateway,gateway.example.org").
 func tlsSANs(addr string) []string {
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return []string{"localhost"}
+	out := []string{"localhost"}
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		if host != "" && host != "0.0.0.0" && host != "::" && host != "[::]" {
+			out = []string{host}
+		}
 	}
-	if host == "" || host == "0.0.0.0" || host == "::" || host == "[::]" {
-		return []string{"localhost"}
+	for _, h := range strings.Split(os.Getenv("AEGIS_TLS_EXTRA_SANS"), ",") {
+		if h = strings.TrimSpace(h); h != "" {
+			out = append(out, h)
+		}
 	}
-	return []string{host}
+	return out
 }

@@ -10,6 +10,8 @@
 
 ## Installation avec Docker (recommandé)
 
+> **v0.2.0** : l’authentification est active par défaut. Renseignez `POSTGRES_PASSWORD` et `AEGIS_API_KEY_PEPPER` dans `.env`, puis créez vos clés avec `aegis-keygen` — voir [Installation](installation.md).
+
 1. Cloner le dépôt et copier le modèle d’environnement :
 
 ```bash

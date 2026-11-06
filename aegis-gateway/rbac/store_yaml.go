@@ -14,10 +14,10 @@ import (
 type YAMLStore struct {
 	mu sync.RWMutex
 
-	APIKeyRoles      map[string]string            `yaml:"api_key_roles"`
-	JWTSubjectRoles  map[string]string            `yaml:"jwt_subject_roles"`
-	MTLSCNRoles      map[string]string            `yaml:"mtls_cn_roles"`
-	RolePermissions  map[string][]string          `yaml:"role_permissions_override"`
+	APIKeyRoles     map[string]string   `yaml:"api_key_roles"`
+	JWTSubjectRoles map[string]string   `yaml:"jwt_subject_roles"`
+	MTLSCNRoles     map[string]string   `yaml:"mtls_cn_roles"`
+	RolePermissions map[string][]string `yaml:"role_permissions_override"`
 	// RoleEntityTypes limits entity types per role (empty = no limit).
 	RoleEntityTypes map[string][]string `yaml:"role_entity_types"`
 }

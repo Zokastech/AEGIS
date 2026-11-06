@@ -119,5 +119,19 @@ func MergeSecurityConfig(base SecurityConfig, o SecurityConfig, v *viper.Viper) 
 	if len(o.PublicPaths) > 0 {
 		out.PublicPaths = o.PublicPaths
 	}
+	if v.IsSet("security.trusted_proxies") {
+		out.TrustedProxies = o.TrustedProxies
+	}
+	if o.MaxBodyBytes > 0 {
+		out.MaxBodyBytes = o.MaxBodyBytes
+	}
+	if v.IsSet("security.grpc.reflection") {
+		out.GRPC.Reflection = o.GRPC.Reflection
+	} else {
+		out.GRPC.Reflection = !out.Production
+	}
+	if o.GRPC.MaxRecvMsgBytes > 0 {
+		out.GRPC.MaxRecvMsgBytes = o.GRPC.MaxRecvMsgBytes
+	}
 	return out
 }

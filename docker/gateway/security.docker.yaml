@@ -1,26 +1,39 @@
 # AEGIS — zokastech.fr — Apache 2.0 / MIT
-# Fusion sécurité pour Docker (chemins absolus, auth désactivée pour démo OOTB).
+# Fusion sécurité pour l’image Docker — « secure by default » depuis v0.2.0.
+#
+# - Authentification ACTIVE (clés API hashées + RBAC). Créez des clés avec `aegis-keygen`
+#   (voir docs/INSTALL.md) et fournissez le pepper via AEGIS_API_KEY_PEPPER.
+# - TLS : certificat auto-signé généré au PREMIER démarrage dans /var/lib/aegis/tls
+#   (plus aucune clé privée embarquée dans l’image). Montez vos propres cert/key pour la prod.
+# - Démo locale sans auth : AEGIS_SECURITY_PRODUCTION=false + AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH=true
+#   (refusé si production=true).
 
-production: false
+production: true
 
 development:
-  disable_auth: true
+  disable_auth: false
 
 tls:
   enabled: true
-  cert_file: /etc/aegis/tls/cert.pem
-  key_file: /etc/aegis/tls/key.pem
-  auto_generate_self_signed: false
+  cert_file: /var/lib/aegis/tls/server.crt
+  key_file: /var/lib/aegis/tls/server.key
+  auto_generate_self_signed: true
+  auto_gen_cert_dir: /var/lib/aegis/tls
   client_ca_file: ""
 
 mtls:
   require: false
 
 cors:
-  allow_origins: ["*"]
+  # Le dashboard passe par le reverse-proxy nginx (même origine) : aucun CORS nécessaire.
+  allow_origins: []
+
+# Reverse-proxies autorisés à fournir X-Forwarded-For (ex. réseau Docker du dashboard).
+# Vide = IP TCP directe (en-têtes ignorés).
+trusted_proxies: []
 
 api_keys:
-  file_path: /etc/aegis/api_keys.yaml
+  file_path: /var/lib/aegis/api_keys.yaml
   pepper: ""
 
 rbac:
@@ -33,6 +46,9 @@ jwt:
 
 oidc:
   enabled: false
+
+grpc:
+  reflection: false
 
 audit:
   backend: file

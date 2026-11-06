@@ -14,7 +14,10 @@ use crate::config::{NerConfig, NerDevice};
 use crate::engine::NerEngine;
 
 /// Résout `tokenizer.json` à côté du `.onnx` ou chemin explicite (`ner.tokenizer_path`).
-pub fn resolve_tokenizer_path(model_path: &str, explicit: Option<&str>) -> std::result::Result<String, AegisError> {
+pub fn resolve_tokenizer_path(
+    model_path: &str,
+    explicit: Option<&str>,
+) -> std::result::Result<String, AegisError> {
     if let Some(p) = explicit {
         if Path::new(p).is_file() {
             return Ok(p.to_string());
@@ -56,15 +59,17 @@ pub fn onnx_ner_backend_loader(
     device_str: &str,
 ) -> Result<Arc<dyn NerBackend>> {
     let tok = resolve_tokenizer_path(model_path, tokenizer_path)?;
-    let mut cfg = NerConfig::default();
-    cfg.batch_size = batch_size.max(1);
-    cfg.device = ner_device_from_str(device_str);
-    cfg.max_sequence_length = 512;
+    let mut cfg = NerConfig {
+        batch_size: batch_size.max(1),
+        device: ner_device_from_str(device_str),
+        max_sequence_length: 512,
+        ..NerConfig::default()
+    };
     if let Some(h) = hf_config_json_path {
         cfg.hf_config_json_path = Some(h.to_string());
     }
-    let engine = NerEngine::new(model_path, &tok, cfg)
-        .map_err(|e| AegisError::ModelError(e.to_string()))?;
+    let engine =
+        NerEngine::new(model_path, &tok, cfg).map_err(|e| AegisError::ModelError(e.to_string()))?;
     Ok(Arc::new(OnnxNerBackend {
         engine: Arc::new(engine),
     }))

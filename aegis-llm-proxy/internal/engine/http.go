@@ -5,18 +5,56 @@ package engine
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
 // Client parle au REST gateway AEGIS (/v1/analyze, /v1/anonymize).
+// maxEngineResponse bounds engine responses (defence against a misbehaving engine).
+const maxEngineResponse = 64 << 20
+
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
+	// APIKey is sent as X-API-Key to the AEGIS gateway (empty = no header).
+	APIKey string
+}
+
+// NewHTTPWithTLS builds a client trusting caFile (PEM) in addition to system roots.
+func NewHTTPWithTLS(baseURL string, timeout time.Duration, caFile, apiKey string) (*Client, error) {
+	c := NewHTTP(baseURL, timeout)
+	c.APIKey = apiKey
+	if caFile == "" {
+		return c, nil
+	}
+	pem, err := os.ReadFile(caFile)
+	if err != nil {
+		return nil, fmt.Errorf("engine.ca_file: %w", err)
+	}
+	pool, err := x509.SystemCertPool()
+	if err != nil || pool == nil {
+		pool = x509.NewCertPool()
+	}
+	if !pool.AppendCertsFromPEM(pem) {
+		return nil, fmt.Errorf("engine.ca_file: aucun certificat PEM valide")
+	}
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.TLSClientConfig = &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS12}
+	c.HTTPClient.Transport = tr
+	return c, nil
+}
+
+func (c *Client) setAuth(req *http.Request) {
+	if c.APIKey != "" {
+		req.Header.Set("X-API-Key", c.APIKey)
+	}
 }
 
 // NewHTTP crée un client avec timeout.
@@ -43,12 +81,13 @@ func (c *Client) Analyze(ctx context.Context, text, analysisConfigJSON string) (
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	c.setAuth(req)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	b, err := io.ReadAll(io.LimitReader(resp.Body, maxEngineResponse))
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +100,7 @@ func (c *Client) Analyze(ctx context.Context, text, analysisConfigJSON string) (
 	if err := json.Unmarshal(b, &wrap); err != nil {
 		return nil, err
 	}
-	if len(wrap.Result) == 0 {
+	if len(wrap.Result) == 0 || string(wrap.Result) == "null" {
 		return nil, fmt.Errorf("analyze: résultat vide")
 	}
 	return wrap.Result, nil
@@ -79,12 +118,13 @@ func (c *Client) Anonymize(ctx context.Context, text, configJSON string) ([]byte
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	c.setAuth(req)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	b, err := io.ReadAll(resp.Body)
+	b, err := io.ReadAll(io.LimitReader(resp.Body, maxEngineResponse))
 	if err != nil {
 		return nil, err
 	}

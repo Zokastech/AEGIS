@@ -72,6 +72,7 @@ func (s *Server) Analyze(ctx context.Context, in *wrapperspb.StringValue) (*wrap
 		st = http.StatusInternalServerError
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+	out = string(rest.FilterAnalysisForPrincipal([]byte(out), s.Services, PrincipalFromContext(ctx)))
 	resultRaw = []byte(out)
 	return wrapperspb.String(out), nil
 }
@@ -134,6 +135,10 @@ func (s *Server) AnalyzeBatch(ctx context.Context, in *wrapperspb.StringValue) (
 	if err := json.Unmarshal([]byte(raw), &items); err != nil {
 		st = http.StatusInternalServerError
 		return nil, status.Error(codes.Internal, "batch invalide")
+	}
+	pr := PrincipalFromContext(ctx)
+	for i := range items {
+		items[i] = rest.FilterAnalysisForPrincipal(items[i], s.Services, pr)
 	}
 	for i := range items {
 		b, merr := items[i].MarshalJSON()
@@ -285,6 +290,8 @@ func (s *Server) StreamAnalyze(stream Gateway_StreamAnalyzeServer) error {
 		cancel()
 		if err != nil {
 			out = `{"error":` + jsonString(err.Error()) + `}`
+		} else {
+			out = string(rest.FilterAnalysisForPrincipal([]byte(out), s.Services, PrincipalFromContext(stream.Context())))
 		}
 		type chunk struct {
 			RequestID    string `json:"request_id,omitempty"`

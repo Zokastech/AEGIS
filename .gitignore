@@ -52,3 +52,24 @@ coverage/
 # MkDocs
 site/
 zokastech
+
+# Secrets / runtime material (never commit)
+aegis-gateway/data/tls/
+**/data/tls/*.key
+**/data/tls/*.crt
+*.pem
+!docs/**/*.pem
+# Fichiers générés par `napi build` (le source est index.ts)
+sdk-nodejs/index.js
+sdk-nodejs/index.d.ts
+sdk-nodejs/*.node
+sdk-nodejs/target/
+sdk-nodejs/native.d.ts
+aegis-gateway/config/api_keys.local.yaml
+aegis-gateway/data/audit/
+
+# Modèles NER quantifiés (~270 Mo, > limite GitHub de 100 Mo) : distribués via artefact CI / asset de release
+# (scripts/fetch-zoka-onnx-from-ci.sh, service onnx-init) — jamais dans git.
+models/ner.onnx
+models/model_int8.onnx
+models/aegis-ner-l3-onnx/model_int8.onnx

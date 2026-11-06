@@ -2,7 +2,7 @@
 
 [package]
 name = "aegis-pii-native"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 authors = ["zokastech <https://zokastech.fr>"]
@@ -24,4 +24,4 @@ aegis-anonymize = { path = "../crates/aegis-anonymize" }
 aegis-regex = { path = "../crates/aegis-regex" }
 
 [build-dependencies]
-napi-build = "2.16"
+napi-build = "2"

@@ -15,36 +15,37 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 )
 
 // Config is the gateway runtime configuration.
 type Config struct {
-	HTTPListen        string        `mapstructure:"http_listen"`
-	GRPCListen        string        `mapstructure:"grpc_listen"`
-	ReadTimeout       time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout      time.Duration `mapstructure:"write_timeout"`
-	ShutdownTimeout   time.Duration `mapstructure:"shutdown_timeout"`
-	EngineTimeout     time.Duration `mapstructure:"engine_timeout"`
-	PoolSize          int           `mapstructure:"pool_size"`
-	EngineInitJSON    string        `mapstructure:"engine_init_json"`
-	CORSAllowOrigins  []string      `mapstructure:"cors_allow_origins"`
-	RateLimitRPS      float64       `mapstructure:"rate_limit_rps"`
-	RateLimitBurst    int           `mapstructure:"rate_limit_burst"`
-	APIKeyHeader      string        `mapstructure:"api_key_header"`
-	TrustedAPIKeys    []string      `mapstructure:"trusted_api_keys"`
-	AdminAPIKeys      []string      `mapstructure:"admin_api_keys"`
-	ConfigFile        string        `mapstructure:"-"`
-	HotReload         bool          `mapstructure:"hot_reload"`
-	UseRustFFI        bool          `mapstructure:"use_rust_ffi"`
-	Security          SecurityConfig `mapstructure:"security"`
-	PolicyDir         string        `mapstructure:"policy_dir"` // optional override for embedded YAML policies
+	HTTPListen       string         `mapstructure:"http_listen"`
+	GRPCListen       string         `mapstructure:"grpc_listen"`
+	ReadTimeout      time.Duration  `mapstructure:"read_timeout"`
+	WriteTimeout     time.Duration  `mapstructure:"write_timeout"`
+	ShutdownTimeout  time.Duration  `mapstructure:"shutdown_timeout"`
+	EngineTimeout    time.Duration  `mapstructure:"engine_timeout"`
+	PoolSize         int            `mapstructure:"pool_size"`
+	EngineInitJSON   string         `mapstructure:"engine_init_json"`
+	CORSAllowOrigins []string       `mapstructure:"cors_allow_origins"`
+	RateLimitRPS     float64        `mapstructure:"rate_limit_rps"`
+	RateLimitBurst   int            `mapstructure:"rate_limit_burst"`
+	APIKeyHeader     string         `mapstructure:"api_key_header"`
+	TrustedAPIKeys   []string       `mapstructure:"trusted_api_keys"`
+	AdminAPIKeys     []string       `mapstructure:"admin_api_keys"`
+	ConfigFile       string         `mapstructure:"-"`
+	HotReload        bool           `mapstructure:"hot_reload"`
+	UseRustFFI       bool           `mapstructure:"use_rust_ffi"`
+	Security         SecurityConfig `mapstructure:"security"`
+	PolicyDir        string         `mapstructure:"policy_dir"` // optional override for embedded YAML policies
 }
 
 // Loader loads viper + CLI flags.
 type Loader struct {
-	mu     sync.RWMutex
-	v      *viper.Viper
-	cfg    Config
+	mu       sync.RWMutex
+	v        *viper.Viper
+	cfg      Config
 	onChange func(Config)
 }
 
@@ -102,8 +103,7 @@ func (l *Loader) Load(fs *pflag.FlagSet) (Config, error) {
 		if err != nil {
 			return Config{}, fmt.Errorf("security-config: %w", err)
 		}
-		l.v.SetConfigType("yaml")
-		if err := l.v.MergeConfig(bytes.NewReader(b)); err != nil {
+		if err := l.mergeSecurityYAML(b); err != nil {
 			return Config{}, fmt.Errorf("security-config merge: %w", err)
 		}
 	}
@@ -179,6 +179,9 @@ func (l *Loader) Viper() *viper.Viper {
 
 // MergeYAML merges a YAML fragment into viper (hot update, e.g. PUT /v1/config).
 func (l *Loader) MergeYAML(data []byte) error {
+	if err := rejectProtectedKeys(data); err != nil {
+		return err
+	}
 	l.v.SetConfigType("yaml")
 	if err := l.v.MergeConfig(bytes.NewReader(data)); err != nil {
 		return err
@@ -208,16 +211,43 @@ func (l *Loader) mergeSecurityYAMLFiles() {
 		if err != nil {
 			continue
 		}
-		l.v.SetConfigType("yaml")
-		_ = l.v.MergeConfig(bytes.NewReader(b))
+		_ = l.mergeSecurityYAML(b)
 		return
 	}
+}
+
+// mergeSecurityYAML merges a security file into the `security.*` namespace.
+// Security files use top-level keys (production, tls, api_keys…); before v0.2.0 they were merged at
+// the root and therefore silently IGNORED (Config.Security reads `security.*`). A file that already
+// wraps everything under a single `security:` key is merged as-is.
+func (l *Loader) mergeSecurityYAML(b []byte) error {
+	var top map[string]interface{}
+	if err := yaml.Unmarshal(b, &top); err != nil {
+		return err
+	}
+	if top == nil {
+		return nil
+	}
+	if _, wrapped := top["security"]; !wrapped || len(top) > 1 {
+		top = map[string]interface{}{"security": top}
+	}
+	out, err := yaml.Marshal(top)
+	if err != nil {
+		return err
+	}
+	l.v.SetConfigType("yaml")
+	return l.v.MergeConfig(bytes.NewReader(out))
 }
 
 // applyExplicitSecurityEnv forces security.development.disable_auth from the OS.
 // Flat Viper + security.yaml (development.* at root) does not always populate
 // security.development.disable_auth for AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH.
 func applyExplicitSecurityEnv(c *Config) {
+	if v := strings.TrimSpace(os.Getenv("AEGIS_SECURITY_PRODUCTION")); v != "" {
+		if b, err := strconv.ParseBool(v); err == nil {
+			c.Security.Production = b
+		}
+	}
 	s := strings.TrimSpace(os.Getenv("AEGIS_SECURITY_DEVELOPMENT_DISABLE_AUTH"))
 	if s == "" {
 		return
@@ -240,4 +270,31 @@ func applyExplicitEngineInitEnv(c *Config) {
 		return
 	}
 	c.EngineInitJSON = s
+}
+
+// protectedRuntimeKeys cannot be changed through PUT /v1/config or gRPC UpdateConfig:
+// they control authentication, secrets and listeners and require a restart with a reviewed file.
+var protectedRuntimeKeys = map[string]struct{}{
+	"security":           {},
+	"api_key_header":     {},
+	"admin_api_keys":     {},
+	"trusted_api_keys":   {},
+	"http_listen":        {},
+	"grpc_listen":        {},
+	"cors_allow_origins": {},
+	"use_rust_ffi":       {},
+	"policy_dir":         {},
+}
+
+func rejectProtectedKeys(data []byte) error {
+	var top map[string]interface{}
+	if err := yaml.Unmarshal(data, &top); err != nil {
+		return fmt.Errorf("config: yaml invalide: %w", err)
+	}
+	for k := range top {
+		if _, bad := protectedRuntimeKeys[strings.ToLower(strings.TrimSpace(k))]; bad {
+			return fmt.Errorf("config: la clé %q ne peut pas être modifiée à chaud (redémarrage requis)", k)
+		}
+	}
+	return nil
 }

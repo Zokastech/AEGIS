@@ -77,7 +77,7 @@ jobs:
 | `exclude_patterns` | Motifs glob (lignes ou virgules), bash |
 | `paths` | Racines à parcourir (lignes), défaut `.` |
 | `scan_mode` | `auto`, `pr_files`, `full_repo` |
-| `cli_version` | Tag de release (`v0.1.0`) ou `latest` |
+| `cli_version` | Tag de release (`v0.2.0`) ou `latest` |
 | `release_repo` | `owner/repo` des releases binaires (défaut `zokastech/aegis`) |
 | `comment_pr` | Commentaire Markdown sur la PR si findings |
 | `github_token` | Token (défaut : `GITHUB_TOKEN` du workflow) |

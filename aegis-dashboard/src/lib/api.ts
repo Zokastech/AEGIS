@@ -55,9 +55,29 @@ export function apiUrl(path: string): string {
   return `${b}${p}`;
 }
 
+/**
+ * Credentials are only attached to relative URLs or to the configured gateway origin, so a stray
+ * absolute URL can never exfiltrate the API key / JWT to a third-party host.
+ */
+export function credentialAllowedFor(url: string): boolean {
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) return !url.startsWith("//");
+  try {
+    const target = new URL(url).origin;
+    const b = apiBase();
+    if (b) {
+      const baseHref = b.includes("://") ? b : `http://${b}`;
+      if (new URL(baseHref).origin === target) return true;
+    }
+    return typeof window !== "undefined" && window.location?.origin === target;
+  } catch {
+    return false;
+  }
+}
+
 export async function apiFetch(path: string, init: RequestInit = {}, credential?: string | null): Promise<Response> {
   const headers = new Headers(init.headers);
-  const c = credential?.trim();
+  const url = apiUrl(path);
+  const c = credentialAllowedFor(url) ? credential?.trim() : undefined;
   if (c) {
     if (looksLikeJwt(c)) headers.set("Authorization", `Bearer ${c}`);
     else headers.set("X-API-Key", c);
@@ -65,7 +85,7 @@ export async function apiFetch(path: string, init: RequestInit = {}, credential?
   if (!headers.has("Content-Type") && init.body && typeof init.body === "string") {
     headers.set("Content-Type", "application/json");
   }
-  return fetch(apiUrl(path), { ...init, headers });
+  return fetch(url, { ...init, headers });
 }
 
 export async function analyzeText(

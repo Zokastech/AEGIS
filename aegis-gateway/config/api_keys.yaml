@@ -5,5 +5,7 @@
 # Génération (outil CLI à brancher) : hash = SHA256(pepper + plain_secret)
 # Rôles : viewer | operator | admin | auditor
 
+# Laisser vide : fournir le pepper via AEGIS_API_KEY_PEPPER (secret Kubernetes / Docker).
+# Ne jamais committer de pepper réel.
 pepper: ""
 keys: []

@@ -30,7 +30,8 @@ fn ner_onnx_readiness_ok_without_model_path() {
         .with_default_recognizers(&["en", "fr"])
         .build()
         .expect("engine");
-    eng.ensure_ner_onnx_ready().expect("sans model_path => prêt");
+    eng.ensure_ner_onnx_ready()
+        .expect("sans model_path => prêt");
 }
 
 #[test]

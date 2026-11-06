@@ -11,12 +11,12 @@ import (
 
 // Transformation correspond au JSON moteur (snake_case).
 type Transformation struct {
-	Replacement   string `json:"replacement"`
-	OriginalText  string `json:"original_text"`
-	EntityStart   int    `json:"entity_start"`
-	EntityEnd     int    `json:"entity_end"`
-	Operator      string `json:"operator"`
-	EntityType    string `json:"entity_type"`
+	Replacement  string `json:"replacement"`
+	OriginalText string `json:"original_text"`
+	EntityStart  int    `json:"entity_start"`
+	EntityEnd    int    `json:"entity_end"`
+	Operator     string `json:"operator"`
+	EntityType   string `json:"entity_type"`
 }
 
 // AnonymizedPayload extrait de la réponse FFI anonymize.

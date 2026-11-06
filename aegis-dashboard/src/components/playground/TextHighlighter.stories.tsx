@@ -1,6 +1,6 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TextHighlighter } from "./TextHighlighter";
 import type { PlaygroundEntity } from "./types";
 

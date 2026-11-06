@@ -25,7 +25,7 @@ func testEcho(t *testing.T) (*echo.Echo, *Services, config.Config) {
 		return bridge.NewMockEngine(), nil
 	})
 	ld := config.NewLoader()
-	if err := ld.MergeYAML([]byte("http_listen: :0\n")); err != nil {
+	if err := ld.MergeYAML([]byte("pool_size: 2\n")); err != nil {
 		t.Fatal(err)
 	}
 	svc := &Services{
