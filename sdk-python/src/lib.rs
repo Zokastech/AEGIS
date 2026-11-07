@@ -34,7 +34,7 @@ struct FfiAnonymizeConfig {
 }
 
 /// Occurrence PII détectée (exposée à Python).
-#[pyclass(name = "Entity", module = "aegis._native")]
+#[pyclass(name = "Entity", module = "aegis._native", from_py_object)]
 #[derive(Clone)]
 pub struct Entity {
     #[pyo3(get)]
@@ -100,7 +100,7 @@ impl Entity {
 }
 
 /// Enregistrement de transformation (anonymisation).
-#[pyclass(name = "TransformationRecord", module = "aegis._native")]
+#[pyclass(name = "TransformationRecord", module = "aegis._native", from_py_object)]
 #[derive(Clone)]
 pub struct TransformationRecord {
     #[pyo3(get)]
@@ -131,7 +131,7 @@ impl From<&aegis_anonymize::TransformationRecord> for TransformationRecord {
 }
 
 /// Résultat d’anonymisation.
-#[pyclass(name = "AnonymizedResult", module = "aegis._native")]
+#[pyclass(name = "AnonymizedResult", module = "aegis._native", from_py_object)]
 #[derive(Clone)]
 pub struct AnonymizedResult {
     #[pyo3(get)]
@@ -371,9 +371,9 @@ impl AegisEngine {
 
     fn __exit__(
         mut slf: PyRefMut<'_, Self>,
-        _exc_type: PyObject,
-        _exc_value: PyObject,
-        _traceback: PyObject,
+        _exc_type: Py<PyAny>,
+        _exc_value: Py<PyAny>,
+        _traceback: Py<PyAny>,
     ) -> PyResult<()> {
         slf.close()
     }

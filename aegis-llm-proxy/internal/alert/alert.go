@@ -10,7 +10,11 @@ import (
 	"time"
 )
 
-var httpClient = &http.Client{Timeout: 8 * time.Second}
+var httpClient = &http.Client{
+	Timeout: 8 * time.Second,
+	// Do not follow redirects: an alert must not be bounced to another (internal) host.
+	CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+}
 
 // Payload envoyé au webhook (mode alert).
 type Payload struct {
@@ -36,5 +40,8 @@ func SendWebhook(ctx context.Context, url string, p Payload) {
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	_, _ = httpClient.Do(req)
+	resp, err := httpClient.Do(req)
+	if err == nil {
+		_ = resp.Body.Close()
+	}
 }

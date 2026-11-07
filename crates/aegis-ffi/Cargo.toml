@@ -13,15 +13,18 @@ repository.workspace = true
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [features]
-default = []
+default = ["ner-onnx"]
+# Inférence L3 ONNX (`ort` + tokenizers). Désactiver : `--no-default-features` (stub mock si ner.model_path défini).
+ner-onnx = ["dep:aegis-ner"]
 # Dépendances optionnelles pour extensions Python / Node (crates SDK dédiés recommandés).
 python = ["dep:pyo3"]
 nodejs = ["dep:napi", "dep:napi-derive"]
 
 [dependencies]
-aegis-anonymize = { path = "../aegis-anonymize" }
-aegis-core = { path = "../aegis-core" }
-aegis-regex = { path = "../aegis-regex" }
+aegis-anonymize = { version = "0.2.0", path = "../aegis-anonymize" }
+aegis-core = { version = "0.2.0", path = "../aegis-core" }
+aegis-ner = { version = "0.2.0", path = "../aegis-ner", optional = true }
+aegis-regex = { version = "0.2.0", path = "../aegis-regex" }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 

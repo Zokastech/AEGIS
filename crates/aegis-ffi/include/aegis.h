@@ -86,9 +86,16 @@ void aegis_free(AegisHandle *handle);
 const char *aegis_last_error(void);
 
 /**
- * @brief Version semver du composant FFI (ex. "0.1.0"). Ne pas libérer.
+ * @brief Version semver du composant FFI (ex. "0.2.0"). Ne pas libérer.
  */
 const char *aegis_version(void);
+
+/**
+ * @brief Readiness NER ONNX : 1 si `ner.model_path` est absent / vide, ou si le modèle ONNX est chargé ;
+ *        0 si un chemin modèle est défini mais le backend n’est pas prêt (fichier manquant, tokenizer,
+ *        mock sans feature ner-onnx, etc.). Détail dans aegis_last_error() lorsque la valeur est 0.
+ */
+int32_t aegis_ner_onnx_ready(AegisHandle *handle);
 
 #ifdef __cplusplus
 }

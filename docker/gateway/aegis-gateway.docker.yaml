@@ -8,3 +8,5 @@ write_timeout: 30s
 engine_timeout: 30s
 pool_size: 4
 policy_dir: "/policies"
+# JSON moteur (équivalent AEGIS_ENGINE_INIT_JSON) : volume aegis_models monté sur /opt/aegis/models en docker-compose.yml.
+engine_init_json: '{"ner":{"model_path":"/opt/aegis/models/ner.onnx","device":"cpu","batch_size":8}}'

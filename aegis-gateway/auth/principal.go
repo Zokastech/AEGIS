@@ -8,10 +8,10 @@ import (
 
 // Principal is an authenticated identity (API key, JWT, mTLS, OIDC).
 type Principal struct {
-	Subject   string   // e.g. api_key:uuid, jwt:sub, mtls:CN
-	Role      string   // viewer | operator | admin | auditor
-	KeyID     string   // set for API key auth
-	AuthMethod string  // mtls | api_key | jwt | oidc
+	Subject    string // e.g. api_key:uuid, jwt:sub, mtls:CN
+	Role       string // viewer | operator | admin | auditor
+	KeyID      string // set for API key auth
+	AuthMethod string // mtls | api_key | jwt | oidc
 }
 
 const echoPrincipalKey = "aegis_principal"

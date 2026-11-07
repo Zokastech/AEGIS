@@ -44,7 +44,7 @@ inputs:
     required: false
     default: 'auto'
   cli_version:
-    description: 'Release tag for the CLI binary (e.g. v0.1.0) or "latest"'
+    description: 'Release tag for the CLI binary (e.g. v0.2.0) or "latest"'
     required: false
     default: 'latest'
   release_repo:

@@ -62,6 +62,8 @@
 
 ## Quick start
 
+> **v0.2.0 — security release.** Authentication, TLS and fail-closed defaults are now enforced everywhere. Read [RELEASE_NOTES.md](RELEASE_NOTES.md) (migration) and [INSTALL.md](INSTALL.md) (installation, API keys with `aegis-keygen`, production checklist). Full history: [CHANGELOG.md](CHANGELOG.md).
+
 ### Rust (CLI)
 
 ```bash
@@ -75,10 +77,13 @@ cargo build --release
 ```bash
 cd aegis-gateway
 export AEGIS_POLICY=policies/gdpr-strict.yaml
-# optional: export AEGIS_API_KEY=secret
-go run ./cmd/aegis-gateway
-curl -s localhost:8080/v1/health
-curl -s localhost:8080/v1/analyze -H "Content-Type: application/json" -d '{"text":"mail test@example.com"}'
+export AEGIS_API_KEY_PEPPER="$(openssl rand -hex 32)"
+KEY=$(go run ./cmd/aegis-keygen -file config/api_keys.local.yaml -role operator -id dev)
+printf 'api_keys:\n  file_path: config/api_keys.local.yaml\n' > /tmp/aegis-security.local.yaml
+go run ./cmd/aegis-gateway --security-config /tmp/aegis-security.local.yaml
+# HTTPS (self-signed cert generated in data/tls on first start) + API key required by default
+curl -sk https://localhost:8080/v1/analyze -H "X-API-Key: $KEY" \
+  -H "Content-Type: application/json" -d '{"text":"mail test@example.com"}'
 ```
 
 The **`aegis-policy`** module is consumed by the gateway (see root `go.work`).
@@ -109,7 +114,7 @@ This starts **aegis-core** (cargo-watch), **aegis-gateway** (air), **aegis-dashb
   gh auth login   # once
   ./scripts/fetch-zoka-onnx-from-ci.sh
   ```
-  Then point `ner.model_path` / `AEGIS_ENGINE_INIT_JSON` at `./models/ner.onnx` as in [.env.example](.env.example).
+  Dev Compose injects `AEGIS_ENGINE_INIT_JSON` via `env_file` (`.env.dev.defaults` then `.env`) on `aegis-gateway` → `/work/models/ner.onnx` once `./models` contains the bundle; override in `.env` if needed (see [.env.example](.env.example)).
 - **CLI binaries** — uploaded as workflow artifacts from [`ci.yml`](.github/workflows/ci.yml) (matrix of OS / Rust channel).
 
 ### Kubernetes (Helm)

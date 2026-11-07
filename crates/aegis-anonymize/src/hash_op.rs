@@ -108,4 +108,49 @@ mod tests {
         assert!(out.starts_with("blake3:"));
         assert_eq!(out.len(), "blake3:".len() + 20);
     }
+
+    fn email(text: &str) -> Entity {
+        Entity {
+            entity_type: EntityType::Email,
+            start: 0,
+            end: text.len(),
+            text: text.into(),
+            score: 1.0,
+            recognizer_name: "t".into(),
+            metadata: HashMap::new(),
+            decision_trace: None,
+        }
+    }
+
+    fn hash_with(params: &[(&str, &str)], text: &str) -> String {
+        let c = OperatorConfig {
+            operator_type: aegis_core::OperatorType::Hash,
+            params: params
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        };
+        HashOperator.operate(&email(text), "", &c)
+    }
+
+    #[test]
+    fn salt_changes_digest_and_output_is_deterministic() {
+        let a = hash_with(&[("salt", "s1")], "a@b.c");
+        let b = hash_with(&[("salt", "s2")], "a@b.c");
+        assert_ne!(a, b, "le sel doit modifier l’empreinte");
+        assert_eq!(a, hash_with(&[("salt", "s1")], "a@b.c"));
+        assert!(!a.contains("a@b.c"));
+    }
+
+    #[test]
+    fn algorithms_produce_distinct_lengths() {
+        for alg in ["sha256", "sha512", "blake3"] {
+            let out = hash_with(&[("algorithm", alg), ("salt", "x")], "a@b.c");
+            assert!(!out.contains("a@b.c"), "{alg}");
+        }
+        assert_ne!(
+            hash_with(&[("algorithm", "sha256")], "a@b.c"),
+            hash_with(&[("algorithm", "sha512")], "a@b.c")
+        );
+    }
 }

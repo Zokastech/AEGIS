@@ -1,7 +1,7 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
 import { useState, useMemo } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ConfidenceSlider } from "./ConfidenceSlider";
 import type { PlaygroundEntity } from "./types";
 
@@ -32,7 +32,7 @@ const mixedScores: PlaygroundEntity[] = [
 ];
 
 export const Interactif: Story = {
-  render: () => {
+  render: function ControlledStory() {
     const [t, setT] = useState(0.75);
     const scores = useMemo(() => mixedScores.map(({ score }) => ({ score })), []);
     return <ConfidenceSlider value={t} onChange={setT} entities={scores} />;
@@ -40,7 +40,7 @@ export const Interactif: Story = {
 };
 
 export const PeuDEntites: Story = {
-  render: () => {
+  render: function ExpertStory() {
     const [t, setT] = useState(0.8);
     const few = useMemo(
       () =>

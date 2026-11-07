@@ -118,7 +118,7 @@ jobs:
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install CycloneDX CLI (fusion)
         continue-on-error: true
@@ -199,6 +199,8 @@ jobs:
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           echo "IMAGE=ghcr.io/${owner}/aegis-gateway" >> "$GITHUB_ENV"
+          # Tag SemVer sans « v » : c’est ce qu’attend le chart Helm (image.tag = appVersion).
+          echo "SEMVER=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
@@ -223,6 +225,7 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ github.ref_name }}
+            ${{ env.IMAGE }}:${{ env.SEMVER }}
             ${{ env.IMAGE }}:latest
           provenance: mode=max
           sbom: true
@@ -297,6 +300,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           files: flat/*
+          body_path: RELEASE_NOTES.md
           generate_release_notes: true
           draft: false
         env:
@@ -322,7 +326,8 @@ jobs:
   publish-crates:
     name: Publish crates.io
     needs: [github-release]
-    if: ${{ secrets.CARGO_REGISTRY_TOKEN != '' }}
+    # Note : le contexte `secrets` est interdit dans `jobs.<id>.if` (workflow invalide) →
+    # le contrôle se fait au niveau des étapes via `env`.
     continue-on-error: true
     runs-on: ubuntu-latest
     env:
@@ -336,6 +341,7 @@ jobs:
 
       # Nécessite des dépendances `version = "x"` sur crates.io (pas seulement `path =`).
       - name: cargo publish (workspace crates)
+        if: ${{ env.CARGO_REGISTRY_TOKEN != '' }}
         run: |
           set -euo pipefail
           publish() {
@@ -358,9 +364,10 @@ jobs:
   publish-pypi:
     name: Publish PyPI
     needs: [github-release]
-    if: ${{ secrets.PYPI_API_TOKEN != '' }}
     continue-on-error: true
     runs-on: ubuntu-latest
+    env:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
@@ -375,12 +382,14 @@ jobs:
       - name: Install maturin
         run: pip install "maturin>=1.4,<2"
 
-      # Échoue tant que l’extension PyO3 / maturin n’est pas présente sous sdk-python.
-      - name: maturin build
+      - name: maturin build (wheel + sdist → sdk-python/dist)
         working-directory: sdk-python
-        run: maturin build --release
+        run: |
+          maturin build --release --out dist
+          maturin sdist --out dist
 
       - name: Publish to PyPI
+        if: ${{ env.PYPI_API_TOKEN != '' }}
         uses: pypa/gh-action-pypi-publish@76f52bc8e96aaeaebdee8410fbc4de3310570eae
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
@@ -392,22 +401,32 @@ jobs:
   publish-npm:
     name: Publish npm
     needs: [github-release]
-    if: ${{ secrets.NPM_TOKEN != '' }}
+    permissions:
+      contents: read
+      id-token: write
     continue-on-error: true
     runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN_SET: ${{ secrets.NPM_TOKEN != '' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
-          node-version: "20"
+          node-version: "24"
           registry-url: https://registry.npmjs.org
 
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+
       - name: npm publish
+        if: ${{ env.NPM_TOKEN_SET == 'true' }}
         working-directory: sdk-nodejs
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npm install
+          npm ci
           npm run build
-          npm publish --access public
+          npm test
+          npm publish --access public --provenance

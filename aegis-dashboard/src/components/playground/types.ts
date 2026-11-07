@@ -54,7 +54,8 @@ export type AnonymizationLink = {
 
 /** Minimal API shape (gateway / analyze). */
 export type ApiEntityLike = {
-  entity_type: string;
+  /** String (ex. `EMAIL`) ou objet serde pour `Custom` : `{ "CUSTOM": "B-ORG" }`. */
+  entity_type: string | Record<string, unknown>;
   start: number;
   end: number;
   text?: string;
@@ -62,6 +63,34 @@ export type ApiEntityLike = {
   recognizer?: string;
   decision_trace?: { steps?: Array<{ name: string; passed: boolean; detail?: string }>; pipeline_level?: number };
 };
+
+/**
+ * Normalise `entity_type` JSON (Rust `EntityType`) en chaîne stable pour l’UI.
+ * Les variantes `Custom` arrivent en externe-tag serde : `{ "CUSTOM": "label" }`.
+ */
+export function normalizeEntityType(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (raw != null && typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    const custom = o.CUSTOM ?? o.Custom ?? o.custom;
+    if (typeof custom === "string" && custom.length > 0) {
+      return `CUSTOM:${custom}`;
+    }
+    const keys = Object.keys(o);
+    if (keys.length === 1) {
+      const v = o[keys[0]];
+      if (typeof v === "string") {
+        return `${keys[0]}:${v}`;
+      }
+    }
+  }
+  if (raw === null || raw === undefined) return "UNKNOWN";
+  try {
+    return JSON.stringify(raw);
+  } catch {
+    return String(raw);
+  }
+}
 
 /**
  * Maps an API entity to the playground model (camelCase + id).
@@ -77,14 +106,15 @@ export function playgroundEntityFromApi(raw: ApiEntityLike, index: number): Play
         }
       : undefined;
 
+  const entityType = normalizeEntityType(raw.entity_type);
   return {
     id: `e-${index}-${raw.start}-${raw.end}`,
-    entityType: raw.entity_type,
+    entityType,
     start: raw.start,
     end: raw.end,
     text: raw.text,
     score: raw.score ?? 0,
-    recognizer: raw.recognizer ?? raw.entity_type,
+    recognizer: raw.recognizer ?? entityType,
     decisionTrace,
   };
 }

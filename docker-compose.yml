@@ -30,7 +30,7 @@ volumes:
 
 services:
   onnx-init:
-    image: alpine:3.20
+    image: alpine:3.24
     env_file: .env
     environment:
       MODELS_DIR: /models
@@ -57,6 +57,9 @@ services:
       - aegis_models:/opt/aegis/models:ro
     networks:
       - backend
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "/usr/local/bin/aegis", "analyze", "ping", "--config", "/etc/aegis/aegis.yaml"]
@@ -73,8 +76,12 @@ services:
     env_file: .env
     environment:
       AEGIS_INSECURE_HTTP: ${AEGIS_INSECURE_HTTP:-0}
+      # Pepper des clés API (obligatoire en v0.2.0 : `openssl rand -hex 32`).
+      AEGIS_API_KEY_PEPPER: ${AEGIS_API_KEY_PEPPER:?définir AEGIS_API_KEY_PEPPER dans .env}
     volumes:
       - aegis_audit:/var/lib/aegis
+      # Même volume que onnx-init / aegis-core : le moteur FFI charge NER depuis ce chemin (voir AEGIS_ENGINE_INIT_JSON).
+      - aegis_models:/opt/aegis/models:ro
     networks:
       frontend: {}
       backend: {}
@@ -85,6 +92,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
     restart: unless-stopped
     # Image distroless : pas de shell/wget ; sonde désactivée (utiliser K8s httpGet ou un sidecar).
     healthcheck:
@@ -95,6 +105,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.dashboard
     image: ${AEGIS_DASHBOARD_IMAGE:-aegis/dashboard:local}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - frontend
     ports:
@@ -114,7 +126,7 @@ services:
     env_file: .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-aegis}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aegis-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD dans .env (valeur forte, unique)}
       POSTGRES_DB: ${POSTGRES_DB:-aegis}
     volumes:
       - postgres_data:/var/lib/postgresql/data

@@ -136,4 +136,99 @@ mod tests {
             _ => panic!(),
         }
     }
+
+    use aegis_core::entity::EntityType;
+    use aegis_core::OperatorType;
+    use std::collections::HashMap;
+
+    const KEY_HEX: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+
+    fn entity(text: &str) -> Entity {
+        Entity {
+            entity_type: EntityType::Email,
+            start: 0,
+            end: text.len(),
+            text: text.into(),
+            score: 1.0,
+            recognizer_name: "t".into(),
+            metadata: HashMap::new(),
+            decision_trace: None,
+        }
+    }
+
+    fn cfg(key: &str, aad: Option<&str>) -> OperatorConfig {
+        let mut params = HashMap::new();
+        params.insert("key_hex".to_string(), key.to_string());
+        if let Some(a) = aad {
+            params.insert("aad".to_string(), a.to_string());
+        }
+        OperatorConfig {
+            operator_type: OperatorType::Encrypt,
+            params,
+        }
+    }
+
+    fn key() -> [u8; 32] {
+        let mut k = [0u8; 32];
+        k.copy_from_slice(&hex::decode(KEY_HEX).unwrap());
+        k
+    }
+
+    #[test]
+    fn encrypt_decrypt_roundtrip_with_aad() {
+        let out = EncryptOperator.operate(
+            &entity("jean@example.fr"),
+            "",
+            &cfg(KEY_HEX, Some("tenant-1")),
+        );
+        assert!(out.starts_with(ENC_PREFIX));
+        assert!(!out.contains("jean"));
+        let (nonce, ct) = split_enc_blob(&out).unwrap();
+        let pt = EncryptOperator::decrypt_blob(&key(), &nonce, &ct, b"tenant-1").unwrap();
+        assert_eq!(pt, b"jean@example.fr");
+    }
+
+    #[test]
+    fn decrypt_fails_with_wrong_key_aad_or_tampering() {
+        let out = EncryptOperator.operate(&entity("secret"), "", &cfg(KEY_HEX, Some("a")));
+        let (nonce, mut ct) = split_enc_blob(&out).unwrap();
+        let mut wrong = key();
+        wrong[0] ^= 1;
+        assert!(EncryptOperator::decrypt_blob(&wrong, &nonce, &ct, b"a").is_err());
+        assert!(EncryptOperator::decrypt_blob(&key(), &nonce, &ct, b"b").is_err());
+        ct[0] ^= 0xff;
+        assert!(EncryptOperator::decrypt_blob(&key(), &nonce, &ct, b"a").is_err());
+    }
+
+    #[test]
+    fn nonces_are_unique() {
+        let mut seen = std::collections::HashSet::new();
+        for _ in 0..256 {
+            let out = EncryptOperator.operate(&entity("same"), "", &cfg(KEY_HEX, None));
+            let (nonce, _) = split_enc_blob(&out).unwrap();
+            assert!(seen.insert(nonce), "nonce AES-GCM réutilisé");
+        }
+    }
+
+    #[test]
+    fn invalid_keys_never_leak_plaintext() {
+        for bad in ["", "zz", "0011", &KEY_HEX[..62]] {
+            let out = EncryptOperator.operate(&entity("plaintext-pii"), "", &cfg(bad, None));
+            assert_eq!(out, format!("{ENC_PREFIX}ERR_KEY"));
+        }
+        let no_key = OperatorConfig {
+            operator_type: OperatorType::Encrypt,
+            params: HashMap::new(),
+        };
+        assert!(!EncryptOperator
+            .operate(&entity("plaintext-pii"), "", &no_key)
+            .contains("plaintext"));
+    }
+
+    #[test]
+    fn malformed_blobs_rejected() {
+        assert!(split_enc_blob("nope").is_none());
+        assert!(split_enc_blob(&format!("{ENC_PREFIX}zz")).is_none());
+        assert!(split_enc_blob(&format!("{ENC_PREFIX}{}", hex::encode([0u8; 12]))).is_none());
+    }
 }

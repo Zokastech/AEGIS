@@ -62,43 +62,44 @@ export interface StreamAnalysisChunk {
   analysis: AnalysisResult
 }
 
+// NAPI-RS `#[napi(object)]` exposes Rust snake_case fields as camelCase in JavaScript.
 interface NativeEntity {
-  entity_type: string
+  entityType: string
   start: number
   end: number
   text: string
   score: number
-  recognizer_name: string
+  recognizerName: string
   metadata: Record<string, string>
 }
 
 interface NativeTransformationRecord {
-  entity_start: number
-  entity_end: number
-  original_text: string
+  entityStart: number
+  entityEnd: number
+  originalText: string
   replacement: string
   operator: string
-  entity_type: string
+  entityType: string
 }
 
 interface NativeAnonymizedResult {
   text: string
   transformations: NativeTransformationRecord[]
-  key_ids_used: string[]
-  mapping_hints: Record<string, string>
+  keyIdsUsed: string[]
+  mappingHints: Record<string, string>
 }
 
 interface NativeAnalysisResult {
   entities: NativeEntity[]
-  processing_time_ms: number
-  language_detected?: string | null
-  text_length: number
+  processingTimeMs: number
+  languageDetected?: string | null
+  textLength: number
 }
 
 interface NativeAnalyzeOptions {
   language?: string | null
   entities?: string[] | null
-  score_threshold?: number | null
+  scoreThreshold?: number | null
 }
 
 interface NativeEngine {
@@ -116,12 +117,12 @@ interface NativeBinding {
 
 function mapEntity(n: NativeEntity): Entity {
   return {
-    entityType: n.entity_type,
+    entityType: n.entityType,
     start: n.start,
     end: n.end,
     text: n.text,
     score: n.score,
-    recognizerName: n.recognizer_name,
+    recognizerName: n.recognizerName,
     metadata: n.metadata ?? {},
   }
 }
@@ -129,9 +130,9 @@ function mapEntity(n: NativeEntity): Entity {
 function mapAnalysis(n: NativeAnalysisResult): AnalysisResult {
   return {
     entities: (n.entities ?? []).map(mapEntity),
-    processingTimeMs: n.processing_time_ms,
-    languageDetected: n.language_detected ?? null,
-    textLength: n.text_length,
+    processingTimeMs: n.processingTimeMs,
+    languageDetected: n.languageDetected ?? null,
+    textLength: n.textLength,
   }
 }
 
@@ -139,15 +140,15 @@ function mapAnonymized(n: NativeAnonymizedResult): AnonymizedResult {
   return {
     text: n.text,
     transformations: (n.transformations ?? []).map((t) => ({
-      entityStart: t.entity_start,
-      entityEnd: t.entity_end,
-      originalText: t.original_text,
+      entityStart: t.entityStart,
+      entityEnd: t.entityEnd,
+      originalText: t.originalText,
       replacement: t.replacement,
       operator: t.operator,
-      entityType: t.entity_type,
+      entityType: t.entityType,
     })),
-    keyIdsUsed: n.key_ids_used ?? [],
-    mappingHints: n.mapping_hints ?? {},
+    keyIdsUsed: n.keyIdsUsed ?? [],
+    mappingHints: n.mappingHints ?? {},
   }
 }
 
@@ -156,7 +157,7 @@ function toNativeOptions(o?: AnalyzeOptions | null): NativeAnalyzeOptions | unde
   return {
     language: o.language ?? undefined,
     entities: o.entities ?? undefined,
-    score_threshold: o.scoreThreshold ?? undefined,
+    scoreThreshold: o.scoreThreshold ?? undefined,
   }
 }
 
@@ -166,9 +167,13 @@ function loadNative(): NativeBinding {
   const isDist = basename(here) === 'dist'
   const packageRoot = isDist ? join(here, '..') : here
   const triple = `${process.platform}-${process.arch}`
+  // `napi build --platform` names the addon after the full target triple
+  // (e.g. linux-x64-gnu, linux-arm64-musl, win32-x64-msvc, darwin-arm64).
+  const abis = process.platform === 'linux' ? ['gnu', 'musl'] : process.platform === 'win32' ? ['msvc'] : []
   const candidates = [
     join(packageRoot, 'aegis_pii_native.node'),
     join(packageRoot, `aegis_pii_native.${triple}.node`),
+    ...abis.map((abi) => join(packageRoot, `aegis_pii_native.${triple}-${abi}.node`)),
     join(here, 'aegis_pii_native.node'),
   ]
   for (const p of candidates) {

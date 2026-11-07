@@ -102,7 +102,7 @@ jobs:
 
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
-          go-version: "1.25.8"
+          go-version: "1.27.3"
           cache: true
           cache-dependency-path: |
             aegis-gateway/go.sum
@@ -111,13 +111,6 @@ jobs:
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-      - name: Pin patched gateway deps (GO-2026-4762, GO-2025-3553)
-        working-directory: aegis-gateway
-        run: |
-          go get google.golang.org/grpc@v1.79.3 \
-            github.com/golang-jwt/jwt/v5@v5.2.2 \
-            github.com/labstack/echo/v4@v4.13.4
-          go mod tidy
 
       - name: Resolved gateway modules (grpc / jwt / echo)
         working-directory: aegis-gateway
@@ -130,6 +123,46 @@ jobs:
       - name: govulncheck (aegis-gateway)
         working-directory: aegis-gateway
         run: govulncheck ./...
+
+      - name: govulncheck (aegis-llm-proxy)
+        working-directory: aegis-llm-proxy
+        env:
+          GOWORK: "off"
+        run: govulncheck ./...
+
+  # ---------------------------------------------------------------------------
+  # Secrets (gitleaks) + dépendances npm — v0.2.0
+  # ---------------------------------------------------------------------------
+  gitleaks:
+    name: gitleaks (secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+      - name: gitleaks detect
+        env:
+          GITLEAKS_VERSION: 8.28.0
+        run: |
+          set -euo pipefail
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar -xz -C /tmp gitleaks
+          /tmp/gitleaks git --redact --no-banner -v --config .gitleaks.toml .
+
+  npm-audit:
+    name: npm audit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir: [aegis-dashboard, sdk-nodejs]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "24"
+      - name: npm audit
+        working-directory: ${{ matrix.dir }}
+        run: npm audit --audit-level=moderate
 
   # ---------------------------------------------------------------------------
   # Trivy (image gateway)

@@ -28,7 +28,13 @@ func main() {
 	}
 
 	timeout := time.Duration(cfg.Engine.TimeoutSeconds) * time.Second
-	eng := engine.NewHTTP(cfg.Engine.BaseURL, timeout)
+	eng, err := engine.NewHTTPWithTLS(cfg.Engine.BaseURL, timeout, cfg.Engine.CAFile, os.Getenv(cfg.Engine.APIKeyEnv))
+	if err != nil {
+		log.Fatalf("engine: %v", err)
+	}
+	if eng.APIKey == "" {
+		log.Printf("avertissement : %s vide — la passerelle AEGIS v0.2.0 exige une clé API (rôle operator)", cfg.Engine.APIKeyEnv)
+	}
 	st := &stats.Registry{}
 	h, err := proxy.New(cfg, eng, st)
 	if err != nil {
@@ -40,7 +46,16 @@ func main() {
 		addr = p
 	}
 	log.Printf("AEGIS LLM proxy écoute %s → amont %s (mode=%s)", addr, cfg.UpstreamURL, cfg.Mode)
-	if err := http.ListenAndServe(addr, h); err != nil {
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           h,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       2 * time.Minute,
+		IdleTimeout:       2 * time.Minute,
+		MaxHeaderBytes:    64 << 10,
+		// No WriteTimeout: LLM streaming answers can legitimately last several minutes.
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

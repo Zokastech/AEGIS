@@ -1,5 +1,6 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
+/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -28,6 +29,10 @@ export default defineConfig({
     port: 5173,
     headers: dashboardSecurityHeaders,
     proxy: { ...gatewayProxy },
+  },
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.ts"],
   },
   preview: {
     headers: dashboardSecurityHeaders,

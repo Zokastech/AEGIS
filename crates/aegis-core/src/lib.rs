@@ -31,8 +31,8 @@ pub use context::{
     QuasiIdentifierYamlSection, ScorerWindowSettings, ScorerYamlBlock,
 };
 pub use engine::{
-    register_default_regex_loader, AnalyzerEngine, AnalyzerEngineBuilder, DefaultRegexLoaderFn,
-    PipelineLevel,
+    register_default_regex_loader, try_register_onnx_ner_loader, AnalyzerEngine,
+    AnalyzerEngineBuilder, DefaultRegexLoaderFn, OnnxNerLoadFn, PipelineLevel,
 };
 pub use entity::{AnalysisResult, Entity, EntityType};
 pub use error::{AegisError, Result};

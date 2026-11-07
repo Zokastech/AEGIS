@@ -20,6 +20,8 @@ type Engine interface {
 	Deanonymize(ctx context.Context, bodyJSON string) (json string, err error)
 	LastError() string
 	Version() string
+	// NerOnnxReady returns nil if no NER model path is configured or ONNX NER is loaded.
+	NerOnnxReady() error
 }
 
 // Pool manages multiple Rust handles (thread-safe reuse).

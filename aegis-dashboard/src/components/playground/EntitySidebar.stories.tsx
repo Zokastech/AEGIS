@@ -1,7 +1,7 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
 import { useState, useCallback } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { EntitySidebar } from "./EntitySidebar";
 import type { PlaygroundEntity } from "./types";
 

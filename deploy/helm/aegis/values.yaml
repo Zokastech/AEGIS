@@ -68,7 +68,8 @@ core:
   replicaCount: 1
   image:
     repository: ghcr.io/zokastech/aegis-core
-    tag: latest
+    # Vide = .Chart.AppVersion (évite « latest » non reproductible).
+    tag: ""
     pullPolicy: IfNotPresent
   # Commande / args (adapter à l’image : debian slim utilise sleep ; image avec tini : voir docker/Dockerfile.core).
   command:
@@ -125,7 +126,7 @@ gateway:
   replicaCount: 2
   image:
     repository: ghcr.io/zokastech/aegis-gateway
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -134,9 +135,10 @@ gateway:
   grpc:
     enabled: true
     port: 9090
-  # Si le listener TLS est activé dans la config du binaire, les probes doivent utiliser HTTPS.
+  # v0.2.0 : l’image écoute en HTTPS (certificat auto-généré ou monté) → probes en HTTPS.
+  # false = HTTP clair (AEGIS_INSECURE_HTTP=1), uniquement derrière un mesh mTLS (Istio/Linkerd).
   tls:
-    enabled: false
+    enabled: true
   probes:
     livenessPath: /health/live
     readinessPath: /health/ready
@@ -154,6 +156,10 @@ gateway:
     - name: AEGIS_POLICY
       value: /policies/gdpr-strict.yaml
   # Variables sensibles (créées dans un Secret {{fullname}}-gateway-env).
+  # v0.2.0 : l’authentification est active par défaut → fournir au minimum le pepper :
+  #   --set-string gateway.secretEnv.AEGIS_API_KEY_PEPPER=$(openssl rand -hex 32)
+  # et monter le fichier de clés (aegis-keygen) via extraVolumes/extraVolumeMounts
+  # sur /var/lib/aegis/api_keys.yaml (voir docs/INSTALL.md).
   secretEnv: {}
   # Données additionnelles du Secret (fusionnées avec secretEnv).
   extraSecretData: {}
@@ -189,7 +195,7 @@ dashboard:
   replicaCount: 1
   image:
     repository: ghcr.io/zokastech/aegis-dashboard
-    tag: latest
+    tag: ""
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -249,7 +255,8 @@ postgresql:
   enabled: false
   auth:
     username: aegis
-    password: changeme
+    # Ne jamais committer de mot de passe : fournir via --set / secret externe.
+    password: ""
     database: aegis
   persistence:
     enabled: false

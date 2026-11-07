@@ -1,5 +1,6 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
+import { useMemo } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,7 @@ import {
   AnonymizationOperatorSelect,
   PlaygroundConfigPreview,
 } from "@/components/playground";
-import { ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { usePlaygroundPage } from "@/hooks/usePlaygroundPage";
 
 export function PlaygroundPage() {
@@ -52,6 +53,12 @@ export function PlaygroundPage() {
     insertSampleText,
     insertZokaSentinelDemo,
   } = usePlaygroundPage();
+
+  const pendingHighlightMessage = useMemo(() => {
+    if (pipeline === 3) return t("playground.nerLoading");
+    if (analyzeMut.isPending) return t("playground.analyzing");
+    return t("playground.anonymizing");
+  }, [pipeline, analyzeMut.isPending, anonymMut.isPending, t]);
 
   return (
     <div className="space-y-6">
@@ -119,12 +126,27 @@ export function PlaygroundPage() {
             {analyzeError ? <p className="text-xs text-red-400">{analyzeError}</p> : null}
             {anonymError ? <p className="text-xs text-red-400">{anonymError}</p> : null}
             <PlaygroundConfigPreview analysisConfigJson={configJson} anonymizeConfigJson={anonymizeConfigJson} />
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => analyzeMut.mutate()} disabled={analyzeMut.isPending}>
-                {t("playground.analyze")}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => analyzeMut.mutate()} disabled={analyzeMut.isPending} className="gap-2">
+                {analyzeMut.isPending ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                ) : null}
+                {pipeline === 3 && analyzeMut.isPending
+                  ? t("playground.nerAnalyzeLoading")
+                  : t("playground.analyze")}
               </Button>
-              <Button variant="secondary" onClick={() => anonymMut.mutate()} disabled={anonymMut.isPending}>
-                {t("playground.anonymize")}
+              <Button
+                variant="secondary"
+                onClick={() => anonymMut.mutate()}
+                disabled={anonymMut.isPending}
+                className="gap-2"
+              >
+                {anonymMut.isPending ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                ) : null}
+                {pipeline === 3 && anonymMut.isPending
+                  ? t("playground.nerAnonymizeLoading")
+                  : t("playground.anonymize")}
               </Button>
             </div>
           </CardContent>
@@ -163,8 +185,15 @@ export function PlaygroundPage() {
             <div>
               <Label className="mb-2 block text-muted-foreground">{t("playground.highlightLabel")}</Label>
               <div className="min-h-[100px] rounded-md border border-border bg-muted/20 p-3">
-                {analyzeMut.isPending ? (
-                  <span className="font-mono text-sm text-muted-foreground">{t("playground.analyzing")}</span>
+                {analyzeMut.isPending || anonymMut.isPending ? (
+                  <div
+                    className="flex items-center gap-2 font-mono text-sm text-muted-foreground"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                    {pendingHighlightMessage}
+                  </div>
                 ) : (
                   <TextHighlighter text={text} entities={entities} />
                 )}
@@ -216,8 +245,8 @@ export function PlaygroundPage() {
                     </div>
                     {d != null && d.steps.length > 0 ? (
                       <ul className="text-sm text-muted-foreground">
-                        {d.steps.map((s) => (
-                          <li key={`${e.id}-${s.name}`}>
+                        {d.steps.map((s, stepIdx) => (
+                          <li key={`${e.id}-st-${stepIdx}-${s.name}`}>
                             {s.name} → {s.passed ? t("playground.decisionTraceStepOk") : t("playground.decisionTraceStepReject")}
                             {s.detail != null && s.detail !== "" ? (
                               <span className="block pl-2 text-xs opacity-80">{s.detail}</span>

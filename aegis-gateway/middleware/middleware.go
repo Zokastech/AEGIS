@@ -3,9 +3,15 @@
 package middleware
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +29,7 @@ func RequestID() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			rid := c.Request().Header.Get(HeaderRequestID)
-			if rid == "" {
+			if !validRequestID(rid) {
 				rid = uuid.NewString()
 			}
 			c.Response().Header().Set(HeaderRequestID, rid)
@@ -31,6 +37,22 @@ func RequestID() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+// validRequestID accepts client-supplied IDs only if short and made of safe characters
+// (prevents log/audit injection and header abuse).
+func validRequestID(s string) bool {
+	if s == "" || len(s) > 128 {
+		return false
+	}
+	for _, r := range s {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-', r == '_', r == '.', r == ':':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 // ZerologLogger logs each request (structured JSON).
@@ -87,7 +109,9 @@ func SecurityHeaders(tlsActive bool) echo.MiddlewareFunc {
 			c.Response().Header().Set("X-Content-Type-Options", "nosniff")
 			c.Response().Header().Set("X-Frame-Options", "DENY")
 			c.Response().Header().Set("Cache-Control", "no-store")
-			c.Response().Header().Set("Content-Security-Policy", "frame-ancestors 'none'")
+			c.Response().Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+			c.Response().Header().Set("Referrer-Policy", "no-referrer")
+			c.Response().Header().Set("Cross-Origin-Resource-Policy", "same-origin")
 			return next(c)
 		}
 	}
@@ -95,15 +119,26 @@ func SecurityHeaders(tlsActive bool) echo.MiddlewareFunc {
 
 // CORS configurable (legacy: empty origins → *).
 func CORS(allowOrigins []string) echo.MiddlewareFunc {
+	return corsWithOrigins(allowOrigins)
+}
+
+// corsWithOrigins never combines a wildcard origin with credentials.
+func corsWithOrigins(allowOrigins []string) echo.MiddlewareFunc {
 	orig := allowOrigins
+	wildcard := len(orig) == 0
+	for _, o := range orig {
+		if strings.TrimSpace(o) == "*" {
+			wildcard = true
+		}
+	}
 	if len(orig) == 0 {
 		orig = []string{"*"}
 	}
 	return middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     orig,
-		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.OPTIONS},
+		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.DELETE, echo.OPTIONS},
 		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, HeaderRequestID, "X-API-Key", "Authorization", "X-Aegis-Role", "X-Aegis-Approval-1", "X-Aegis-Approval-2"},
-		AllowCredentials: true,
+		AllowCredentials: !wildcard,
 	})
 }
 
@@ -116,19 +151,80 @@ func CORSFromSecurity(production bool, allowOrigins []string) echo.MiddlewareFun
 			}
 		}
 	}
-	orig := allowOrigins
-	if len(orig) == 0 {
-		orig = []string{"*"}
-	}
-	return middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     orig,
-		AllowMethods:     []string{echo.GET, echo.POST, echo.PUT, echo.OPTIONS},
-		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, HeaderRequestID, "X-API-Key", "Authorization", "X-Aegis-Role", "X-Aegis-Approval-1", "X-Aegis-Approval-2"},
-		AllowCredentials: true,
-	})
+	return corsWithOrigins(allowOrigins)
 }
 
-// RateLimitIP rate-limits by client IP (best-effort).
+// limiterSet is a concurrency-safe set of token buckets with idle eviction and a hard cap,
+// so an attacker rotating IPs/keys cannot exhaust memory.
+type limiterSet struct {
+	mu      sync.Mutex
+	rps     rate.Limit
+	burst   int
+	maxSize int
+	idle    time.Duration
+	items   map[string]*limiterEntry
+	lastGC  time.Time
+	now     func() time.Time
+}
+
+type limiterEntry struct {
+	lim      *rate.Limiter
+	lastSeen time.Time
+}
+
+const (
+	defaultLimiterMaxEntries = 100_000
+	defaultLimiterIdle       = 10 * time.Minute
+)
+
+func newLimiterSet(rps float64, burst int) *limiterSet {
+	return &limiterSet{
+		rps:     rate.Limit(rps),
+		burst:   burst,
+		maxSize: defaultLimiterMaxEntries,
+		idle:    defaultLimiterIdle,
+		items:   make(map[string]*limiterEntry),
+		now:     time.Now,
+	}
+}
+
+// allow reports whether one more event is permitted for key.
+func (s *limiterSet) allow(key string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	now := s.now()
+	if now.Sub(s.lastGC) > time.Minute || len(s.items) >= s.maxSize {
+		s.gcLocked(now)
+	}
+	e, ok := s.items[key]
+	if !ok {
+		if len(s.items) >= s.maxSize {
+			// Table full of active clients: fail closed for unknown keys instead of growing.
+			return false
+		}
+		e = &limiterEntry{lim: rate.NewLimiter(s.rps, s.burst)}
+		s.items[key] = e
+	}
+	e.lastSeen = now
+	return e.lim.AllowN(now, 1)
+}
+
+func (s *limiterSet) gcLocked(now time.Time) {
+	for k, e := range s.items {
+		if now.Sub(e.lastSeen) > s.idle {
+			delete(s.items, k)
+		}
+	}
+	s.lastGC = now
+}
+
+func (s *limiterSet) size() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.items)
+}
+
+// RateLimitIP rate-limits by client IP (Echo RealIP: configure e.IPExtractor via TrustedProxyIPExtractor).
 func RateLimitIP(rps float64, burst int) echo.MiddlewareFunc {
 	if rps <= 0 {
 		rps = 50
@@ -136,24 +232,19 @@ func RateLimitIP(rps float64, burst int) echo.MiddlewareFunc {
 	if burst <= 0 {
 		burst = int(rps * 2)
 	}
-	limiters := map[string]*rate.Limiter{}
+	set := newLimiterSet(rps, burst)
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			ip := c.RealIP()
-			lim, ok := limiters[ip]
-			if !ok {
-				lim = rate.NewLimiter(rate.Limit(rps), burst)
-				limiters[ip] = lim
-			}
-			if !lim.Allow() {
-				return echo.NewHTTPError(429, "rate limit exceeded")
+			if !set.allow(c.RealIP()) {
+				return echo.NewHTTPError(http.StatusTooManyRequests, "rate limit exceeded")
 			}
 			return next(c)
 		}
 	}
 }
 
-// RateLimitAPIKey rate-limits by API key value when the header is present.
+// RateLimitAPIKey rate-limits by API key when the header is present.
+// Buckets are keyed by SHA-256 of the key so plaintext secrets are never retained in memory maps.
 func RateLimitAPIKey(header string, rps float64, burst int) echo.MiddlewareFunc {
 	if rps <= 0 {
 		rps = 100
@@ -164,21 +255,68 @@ func RateLimitAPIKey(header string, rps float64, burst int) echo.MiddlewareFunc 
 	if header == "" {
 		header = "X-API-Key"
 	}
-	limiters := map[string]*rate.Limiter{}
+	set := newLimiterSet(rps, burst)
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			key := strings.TrimSpace(c.Request().Header.Get(header))
 			if key == "" {
 				return next(c)
 			}
-			lim, ok := limiters[key]
-			if !ok {
-				lim = rate.NewLimiter(rate.Limit(rps), burst)
-				limiters[key] = lim
+			sum := sha256.Sum256([]byte(key))
+			if !set.allow(hex.EncodeToString(sum[:16])) {
+				return echo.NewHTTPError(http.StatusTooManyRequests, "api key rate limit exceeded")
 			}
-			if !lim.Allow() {
-				return echo.NewHTTPError(429, "api key rate limit exceeded")
+			return next(c)
+		}
+	}
+}
+
+// TrustedProxyIPExtractor returns an Echo IP extractor.
+// With no trusted proxies, the direct TCP peer is used and X-Forwarded-For / X-Real-IP are ignored
+// (they are client-controlled and would allow rate-limit bypass and audit-log spoofing).
+// With trusted CIDRs/IPs, X-Forwarded-For is honoured only when the peer is one of them.
+func TrustedProxyIPExtractor(trusted []string) (echo.IPExtractor, error) {
+	if len(trusted) == 0 {
+		return echo.ExtractIPDirect(), nil
+	}
+	opts := []echo.TrustOption{
+		echo.TrustLoopback(false),
+		echo.TrustLinkLocal(false),
+		echo.TrustPrivateNet(false),
+	}
+	for _, t := range trusted {
+		t = strings.TrimSpace(t)
+		if t == "" {
+			continue
+		}
+		if !strings.Contains(t, "/") {
+			if ip := net.ParseIP(t); ip != nil && ip.To4() != nil {
+				t += "/32"
+			} else {
+				t += "/128"
 			}
+		}
+		_, n, err := net.ParseCIDR(t)
+		if err != nil {
+			return nil, fmt.Errorf("trusted_proxies: %q invalide: %w", t, err)
+		}
+		opts = append(opts, echo.TrustIPRange(n))
+	}
+	return echo.ExtractIPFromXFFHeader(opts...), nil
+}
+
+// BodyLimit caps request bodies (bytes). 0 or negative = 10 MiB.
+func BodyLimit(maxBytes int64) echo.MiddlewareFunc {
+	if maxBytes <= 0 {
+		maxBytes = 10 << 20
+	}
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			req := c.Request()
+			if req.ContentLength > maxBytes {
+				return echo.NewHTTPError(http.StatusRequestEntityTooLarge, "corps de requête trop volumineux")
+			}
+			req.Body = http.MaxBytesReader(c.Response(), req.Body, maxBytes)
 			return next(c)
 		}
 	}

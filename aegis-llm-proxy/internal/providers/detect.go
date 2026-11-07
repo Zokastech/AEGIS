@@ -20,23 +20,24 @@ const (
 
 // ClassifyPath déduit le provider depuis le chemin HTTP.
 func ClassifyPath(path string) Kind {
+	// Strip query/fragment once (no recursion: the previous recursive fallback never terminated
+	// for unknown paths and crashed the process with a fatal stack overflow — trivial DoS).
+	if u, err := url.Parse(path); err == nil && u.Path != "" {
+		path = u.Path
+	}
 	p := strings.TrimSuffix(path, "/")
 	switch {
 	case strings.Contains(p, "/chat/completions"):
 		return KindOpenAIChat
-	case strings.HasSuffix(p, "/completions") && !strings.Contains(p, "/chat/completions"):
+	case strings.HasSuffix(p, "/completions"):
 		return KindOpenAICompletion
 	case strings.HasSuffix(p, "/messages") && strings.Contains(p, "/v1/messages"):
 		return KindAnthropicMessages
 	default:
-		if u, err := url.Parse(path); err == nil {
-			return ClassifyPath(u.Path)
-		}
 		return KindUnknown
 	}
 }
 
-// PeekStream détecte `"stream":true` dans un JSON (corps requête OpenAI / compatible).
 func PeekStream(body []byte) bool {
 	var v struct {
 		Stream bool `json:"stream"`

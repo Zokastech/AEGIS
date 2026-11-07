@@ -1,7 +1,7 @@
 // AEGIS — zokastech.fr — Apache 2.0 / MIT
 
 import { useState } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { PipelineLevelSelector, type PipelineLevel } from "./PipelineLevelSelector";
 
 const meta = {
@@ -22,14 +22,14 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Interactif: Story = {
-  render: () => {
+  render: function ControlledStory() {
     const [v, setV] = useState<PipelineLevel>(2);
     return <PipelineLevelSelector value={v} onChange={setV} />;
   },
 };
 
 export const Niveau1: Story = {
-  render: () => {
+  render: function ExpertStory() {
     const [v, setV] = useState<PipelineLevel>(1);
     return <PipelineLevelSelector value={v} onChange={setV} />;
   },

@@ -14,19 +14,19 @@ const (
 const (
 	PermPublicProbe = "probe:public"
 
-	PermAnalyzeExecute    = "analyze:execute"
-	PermAnalyzeBatch      = "analyze:batch"
-	PermAnonymizeExecute  = "anonymize:execute"
+	PermAnalyzeExecute     = "analyze:execute"
+	PermAnalyzeBatch       = "analyze:batch"
+	PermAnonymizeExecute   = "anonymize:execute"
 	PermDeanonymizeExecute = "deanonymize:execute"
-	PermConfigWrite       = "config:write"
-	PermMetaRead          = "meta:read"
-	PermMetricsView       = "metrics:view"
-	PermAuditRead         = "audit:read"
-	PermAuditExport       = "audit:export"
-	PermAPIKeysManage     = "apikeys:manage"
-	PermPolicyList        = "policy:list"
-	PermPolicyDPIA        = "policy:dpia"
-	PermSubjectsErase     = "subjects:erase"
+	PermConfigWrite        = "config:write"
+	PermMetaRead           = "meta:read"
+	PermMetricsView        = "metrics:view"
+	PermAuditRead          = "audit:read"
+	PermAuditExport        = "audit:export"
+	PermAPIKeysManage      = "apikeys:manage"
+	PermPolicyList         = "policy:list"
+	PermPolicyDPIA         = "policy:dpia"
+	PermSubjectsErase      = "subjects:erase"
 )
 
 // DefaultRolePermissions maps role → permissions.

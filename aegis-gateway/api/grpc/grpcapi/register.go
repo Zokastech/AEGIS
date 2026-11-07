@@ -32,7 +32,8 @@ const (
 	aegisGatewayListRecognizersFullMethodName = "/aegis.gateway.v1.AegisGateway/ListRecognizers"
 	aegisGatewayListEntityTypesFullMethodName = "/aegis.gateway.v1.AegisGateway/ListEntityTypes"
 	aegisGatewayUpdateConfigFullMethodName    = "/aegis.gateway.v1.AegisGateway/UpdateConfig"
-	aegisGatewayHealthFullMethodName        = "/aegis.gateway.v1.AegisGateway/Health"
+	aegisGatewayHealthFullMethodName          = "/aegis.gateway.v1.AegisGateway/Health"
+	aegisGatewayStreamAnalyzeFullMethodName   = "/aegis.gateway.v1.AegisGateway/StreamAnalyze"
 )
 
 // RegisterAegisGatewayServer registers the service (grpc.Server or xds.GRPCServer).

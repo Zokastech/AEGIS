@@ -10,7 +10,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-aegis-core = { path = "../aegis-core" }
+aegis-core = { version = "0.2.0", path = "../aegis-core" }
 aes = "0.8"
 aes-gcm.workspace = true
 blake3 = "1.5"

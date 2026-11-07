@@ -4,10 +4,13 @@ package rest
 
 import (
 	"context"
+	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -31,6 +34,8 @@ type Services struct {
 	Loader        *gwconfig.Loader
 	Gateway       *GatewaySecurity // nil → routes legacy (tests / compat)
 	Policy        *policy.PolicyEngine
+	// Readiness runs engine version + NER ONNX checks (Kubernetes /readyz). If nil, /readyz stays 204.
+	Readiness func(context.Context) error
 	// AnalyzeUC is the “analyze a text” use case (application layer).
 	AnalyzeUC *app.Analyze
 }
@@ -527,35 +532,68 @@ func filterAnalysisJSON(raw []byte, allow func(string) bool) []byte {
 	return b
 }
 
-// RequireAdmin checks X-API-Key ∈ adminKeys (or X-Aegis-Role: admin with no key when no keys are configured — dev mode).
+// RequireAdmin checks X-API-Key ∈ adminKeys (legacy mode, constant-time comparison).
+// The X-Aegis-Role: admin shortcut (no keys configured) is only honoured when
+// AEGIS_DEV_ALLOW_ROLE_HEADER=1 is set explicitly — never implicitly.
 func RequireAdmin(adminKeys []string, apiKeyHeader string) echo.MiddlewareFunc {
-	set := map[string]struct{}{}
-	for _, k := range adminKeys {
-		k = strings.TrimSpace(k)
-		if k != "" {
-			set[k] = struct{}{}
-		}
-	}
+	keys := nonEmpty(adminKeys)
 	if apiKeyHeader == "" {
 		apiKeyHeader = "X-API-Key"
 	}
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			role := strings.EqualFold(c.Request().Header.Get("X-Aegis-Role"), "admin")
 			key := strings.TrimSpace(c.Request().Header.Get(apiKeyHeader))
-			if len(set) == 0 {
-				if role {
+			if len(keys) == 0 {
+				if roleHeaderAllowed() && strings.EqualFold(c.Request().Header.Get("X-Aegis-Role"), "admin") {
 					return next(c)
 				}
-				return errJSON(c, http.StatusForbidden, "FORBIDDEN", "admin: définir admin_api_keys ou X-Aegis-Role: admin (dev)")
+				return errJSON(c, http.StatusForbidden, "FORBIDDEN", "admin: définir admin_api_keys (ou AEGIS_DEV_ALLOW_ROLE_HEADER=1 en dev)")
 			}
-			if _, ok := set[key]; ok {
+			if adminKeyMatch(keys, key) {
 				return next(c)
 			}
-			if role && key == "" {
+			if key == "" {
 				return errJSON(c, http.StatusForbidden, "FORBIDDEN", "clé admin requise")
 			}
 			return errJSON(c, http.StatusForbidden, "FORBIDDEN", "clé admin invalide")
 		}
 	}
+}
+
+func nonEmpty(in []string) []string {
+	out := make([]string, 0, len(in))
+	for _, k := range in {
+		if k = strings.TrimSpace(k); k != "" {
+			out = append(out, k)
+		}
+	}
+	return out
+}
+
+// adminKeyMatch compares in constant time against every configured key (no early exit).
+func adminKeyMatch(keys []string, presented string) bool {
+	if presented == "" {
+		return false
+	}
+	ph := sha256.Sum256([]byte(presented))
+	match := 0
+	for _, k := range nonEmpty(keys) {
+		kh := sha256.Sum256([]byte(k))
+		match |= subtle.ConstantTimeCompare(ph[:], kh[:])
+	}
+	return match == 1
+}
+
+func roleHeaderAllowed() bool {
+	return os.Getenv("AEGIS_DEV_ALLOW_ROLE_HEADER") == "1"
+}
+
+// FilterAnalysisForPrincipal applies RBAC entity-type filtering for non-HTTP transports (gRPC).
+func FilterAnalysisForPrincipal(raw []byte, s *Services, p *auth.Principal) []byte {
+	if s == nil || s.Gateway == nil || p == nil {
+		return raw
+	}
+	return filterAnalysisJSON(raw, func(entityType string) bool {
+		return s.Gateway.RBAC.EntityTypeAllowed(p.Role, entityType)
+	})
 }

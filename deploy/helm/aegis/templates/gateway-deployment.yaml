@@ -60,7 +60,13 @@ spec:
               protocol: TCP
             {{- end }}
           env:
-            {{- toYaml .Values.gateway.env | nindent 12 }}
+            {{- if not .Values.gateway.tls.enabled }}
+            - name: AEGIS_INSECURE_HTTP
+              value: "1"
+            {{- end }}
+            {{- with .Values.gateway.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           {{- if or .Values.gateway.secretEnv .Values.gateway.extraSecretData }}
           envFrom:
             - secretRef:

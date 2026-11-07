@@ -13,7 +13,7 @@ import (
 
 // Opts configures probes (injected from cmd to avoid an import cycle with rest).
 type Opts struct {
-	// PingEngine checks the engine (FFI / mock) — e.g. Pool.With + Version().
+	// PingEngine checks the engine (FFI / mock): version + NER ONNX readiness when ner.model_path is set.
 	PingEngine func(ctx context.Context) error
 	// RedisPing is optional; if nil, Redis is treated as ready (no Redis configured).
 	RedisPing func(ctx context.Context) error

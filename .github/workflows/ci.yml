@@ -1,6 +1,6 @@
 # =============================================================================
 # AEGIS — zokastech.fr — https://zokastech.fr
-# CI principal : Rust (fmt + matrice stable/nightly × OS) + Go + SBOM Syft
+# CI principal : Rust (fmt + matrice stable/nightly × OS) + Go (+race) + SDK Python/Node + dashboard + SBOM Syft
 # =============================================================================
 # Analyse sécurité Rust (RustSec + licences / graphe) : workflow « Security »
 # (.github/workflows/security.yml) — cargo audit, cargo deny (deny.toml).
@@ -120,7 +120,7 @@ jobs:
       # setup-go@v6.4.0 — cache modules si go.sum présent (sinon ignoré).
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
-          go-version: "1.25.8"
+          go-version: "1.27.3"
           cache: true
           cache-dependency-path: |
             aegis-gateway/go.sum
@@ -151,6 +151,104 @@ jobs:
           name: aegis-gateway-bin-${{ matrix.os }}
           path: target/go-aegis-gateway*
           if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # go-race : tests Go avec détecteur de courses (gateway + llm-proxy) — v0.2.0.
+  # ---------------------------------------------------------------------------
+  go-race:
+    name: Go race + llm-proxy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
+        with:
+          go-version: "1.27.3"
+          cache: true
+          cache-dependency-path: |
+            aegis-gateway/go.sum
+            aegis-policy/go.sum
+            aegis-llm-proxy/go.sum
+      - name: aegis-gateway — go test -race
+        working-directory: aegis-gateway
+        run: go test -race -count=1 ./...
+      - name: aegis-llm-proxy — vet + go test -race
+        working-directory: aegis-llm-proxy
+        env:
+          GOWORK: "off"
+        run: |
+          go vet ./...
+          go test -race -count=1 ./...
+
+  # ---------------------------------------------------------------------------
+  # sdk-python : extension PyO3 (maturin) + pytest.
+  # ---------------------------------------------------------------------------
+  sdk-python:
+    name: SDK Python (maturin + pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          workspaces: sdk-python
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+      - name: Build + test
+        working-directory: sdk-python
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install "maturin>=1.6,<2" pytest pandas
+          maturin develop --release
+          python -m pytest -q tests
+
+  # ---------------------------------------------------------------------------
+  # sdk-nodejs : addon NAPI-RS + tests node:test.
+  # ---------------------------------------------------------------------------
+  sdk-nodejs:
+    name: SDK Node.js (napi + node:test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32
+        with:
+          workspaces: sdk-nodejs
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "24"
+      - name: Build + test
+        working-directory: sdk-nodejs
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm audit --audit-level=high
+
+  # ---------------------------------------------------------------------------
+  # dashboard : lint + vitest + build + npm audit.
+  # ---------------------------------------------------------------------------
+  dashboard:
+    name: Dashboard (lint + vitest + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "24"
+      - name: npm ci / lint / test / build / audit
+        working-directory: aegis-dashboard
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+          npm audit --audit-level=moderate
 
   # ---------------------------------------------------------------------------
   # python-training : pytest sur le pipeline NER (dataset_builder, labels).
